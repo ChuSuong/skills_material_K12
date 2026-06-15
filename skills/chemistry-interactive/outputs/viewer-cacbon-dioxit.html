@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cacbon đioxit — CO₂ | Học liệu Hoá học</title>
+<meta name="description" content="Mô hình phân tử Cacbon đioxit (CO₂) tương tác 3D — xem cấu trúc Ball & Stick, Space Fill, Stick, Wireframe bằng 3Dmol.js và PubChem.">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;padding:0 0 40px}
+.wrap{max-width:720px;margin:0 auto;padding:28px 16px}
+
+/* Header */
+.header{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.icon{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 6px 16px rgba(99,102,241,.35);flex-shrink:0}
+.htitle{flex:1}
+h1{font-size:26px;font-weight:700;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.badge{font-size:14px;padding:3px 13px;background:#ede9fe;color:#6d28d9;border-radius:20px;font-weight:600;letter-spacing:.03em}
+.cid-tag{font-size:12px;color:#999;margin-top:1px}
+.mcard{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:10px 18px;text-align:center;flex-shrink:0}
+.mcard .ml{font-size:11px;color:#999;margin-bottom:2px}
+.mcard .mv{font-size:18px;font-weight:700;color:#1a1a1a}
+.mcard .mu{font-size:11px;font-weight:400;color:#666}
+
+/* Description */
+.desc{font-size:14px;color:#555;line-height:1.75;margin-bottom:16px;
+  background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:14px 18px;
+  border-left:4px solid #8b5cf6}
+
+/* Mode bar */
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.btn{padding:7px 18px;font-size:13px;border-radius:22px;border:1px solid #ddd;
+  background:#fff;cursor:pointer;font-family:inherit;transition:all .15s;color:#555}
+.btn.on{border-color:#7c3aed;background:#ede9fe;color:#6d28d9;font-weight:600;
+  box-shadow:0 2px 10px rgba(124,58,237,.2)}
+.btn:hover:not(.on){background:#f3f0ff;border-color:#c4b5fd}
+
+/* Viewer */
+.viewer-wrap{border-radius:16px;overflow:hidden;border:1px solid #e0e0e0;
+  background:#fff;margin-bottom:14px;box-shadow:0 4px 24px rgba(0,0,0,.07)}
+#mol-viewer{width:100%;height:440px;position:relative;background:#fff}
+.mol-loading{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;font-size:13px;color:#aaa}
+.spinner{width:32px;height:32px;border:3px solid #ede9fe;
+  border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.stat{background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:12px 16px;transition:box-shadow .15s}
+.stat:hover{box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.sl{font-size:11px;color:#999;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.sv{font-size:15px;font-weight:700;color:#1a1a1a}
+
+/* Atom legend */
+.legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin-bottom:20px;font-size:12px;color:#888}
+.legend-item{display:flex;align-items:center;gap:6px}
+.atom-dot{width:16px;height:16px;border-radius:50%;border:1px solid rgba(0,0,0,.12);display:inline-block}
+
+/* Info section */
+h2{font-size:16px;font-weight:700;margin-bottom:10px;
+  padding-bottom:8px;border-bottom:2px solid #ede9fe;color:#3b0764}
+.info{background:#fff;border:1px solid #e5e5e5;border-radius:12px;
+  padding:16px 20px;font-size:14px;line-height:1.8;color:#444}
+.info ul{padding-left:20px}
+.info li{margin-bottom:6px}
+.info strong{color:#1a1a1a}
+.tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;
+  margin-left:6px;font-weight:600;vertical-align:middle}
+.tag.danger{background:#fee2e2;color:#991b1b}
+.tag.green{background:#dcfce7;color:#166534}
+.tag.blue{background:#dbeafe;color:#1e40af}
+
+/* Footer */
+footer{margin-top:28px;font-size:12px;color:#bbb;text-align:center;line-height:1.8}
+footer a{color:#8b5cf6;text-decoration:none}
+footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="icon">⚛️</div>
+    <div class="htitle">
+      <h1>
+        Cacbon đioxit
+        <span class="badge">CO₂</span>
+      </h1>
+      <div class="cid-tag">Carbon Dioxide · PubChem CID 280</div>
+    </div>
+    <div class="mcard">
+      <div class="ml">Khối lượng mol</div>
+      <div class="mv">44.01 <span class="mu">g/mol</span></div>
+    </div>
+  </div>
+
+  <!-- Mô tả -->
+  <p class="desc">
+    Cacbon đioxit (CO₂) là hợp chất gồm <strong>1 nguyên tử cacbon</strong> liên kết đôi với
+    <strong>2 nguyên tử oxi</strong>, cấu trúc phân tử thẳng (góc 180°). Mặc dù mỗi liên kết C=O
+    có cực, phân tử tổng thể <strong>không phân cực</strong> do đối xứng. Là sản phẩm của đốt
+    cháy nhiên liệu, hô hấp tế bào; đóng vai trò then chốt trong hiệu ứng nhà kính và quang hợp.
+  </p>
+
+  <!-- Nút chọn chế độ xem -->
+  <div class="bar" id="mbar"></div>
+
+  <!-- Khung 3D -->
+  <div class="viewer-wrap">
+    <div id="mol-viewer">
+      <div class="mol-loading">
+        <div class="spinner"></div>
+        Đang tải cấu trúc 3D từ PubChem…
+      </div>
+    </div>
+  </div>
+
+  <!-- Chú thích màu nguyên tử -->
+  <div class="legend">
+    <span>Màu Jmol:</span>
+    <span class="legend-item">
+      <span class="atom-dot" style="background:#909090"></span>
+      <strong>C</strong> — Cacbon (xám)
+    </span>
+    <span class="legend-item">
+      <span class="atom-dot" style="background:#FF2200"></span>
+      <strong>O</strong> — Oxi (đỏ)
+    </span>
+  </div>
+
+  <!-- Thẻ thông tin nhanh -->
+  <div class="stats">
+    <div class="stat"><div class="sl">PubChem CID</div><div class="sv">280</div></div>
+    <div class="stat"><div class="sl">Khối lượng mol</div><div class="sv">44.01 g/mol</div></div>
+    <div class="stat"><div class="sl">Công thức</div><div class="sv">CO₂</div></div>
+    <div class="stat"><div class="sl">Hình học</div><div class="sv">Thẳng (180°)</div></div>
+    <div class="stat"><div class="sl">Liên kết</div><div class="sv">C=O đôi × 2</div></div>
+    <div class="stat"><div class="sl">Chế độ xem</div><div class="sv" id="mode-label">Ball &amp; Stick</div></div>
+  </div>
+
+  <!-- Thông tin học tập -->
+  <h2>📚 Thông tin học tập</h2>
+  <div class="info">
+    <ul>
+      <li><strong>Cấu tạo:</strong> O=C=O — cacbon ở trung tâm, tạo 2 liên kết đôi với oxi (mỗi liên kết gồm 1 σ + 1 π).</li>
+      <li><strong>Hình học phân tử:</strong> Thẳng (sp hybridisation), góc O–C–O = 180°. Phân tử đối xứng nên <em>không có momen lưỡng cực</em>.
+        <span class="tag blue">Không phân cực</span></li>
+      <li><strong>Tính chất vật lý:</strong> Khí không màu, không mùi; hoá lỏng ở −78,5 °C (băng khô); tan có giới hạn trong nước tạo H₂CO₃.</li>
+      <li><strong>Vai trò trong tự nhiên:</strong> Nguyên liệu quang hợp của thực vật; sản phẩm hô hấp và đốt cháy hữu cơ.
+        <span class="tag green">Quang hợp</span></li>
+      <li><strong>Hiệu ứng nhà kính:</strong> CO₂ hấp thụ bức xạ hồng ngoại, góp phần làm ấm khí quyển Trái Đất.
+        <span class="tag danger">Nhà kính</span></li>
+      <li><strong>Ứng dụng:</strong> Bình chữa cháy, nước giải khát có gas, khí bảo quản thực phẩm, băng khô làm lạnh.</li>
+      <li><strong>Phản ứng điển hình:</strong>
+        <br>CO₂ + H₂O → H₂CO₃ &nbsp;|&nbsp; CO₂ + 2NaOH → Na₂CO₃ + H₂O
+        <br>CO₂ + Ca(OH)₂ → CaCO₃↓ + H₂O &nbsp;<em>(nhận biết CO₂ bằng nước vôi trong)</em></li>
+    </ul>
+  </div>
+
+  <footer>
+    Học liệu Hoá học THPT · Cấu trúc 3D từ
+    <a href="https://pubchem.ncbi.nlm.nih.gov/compound/280" target="_blank">PubChem</a>
+    · Render bởi <a href="https://3dmol.csb.pitt.edu" target="_blank">3Dmol.js</a>
+  </footer>
+</div>
+
+<!-- 3Dmol.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.3/3Dmol-min.js"></script>
+<script>
+const CID = 280;
+const MODES = [
+  { id:'balls',  label:'⚛ Ball & Stick', sphere:{scale:0.35,colorscheme:'Jmol'}, stick:{radius:0.18,colorscheme:'Jmol'} },
+  { id:'stick',  label:'— Stick only',   sphere:{},                              stick:{radius:0.15,colorscheme:'Jmol'} },
+  { id:'vdw',    label:'● Space Fill',   sphere:{scale:0.9,colorscheme:'Jmol'}, stick:{} },
+  { id:'wire',   label:'⬡ Wireframe',    sphere:{},                              stick:{radius:0.05,colorscheme:'Jmol'} },
+];
+let curMode = MODES[0];
+let viewer  = null;
+
+function applyStyle(m) {
+  if (!viewer) return;
+  viewer.setStyle({}, { sphere: m.sphere, stick: m.stick });
+  viewer.render();
+  document.getElementById('mode-label').textContent = m.label.replace(/^. /,'');
+}
+
+function buildBar() {
+  const bar = document.getElementById('mbar');
+  bar.innerHTML = '';
+  MODES.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'btn' + (m.id === curMode.id ? ' on' : '');
+    b.textContent = m.label;
+    b.onclick = () => { curMode = m; buildBar(); applyStyle(m); };
+    bar.appendChild(b);
+  });
+}
+
+// Fetch SDF từ PubChem rồi render bằng 3Dmol.js
+fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${CID}/SDF?record_type=3d`)
+  .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.text(); })
+  .then(sdf => {
+    const el = document.getElementById('mol-viewer');
+    el.innerHTML = '';
+    const init = () => {
+      if (typeof $3Dmol === 'undefined') { setTimeout(init, 100); return; }
+      viewer = $3Dmol.createViewer(el, { backgroundColor: 'white', antialias: true });
+      viewer.addModel(sdf, 'sdf');
+      applyStyle(curMode);
+      viewer.zoomTo();
+      viewer.render();
+    };
+    init();
+  })
+  .catch(() => {
+    document.getElementById('mol-viewer').innerHTML =
+      '<div class="mol-loading">⚠️ Không tải được cấu trúc 3D<br><small>Kiểm tra kết nối mạng và thử lại</small></div>';
+  });
+
+buildBar();
+</script>
+</body>
+</html>

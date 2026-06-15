@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Molecule Viewer | Học liệu Hoá học</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;padding:0 0 32px}
+.wrap{max-width:720px;margin:0 auto;padding:24px 16px}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.sub{font-size:13px;color:#888;margin-bottom:16px}
+.search-row{display:flex;gap:8px;margin-bottom:10px}
+input{flex:1;padding:10px 14px;font-size:14px;border:1px solid #ddd;border-radius:10px;font-family:inherit;outline:none}
+input:focus{border-color:#2563eb}
+.sbtn{padding:10px 20px;font-size:14px;border-radius:10px;border:none;background:#2563eb;color:#fff;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap}
+.quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.qbtn{padding:4px 12px;font-size:12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-family:inherit}
+.qbtn:hover{background:#f0f0f0}
+#result{display:none}
+.mol-header{display:flex;align-items:baseline;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.mol-name{font-size:22px;font-weight:600}
+.badge{font-size:13px;padding:3px 11px;background:#dbeafe;color:#1d4ed8;border-radius:20px;font-weight:500}
+.mol-weight{font-size:13px;color:#888;margin-left:auto}
+.iupac{font-size:12px;color:#aaa;margin-bottom:12px}
+.bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.btn{padding:5px 14px;font-size:12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn.on{border-color:#2563eb;background:#dbeafe;color:#1d4ed8;font-weight:500}
+.viewer-wrap{border-radius:14px;overflow:hidden;border:1px solid #e5e5e5;background:#fff;margin-bottom:12px}
+#mol-viewer{width:100%;height:400px;position:relative;background:#fff}
+.mol-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:13px;color:#aaa}
+.spinner{width:26px;height:26px;border:2px solid #e0e0e0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.stat{flex:1;min-width:110px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:9px 12px}
+.sl{font-size:11px;color:#888;margin-bottom:2px}
+.sv{font-size:14px;font-weight:600}
+.ai-section{border-top:1px solid #eee;padding-top:16px}
+.ai-title{font-size:14px;font-weight:600;margin-bottom:10px}
+.ai-quick{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.ai-row{display:flex;gap:8px}
+.ai-res{display:none;margin-top:10px;padding:12px 14px;border-radius:10px;border:1px solid #e5e5e5;background:#fff;font-size:14px;line-height:1.7;color:#333}
+.err{display:none;padding:10px 14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;color:#dc2626;font-size:13px;margin-bottom:12px}
+.loading{display:none;text-align:center;padding:32px;color:#888;font-size:13px}
+footer{margin-top:24px;font-size:12px;color:#aaa;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔍 Smart Molecule Viewer</h1>
+  <p class="sub">Nhập tên bất kỳ → tự động tìm trên PubChem → xem 3D + hỏi AI</p>
+
+  <div class="search-row">
+    <input id="search" placeholder="Nhập tên phân tử (vd: aspirin, caffeine, glucose...)"/>
+    <button class="sbtn" onclick="doSearch()">Tìm ✦</button>
+  </div>
+  <div class="quick" id="quick-btns"></div>
+
+  <div id="loading" class="loading">Đang tra cứu PubChem...</div>
+  <div id="err" class="err"></div>
+
+  <div id="result">
+    <div class="mol-header">
+      <span id="r-name" class="mol-name"></span>
+      <span id="r-formula" class="badge"></span>
+      <span id="r-weight" class="mol-weight"></span>
+    </div>
+    <div id="r-iupac" class="iupac"></div>
+    <div class="bar" id="mbar"></div>
+    <div class="viewer-wrap">
+      <div id="mol-viewer">
+        <div class="mol-loading"><div class="spinner"></div>Đang tải cấu trúc 3D...</div>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+
+    <div class="ai-section">
+      <div class="ai-title">Hỏi AI giải thích ✦</div>
+      <div class="ai-quick" id="ai-quick"></div>
+      <div class="ai-row">
+        <input id="ai-q" placeholder="Hỏi về phân tử này..." style="flex:1;padding:9px 14px;font-size:13px;border:1px solid #ddd;border-radius:10px;font-family:inherit;outline:none"/>
+        <button onclick="askAI()" id="btn-ai" style="padding:9px 16px;font-size:13px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-family:inherit">Hỏi ✦</button>
+      </div>
+      <div id="ai-res" class="ai-res"></div>
+    </div>
+  </div>
+  <footer>Cấu trúc 3D từ PubChem (NIH) · Render bởi 3Dmol.js · AI bởi Claude</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.3/3Dmol-min.js"></script>
+<script>
+const QUICK = ['aspirin','caffeine','glucose','ethanol','benzene','dopamine','vitamin C','cholesterol'];
+const AI_Q  = ['Giải thích cấu trúc cho học sinh lớp 11','Tại sao phân tử này quan trọng?','Ứng dụng thực tế là gì?'];
+const MODES  = [
+  {id:'balls', label:'⚛ Ball & Stick', sphere:{scale:0.35,colorscheme:'Jmol'}, stick:{radius:0.18,colorscheme:'Jmol'}},
+  {id:'stick', label:'— Stick',        sphere:{}, stick:{radius:0.15,colorscheme:'Jmol'}},
+  {id:'vdw',   label:'● Space Fill',   sphere:{scale:0.9,colorscheme:'Jmol'}, stick:{}},
+  {id:'wire',  label:'⬡ Wireframe',    sphere:{}, stick:{radius:0.05,colorscheme:'Jmol'}},
+];
+let curCID=null, curName='', curMode=MODES[0], viewer=null, curSDF=null;
+
+// Quick buttons
+const qDiv = document.getElementById('quick-btns');
+QUICK.forEach(n => {
+  const b = document.createElement('button');
+  b.className='qbtn'; b.textContent=n;
+  b.onclick = () => { document.getElementById('search').value=n; doSearch(); };
+  qDiv.appendChild(b);
+});
+
+// AI quick prompts
+const aq = document.getElementById('ai-quick');
+AI_Q.forEach(p => {
+  const b = document.createElement('button');
+  b.className='qbtn'; b.textContent=p;
+  b.onclick = () => { document.getElementById('ai-q').value=p; askAI(); };
+  aq.appendChild(b);
+});
+
+function renderModeBar() {
+  const bar = document.getElementById('mbar'); bar.innerHTML='';
+  MODES.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'btn'+(m.id===curMode.id?' on':'');
+    b.textContent = m.label;
+    b.onclick = () => { curMode=m; renderModeBar(); applyStyle(); };
+    bar.appendChild(b);
+  });
+}
+
+function applyStyle() {
+  if (!viewer) return;
+  viewer.setStyle({}, { sphere: curMode.sphere, stick: curMode.stick });
+  viewer.render();
+}
+
+function initViewer(sdf) {
+  const el = document.getElementById('mol-viewer');
+  el.innerHTML = '';
+  curSDF = sdf;
+  const init = () => {
+    if (typeof $3Dmol === 'undefined') { setTimeout(init, 100); return; }
+    viewer = $3Dmol.createViewer(el, { backgroundColor:'white', antialias:true });
+    viewer.addModel(sdf, 'sdf');
+    applyStyle();
+    viewer.zoomTo();
+    viewer.render();
+  };
+  init();
+}
+
+async function doSearch() {
+  const q = document.getElementById('search').value.trim();
+  if (!q) return;
+  document.getElementById('result').style.display='none';
+  document.getElementById('err').style.display='none';
+  document.getElementById('loading').style.display='block';
+  viewer=null; curSDF=null;
+
+  try {
+    // 1. Lấy metadata từ PubChem
+    const meta = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(q)}/property/MolecularFormula,MolecularWeight,IUPACName/JSON`);
+    if (!meta.ok) throw new Error();
+    const p = (await meta.json()).PropertyTable.Properties[0];
+    curCID=p.CID; curName=q; curMode=MODES[0];
+
+    document.getElementById('r-name').textContent = q;
+    document.getElementById('r-formula').textContent = p.MolecularFormula;
+    document.getElementById('r-weight').textContent = 'M = '+parseFloat(p.MolecularWeight).toFixed(2)+' g/mol';
+    document.getElementById('r-iupac').textContent = 'IUPAC: '+(p.IUPACName||'—');
+    document.getElementById('stats').innerHTML = [
+      ['CID', p.CID],
+      ['Công thức', p.MolecularFormula],
+      ['Khối lượng', parseFloat(p.MolecularWeight).toFixed(2)+' g/mol']
+    ].map(([k,v])=>`<div class="stat"><div class="sl">${k}</div><div class="sv">${v}</div></div>`).join('');
+
+    renderModeBar();
+    document.getElementById('ai-res').style.display='none';
+    document.getElementById('loading').style.display='none';
+    document.getElementById('result').style.display='block';
+
+    // 2. Fetch SDF 3D từ PubChem
+    document.getElementById('mol-viewer').innerHTML =
+      '<div class="mol-loading"><div class="spinner"></div>Đang tải cấu trúc 3D...</div>';
+    const sdfRes = await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${p.CID}/SDF?record_type=3d`);
+    if (!sdfRes.ok) throw new Error('no-3d');
+    initViewer(await sdfRes.text());
+
+  } catch(e) {
+    document.getElementById('loading').style.display='none';
+    if (e.message==='no-3d') {
+      document.getElementById('mol-viewer').innerHTML =
+        '<div class="mol-loading">⚠️ Không có dữ liệu 3D cho phân tử này</div>';
+    } else {
+      document.getElementById('err').style.display='block';
+      document.getElementById('err').textContent = 'Không tìm thấy "'+q+'". Thử tên tiếng Anh hoặc IUPAC.';
+    }
+  }
+}
+
+async function askAI() {
+  const q = document.getElementById('ai-q').value.trim();
+  if (!q || !curCID) return;
+  const btn=document.getElementById('btn-ai'), res=document.getElementById('ai-res');
+  btn.textContent='Đang hỏi...'; btn.disabled=true;
+  res.style.display='block'; res.style.color='#888'; res.textContent='⏳ AI đang suy nghĩ...';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,
+        system:'Bạn là giáo viên hoá học THPT Việt Nam. Giải thích ngắn gọn, sinh động cho học sinh lớp 10-12. Dùng tiếng Việt. Tối đa 180 từ.',
+        messages:[{role:'user',content:`Phân tử: ${curName} (CID: ${curCID})\nCâu hỏi: ${q}`}]})
+    });
+    const d = await r.json();
+    res.style.color='#333'; res.textContent=d.content[0].text;
+  } catch(e) {
+    res.style.color='#dc2626'; res.textContent='Lỗi kết nối AI.';
+  }
+  btn.textContent='Hỏi ✦'; btn.disabled=false;
+}
+
+document.getElementById('search').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+</script>
+</body>
+</html>

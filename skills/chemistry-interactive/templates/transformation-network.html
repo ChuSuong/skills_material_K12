@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCHEME_TITLE | Học liệu Hoá học</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 40px}
+footer{margin-top:20px;font-size:12px;color:#aaa;text-align:center}
+button{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="root"></div>
+  <footer>Học liệu Hoá học THPT · Sơ đồ chuyển hoá tương tác</footer>
+</div>
+
+<script type="text/babel">
+const { useState, useRef, useEffect, useCallback } = React;
+
+// Bảng màu (tương đương các var(--color-*) trong bản React artifact)
+const C = {
+  textPrimary: "#1a1a1a",
+  textSecondary: "#555555",
+  textTertiary: "#999999",
+  bgPrimary: "#ffffff",
+  bgSecondary: "#f0f0ee",
+  borderSecondary: "#dddddd",
+  borderTertiary: "#e5e5e5",
+  textInfo: "#1d4ed8",
+  bgInfo: "#dbeafe",
+  textWarning: "#b45309",
+  bgWarning: "#fef3c7",
+};
+const COLOR_MAP = {
+  info:    { text: C.textInfo,    bg: C.bgInfo },
+  warning: { text: C.textWarning, bg: C.bgWarning },
+};
+
+// ===== THAY DỮ LIỆU SCHEME (cấu trúc giống templates/transformation-network.jsx) =====
+// nodes: [{ id, formula, name, cid?, desc?, row, col }]   row/col bắt đầu từ 1
+// edges: [{ from, to, num, equation, condition, note? }]
+const SCHEME = {
+  title: "SCHEME_TITLE",
+  subtitle: "SCHEME_SUBTITLE",
+  nodes: [
+    { id: "A", formula: "FORMULA_A", name: "NAME_A", cid: null, row: 1, col: 1 },
+    { id: "B", formula: "FORMULA_B", name: "NAME_B", cid: null, row: 1, col: 2 },
+  ],
+  edges: [
+    { from: "A", to: "B", num: 1, equation: "EQUATION_1", condition: "CONDITION_1" },
+  ],
+};
+
+const CELL_W = 138;
+const CELL_H = 64;
+const GAP_X = 56;
+const GAP_Y = 48;
+const PAD = 18;
+
+function TransformationNetwork() {
+  const [view, setView] = useState("diagram"); // "diagram" | "list"
+  const [selfTest, setSelfTest] = useState(false);
+  const [revealed, setRevealed] = useState({});
+  const [active, setActive] = useState(null); // {type:"node"|"edge", id}
+  const containerRef = useRef(null);
+  const nodeRefs = useRef({});
+  const [lines, setLines] = useState([]);
+
+  const maxRow = Math.max(...SCHEME.nodes.map(n => n.row));
+  const maxCol = Math.max(...SCHEME.nodes.map(n => n.col));
+  const gridW = maxCol * CELL_W + (maxCol - 1) * GAP_X;
+  const gridH = maxRow * CELL_H + (maxRow - 1) * GAP_Y;
+
+  const recalc = useCallback(() => {
+    const c = containerRef.current;
+    if (!c) return;
+    const cr = c.getBoundingClientRect();
+    const ls = SCHEME.edges.map(e => {
+      const a = nodeRefs.current[e.from];
+      const b = nodeRefs.current[e.to];
+      if (!a || !b) return null;
+      const ar = a.getBoundingClientRect();
+      const br = b.getBoundingClientRect();
+      const ax = ar.left + ar.width / 2 - cr.left;
+      const ay = ar.top + ar.height / 2 - cr.top;
+      const bx = br.left + br.width / 2 - cr.left;
+      const by = br.top + br.height / 2 - cr.top;
+      const dx = bx - ax, dy = by - ay;
+      const len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len, uy = dy / len;
+      const x1 = ax + ux * (ar.width / 2 + 2);
+      const y1 = ay + uy * (ar.height / 2 + 2);
+      const x2 = bx - ux * (br.width / 2 + 11);
+      const y2 = by - uy * (br.height / 2 + 11);
+      return { e, x1, y1, x2, y2, mx: (x1 + x2) / 2, my: (y1 + y2) / 2 };
+    }).filter(Boolean);
+    setLines(ls);
+  }, []);
+
+  useEffect(() => {
+    recalc();
+    const ro = new ResizeObserver(recalc);
+    if (containerRef.current) ro.observe(containerRef.current);
+    window.addEventListener("resize", recalc);
+    return () => { ro.disconnect(); window.removeEventListener("resize", recalc); };
+  }, [recalc, view]);
+
+  const toggleReveal = (num) => setRevealed(r => ({ ...r, [num]: !r[num] }));
+  const allRevealed = SCHEME.edges.length > 0 && SCHEME.edges.every(e => revealed[e.num]);
+  const toggleAll = () => {
+    const v = !allRevealed;
+    const next = {};
+    SCHEME.edges.forEach(e => { next[e.num] = v; });
+    setRevealed(next);
+  };
+
+  const activeNode = active?.type === "node" ? SCHEME.nodes.find(n => n.id === active.id) : null;
+  const activeEdge = active?.type === "edge" ? SCHEME.edges.find(e => e.num === active.id) : null;
+
+  const pillStyle = (on, color = "info") => {
+    const cm = COLOR_MAP[color];
+    return {
+      padding: "5px 14px", fontSize: 12, borderRadius: 20, cursor: "pointer",
+      border: on ? `1.5px solid ${cm.text}` : `0.5px solid ${C.borderSecondary}`,
+      background: on ? cm.bg : C.bgPrimary,
+      color: on ? cm.text : C.textSecondary,
+      fontWeight: on ? 500 : 400,
+    };
+  };
+
+  return (
+    <div style={{ fontFamily: "sans-serif", padding: "0 0 16px" }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: C.textPrimary }}>{SCHEME.title}</div>
+        {SCHEME.subtitle && (
+          <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 2 }}>{SCHEME.subtitle}</div>
+        )}
+      </div>
+
+      {/* Controls */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <button onClick={() => setView("diagram")} style={pillStyle(view === "diagram")}>⬡ Sơ đồ</button>
+        <button onClick={() => setView("list")} style={pillStyle(view === "list")}>≡ Danh sách</button>
+        <button onClick={() => setSelfTest(s => !s)} style={{ ...pillStyle(selfTest, "warning"), marginLeft: "auto" }}>
+          ✎ Tự kiểm tra
+        </button>
+        {selfTest && (
+          <button onClick={toggleAll} style={pillStyle(false)}>
+            {allRevealed ? "Ẩn tất cả" : "Hiện tất cả"}
+          </button>
+        )}
+      </div>
+
+      {/* DIAGRAM VIEW */}
+      {view === "diagram" && (
+        <div style={{
+          overflowX: "auto", border: `0.5px solid ${C.borderTertiary}`,
+          borderRadius: 12, padding: PAD, background: C.bgPrimary,
+        }}>
+          <div ref={containerRef} style={{
+            position: "relative", width: gridW, height: gridH,
+            display: "grid",
+            gridTemplateColumns: `repeat(${maxCol}, ${CELL_W}px)`,
+            gridTemplateRows: `repeat(${maxRow}, ${CELL_H}px)`,
+            columnGap: GAP_X, rowGap: GAP_Y,
+          }}>
+            <svg width={gridW} height={gridH}
+              style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "visible" }}>
+              <defs>
+                <marker id="tn-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+                  markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" fill={C.textTertiary} />
+                </marker>
+              </defs>
+              {lines.map(({ e, x1, y1, x2, y2 }) => {
+                const isActive = active?.type === "edge" && active.id === e.num;
+                return (
+                  <line key={e.num} x1={x1} y1={y1} x2={x2} y2={y2}
+                    stroke={isActive ? C.textInfo : C.borderSecondary}
+                    strokeWidth={isActive ? 2 : 1.5}
+                    markerEnd="url(#tn-arrow)" />
+                );
+              })}
+            </svg>
+
+            {lines.map(({ e, mx, my }) => {
+              const isActive = active?.type === "edge" && active.id === e.num;
+              const show = !selfTest || revealed[e.num];
+              return (
+                <div key={e.num}
+                  onClick={() => setActive(a => (a?.type === "edge" && a.id === e.num) ? null : { type: "edge", id: e.num })}
+                  style={{
+                    position: "absolute", left: mx, top: my, transform: "translate(-50%,-50%)",
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 2,
+                    cursor: "pointer", zIndex: 2,
+                  }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: "50%", display: "flex",
+                    alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600,
+                    background: isActive ? C.textInfo : C.bgInfo,
+                    color: isActive ? C.bgPrimary : C.textInfo,
+                    border: `2px solid ${C.bgPrimary}`,
+                  }}>{e.num}</div>
+                  <div style={{
+                    fontSize: 10, padding: "1px 6px", borderRadius: 6, whiteSpace: "nowrap",
+                    maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis",
+                    border: `0.5px solid ${C.borderTertiary}`,
+                    background: C.bgPrimary,
+                    color: C.textTertiary,
+                  }}>
+                    {show ? e.condition : "?"}
+                  </div>
+                </div>
+              );
+            })}
+
+            {SCHEME.nodes.map(n => {
+              const isActive = active?.type === "node" && active.id === n.id;
+              return (
+                <div key={n.id} ref={el => { nodeRefs.current[n.id] = el; }}
+                  onClick={() => setActive(a => (a?.type === "node" && a.id === n.id) ? null : { type: "node", id: n.id })}
+                  style={{
+                    gridColumn: n.col, gridRow: n.row,
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                    border: isActive ? `1.5px solid ${C.textInfo}` : `0.5px solid ${C.borderSecondary}`,
+                    borderRadius: 10, background: C.bgPrimary,
+                    cursor: "pointer", zIndex: 1, padding: "6px 10px", textAlign: "center",
+                    boxShadow: isActive ? `0 0 0 3px ${C.bgInfo}` : "none",
+                    transition: "box-shadow .15s",
+                  }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{n.formula}</div>
+                  <div style={{ fontSize: 10, color: C.textTertiary, marginTop: 2 }}>{n.name}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* LIST VIEW */}
+      {view === "list" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {SCHEME.edges.map(e => {
+            const fromNode = SCHEME.nodes.find(n => n.id === e.from);
+            const toNode = SCHEME.nodes.find(n => n.id === e.to);
+            const show = !selfTest || revealed[e.num];
+            return (
+              <div key={e.num} onClick={() => selfTest && toggleReveal(e.num)}
+                style={{
+                  border: `0.5px solid ${C.borderTertiary}`, borderRadius: 10,
+                  padding: "10px 12px", cursor: selfTest ? "pointer" : "default",
+                  background: C.bgPrimary,
+                }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{
+                    width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center",
+                    justifyContent: "center", fontSize: 11, fontWeight: 600, flexShrink: 0,
+                    background: C.bgInfo, color: C.textInfo,
+                  }}>{e.num}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: C.textPrimary }}>
+                    {fromNode?.formula} → {toNode?.formula}
+                  </span>
+                  <span style={{ fontSize: 11, color: C.textTertiary, marginLeft: "auto" }}>
+                    {e.condition}
+                  </span>
+                </div>
+                {show ? (
+                  <div style={{
+                    fontSize: 13, fontFamily: "monospace", color: C.textSecondary,
+                    background: C.bgSecondary, padding: "6px 10px", borderRadius: 6,
+                  }}>{e.equation}</div>
+                ) : (
+                  <div style={{ fontSize: 12, color: C.textTertiary, fontStyle: "italic" }}>
+                    Bấm để xem phương trình
+                  </div>
+                )}
+                {show && e.note && (
+                  <div style={{ fontSize: 11, color: C.textTertiary, marginTop: 4 }}>{e.note}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Detail panel */}
+      {(activeNode || activeEdge) && (
+        <div style={{
+          marginTop: 12, border: `0.5px solid ${C.borderTertiary}`, borderRadius: 12,
+          padding: 14, background: C.bgSecondary,
+        }}>
+          {activeNode && (
+            <div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 18, fontWeight: 600, color: C.textPrimary }}>{activeNode.formula}</span>
+                <span style={{ fontSize: 13, color: C.textSecondary }}>{activeNode.name}</span>
+              </div>
+              {activeNode.desc && (
+                <p style={{ fontSize: 12, color: C.textSecondary, margin: "4px 0", lineHeight: 1.6 }}>
+                  {activeNode.desc}
+                </p>
+              )}
+              {activeNode.cid && (
+                <div style={{ marginTop: 8, borderRadius: 8, overflow: "hidden", border: `0.5px solid ${C.borderTertiary}` }}>
+                  <iframe src={`https://embed.molview.org/v1/?mode=balls&cid=${activeNode.cid}&bg=white`}
+                    allow="fullscreen" loading="lazy"
+                    style={{ width: "100%", height: 240, border: "none", display: "block" }}
+                    title={`3D ${activeNode.name}`} />
+                </div>
+              )}
+            </div>
+          )}
+          {activeEdge && (
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 500, color: C.textInfo, marginBottom: 6 }}>
+                Phản ứng ({activeEdge.num})
+              </div>
+              <div style={{
+                fontSize: 14, fontFamily: "monospace", color: C.textPrimary,
+                background: C.bgPrimary, padding: "8px 12px", borderRadius: 8, marginBottom: 6,
+              }}>{activeEdge.equation}</div>
+              <div style={{ fontSize: 12, color: C.textSecondary }}>
+                <strong>Điều kiện:</strong> {activeEdge.condition}
+              </div>
+              {activeEdge.note && (
+                <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 4 }}>{activeEdge.note}</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tip */}
+      <div style={{ marginTop: 10, fontSize: 11, color: C.textTertiary }}>
+        💡 Bấm vào ô chất hoặc số trên mũi tên để xem chi tiết. Bật "Tự kiểm tra" để ẩn điều kiện/phương trình và tự viết trước khi xem đáp án.
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<TransformationNetwork />);
+</script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!-- TEMPLATE: lesson-builder.html
+     Tính năng:
+     - Nhập tên chương → Claude API tạo outline + danh sách phân tử key
+     - PubChem API lookup từng phân tử → render viewer đồng loạt
+     - Claude sinh quiz 5 câu → render interactive quiz
+     - Output: bộ học liệu hoàn chỉnh (overview + viewers + quiz)
+-->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;padding:0 0 16px}
+input,select{font-family:sans-serif;border:0.5px solid var(--color-border-secondary);border-radius:10px;background:var(--color-background-primary);color:var(--color-text-primary);padding:9px 14px;font-size:13px}
+input:focus,select:focus{outline:none;border-color:var(--color-text-info)}
+button{font-family:sans-serif;cursor:pointer}
+.section-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin:18px 0 10px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+</style>
+
+<!-- Input panel -->
+<div id="input-panel">
+  <div style="font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">Tạo bộ học liệu hoá học</div>
+  <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:16px">AI tạo trọn bộ: tóm tắt lý thuyết + mô hình phân tử 3D + quiz kiểm tra</div>
+  <div style="display:grid;gap:10px;margin-bottom:14px">
+    <div>
+      <label style="font-size:12px;color:var(--color-text-tertiary);display:block;margin-bottom:4px">Tên chương / chủ đề</label>
+      <input id="chapter" style="width:100%" placeholder="vd: Chương Hidrocacbon no, Bài Ancol, Chương Este-Lipit..." />
+    </div>
+    <div style="display:flex;gap:10px">
+      <div style="flex:1">
+        <label style="font-size:12px;color:var(--color-text-tertiary);display:block;margin-bottom:4px">Lớp</label>
+        <select id="grade" style="width:100%">
+          <option value="10">Hoá 10</option>
+          <option value="11" selected>Hoá 11</option>
+          <option value="12">Hoá 12</option>
+        </select>
+      </div>
+      <div style="flex:2">
+        <label style="font-size:12px;color:var(--color-text-tertiary);display:block;margin-bottom:4px">Mục tiêu</label>
+        <select id="goal" style="width:100%">
+          <option value="learn">Học bài mới</option>
+          <option value="review">Ôn tập</option>
+          <option value="exam">Luyện thi</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div style="margin-bottom:14px">
+    <div style="font-size:12px;color:var(--color-text-tertiary);margin-bottom:6px">Gợi ý:</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${["Ankan","Anken và Ankin","Benzen và Aren","Ancol","Axit Cacboxylic","Este và Lipit","Cacbohidrat","Amin và Aminoaxit"].map(t=>`<button onclick="document.getElementById('chapter').value='${t}'"
+        style="padding:4px 12px;font-size:12px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary)">${t}</button>`).join("")}
+    </div>
+  </div>
+  <button onclick="buildLesson()" id="btn-build"
+    style="width:100%;padding:12px;font-size:14px;border-radius:10px;border:none;background:var(--color-text-info);color:#fff;font-weight:500">
+    ✦ Tạo bộ học liệu với AI
+  </button>
+</div>
+
+<!-- Progress -->
+<div id="progress-panel" style="display:none;padding:24px 0">
+  <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:16px" id="prog-title">Đang tạo học liệu...</div>
+  <div style="display:flex;flex-direction:column;gap:8px" id="prog-steps"></div>
+</div>
+
+<!-- Lesson output -->
+<div id="lesson-panel" style="display:none"></div>
+
+<script>
+let lessonData=null;
+
+function setStep(steps,idx,status){
+  const el=document.getElementById(`step-${idx}`);
+  if(!el)return;
+  const icons={pending:"○",loading:"⏳",done:"✓",error:"✗"};
+  const colors={pending:"var(--color-text-tertiary)",loading:"var(--color-text-warning)",done:"var(--color-text-success)",error:"var(--color-text-danger)"};
+  el.querySelector(".step-icon").textContent=icons[status];
+  el.querySelector(".step-icon").style.color=colors[status];
+  el.querySelector(".step-text").style.color=status==="done"?"var(--color-text-primary)":"var(--color-text-secondary)";
+}
+
+async function buildLesson(){
+  const chapter=document.getElementById("chapter").value.trim();
+  if(!chapter)return;
+  const grade=document.getElementById("grade").value;
+  const goal=document.getElementById("goal").value;
+
+  document.getElementById("input-panel").style.display="none";
+  document.getElementById("progress-panel").style.display="block";
+
+  const STEPS=["AI phân tích chương trình","Tạo tóm tắt lý thuyết","Tìm phân tử trên PubChem","AI soạn câu hỏi quiz","Hoàn thiện học liệu"];
+  const progSteps=document.getElementById("prog-steps");
+  progSteps.innerHTML=STEPS.map((s,i)=>`
+    <div id="step-${i}" style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:var(--color-background-secondary)">
+      <span class="step-icon" style="font-size:14px;width:20px;text-align:center;color:var(--color-text-tertiary)">○</span>
+      <span class="step-text" style="font-size:13px;color:var(--color-text-tertiary)">${s}</span>
+    </div>`).join("");
+
+  try{
+    // Step 0: AI analysis
+    setStep(STEPS,0,"loading");
+    document.getElementById("prog-title").textContent="Bước 1/5: AI phân tích chương trình...";
+    const goalLabel={learn:"học bài mới, cần giải thích chi tiết",review:"ôn tập, tổng hợp kiến thức",exam:"luyện thi, tập trung vào điểm quan trọng"}[goal];
+    const outlinePrompt=`Tạo outline học liệu hoá học THPT cho chủ đề: "${chapter}", lớp ${grade}, mục tiêu: ${goalLabel}.
+
+Chỉ trả về JSON hợp lệ, KHÔNG có text khác, KHÔNG có markdown:
+{
+  "title": "tên bộ học liệu",
+  "summary": "tóm tắt lý thuyết 3-4 câu",
+  "key_points": ["điểm 1", "điểm 2", "điểm 3", "điểm 4"],
+  "molecules": [
+    {"name": "tên tiếng Anh để PubChem tìm", "vn_name": "tên tiếng Việt", "role": "vai trò trong bài"}
+  ],
+  "quiz": [
+    {
+      "question": "câu hỏi",
+      "mol_cid": null,
+      "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+      "correct": 0,
+      "explanation": "giải thích",
+      "difficulty": "easy|medium|hard"
+    }
+  ]
+}
+
+Yêu cầu:
+- molecules: 3-5 phân tử quan trọng nhất của chủ đề, name phải là tên tiếng Anh hoặc IUPAC để PubChem nhận
+- quiz: 5 câu hỏi đa dạng độ khó, phù hợp lớp ${grade}
+- mol_cid trong quiz: dùng CID nếu biết chắc (H2O=962, C6H6=241, C2H5OH=702, C6H12O6=5793, CH4=297, NH3=222, CO2=280, C2H4=6325, C2H2=6326), null nếu không chắc`;
+
+    const res1=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:outlinePrompt}]})
+    });
+    const d1=await res1.json();
+    lessonData=JSON.parse(d1.content[0].text.trim());
+    setStep(STEPS,0,"done");
+
+    // Step 1: summary ready
+    setStep(STEPS,1,"loading");
+    document.getElementById("prog-title").textContent="Bước 2/5: Tóm tắt lý thuyết...";
+    await new Promise(r=>setTimeout(r,400));
+    setStep(STEPS,1,"done");
+
+    // Step 2: PubChem lookup
+    setStep(STEPS,2,"loading");
+    document.getElementById("prog-title").textContent="Bước 3/5: Tìm phân tử trên PubChem...";
+    const molResults=await Promise.allSettled(
+      lessonData.molecules.map(async m=>{
+        const r=await fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(m.name)}/property/MolecularFormula,MolecularWeight,CID/JSON`);
+        if(!r.ok)return{...m,cid:null};
+        const d=await r.json();
+        const p=d.PropertyTable.Properties[0];
+        return{...m,cid:p.CID,formula:p.MolecularFormula,weight:parseFloat(p.MolecularWeight).toFixed(2)};
+      })
+    );
+    lessonData.molecules=molResults.map(r=>r.status==="fulfilled"?r.value:{...r.reason,cid:null});
+    setStep(STEPS,2,"done");
+
+    // Step 3-4: quiz ready
+    setStep(STEPS,3,"loading");
+    document.getElementById("prog-title").textContent="Bước 4/5: Hoàn thiện quiz...";
+    await new Promise(r=>setTimeout(r,400));
+    setStep(STEPS,3,"done");
+    setStep(STEPS,4,"loading");
+    await new Promise(r=>setTimeout(r,300));
+    setStep(STEPS,4,"done");
+    document.getElementById("prog-title").textContent="✓ Học liệu đã sẵn sàng!";
+    await new Promise(r=>setTimeout(r,600));
+
+    renderLesson();
+  }catch(e){
+    document.getElementById("prog-title").textContent="Lỗi: "+e.message;
+    STEPS.forEach((_,i)=>setStep(STEPS,i,"error"));
+  }
+}
+
+let qCur=0,qSel=null,qAnswers={},qDone=false;
+
+function renderLesson(){
+  document.getElementById("progress-panel").style.display="none";
+  document.getElementById("lesson-panel").style.display="block";
+  const panel=document.getElementById("lesson-panel");
+  const ld=lessonData;
+
+  panel.innerHTML=`
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+      <span style="font-size:18px;font-weight:500;color:var(--color-text-primary)">${ld.title}</span>
+      <button onclick="document.getElementById('input-panel').style.display='block';document.getElementById('lesson-panel').style.display='none'"
+        style="margin-left:auto;font-size:12px;padding:3px 10px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary)">
+        Tạo mới
+      </button>
+    </div>
+
+    <!-- Summary -->
+    <div style="font-size:13px;color:var(--color-text-secondary);margin-bottom:12px;line-height:1.6;padding:10px 14px;background:var(--color-background-secondary);border-radius:10px">
+      ${ld.summary}
+    </div>
+
+    <!-- Key points -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+      ${ld.key_points.map(pt=>`
+        <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--color-background-secondary);border-radius:8px">
+          <span style="color:var(--color-text-info);font-size:14px;flex-shrink:0">✦</span>
+          <span style="font-size:12px;color:var(--color-text-primary);line-height:1.5">${pt}</span>
+        </div>`).join("")}
+    </div>
+
+    <!-- Molecules section -->
+    <div class="section-title">Mô hình phân tử 3D</div>
+    <div id="mol-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+    <div id="mol-viewer"></div>
+
+    <!-- Quiz section -->
+    <div class="section-title">Bài kiểm tra</div>
+    <div id="quiz-root"></div>
+  `;
+
+  // Render molecule tabs
+  const validMols=ld.molecules.filter(m=>m.cid);
+  let curMol=0;
+  function renderMolTab(){
+    const tabs=document.getElementById("mol-tabs");
+    tabs.innerHTML="";
+    validMols.forEach((m,i)=>{
+      const btn=document.createElement("button");
+      btn.textContent=`${m.vn_name} (${m.formula||m.name})`;
+      const active=i===curMol;
+      btn.style.cssText=`padding:5px 13px;font-size:12px;border-radius:20px;
+        border:${active?"1.5px solid var(--color-text-info)":"0.5px solid var(--color-border-secondary)"};
+        background:${active?"var(--color-background-info)":"var(--color-background-primary)"};
+        color:${active?"var(--color-text-info)":"var(--color-text-secondary)"};font-weight:${active?500:400}`;
+      btn.onclick=()=>{curMol=i;renderMolTab();renderMolViewer();};
+      tabs.appendChild(btn);
+    });
+  }
+  function renderMolViewer(){
+    const m=validMols[curMol];
+    if(!m){document.getElementById("mol-viewer").innerHTML=`<div style="font-size:13px;color:var(--color-text-tertiary);padding:20px;text-align:center">Không tìm thấy phân tử trên PubChem</div>`;return;}
+    document.getElementById("mol-viewer").innerHTML=`
+      <div style="border-radius:12px;overflow:hidden;border:0.5px solid var(--color-border-tertiary);background:#fff">
+        <iframe src="https://embed.molview.org/v1/?mode=balls&cid=${m.cid}&bg=white" allow="fullscreen" loading="lazy"
+          style="width:100%;height:300px;border:none;display:block" title="${m.vn_name}"></iframe>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="flex:1;background:var(--color-background-secondary);border-radius:8px;padding:8px 10px">
+          <div style="font-size:11px;color:var(--color-text-tertiary)">Vai trò</div>
+          <div style="font-size:13px;color:var(--color-text-primary)">${m.role}</div>
+        </div>
+        <div style="flex:1;background:var(--color-background-secondary);border-radius:8px;padding:8px 10px">
+          <div style="font-size:11px;color:var(--color-text-tertiary)">Khối lượng mol</div>
+          <div style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${m.weight||"—"} g/mol</div>
+        </div>
+        <div style="flex:1;background:var(--color-background-secondary);border-radius:8px;padding:8px 10px">
+          <div style="font-size:11px;color:var(--color-text-tertiary)">CID</div>
+          <div style="font-size:13px;font-weight:500;color:var(--color-text-primary)">${m.cid}</div>
+        </div>
+      </div>`;
+  }
+  if(validMols.length){renderMolTab();renderMolViewer();}
+  else{document.getElementById("mol-viewer").innerHTML=`<div style="font-size:13px;color:var(--color-text-tertiary);padding:12px;background:var(--color-background-secondary);border-radius:8px">Không tìm thấy phân tử nào trên PubChem cho chủ đề này.</div>`;}
+
+  // Render quiz
+  qCur=0;qSel=null;qAnswers={};qDone=false;
+  renderQ();
+}
+
+const DIFF_S={easy:{bg:"var(--color-background-success)",fg:"var(--color-text-success)",lbl:"Dễ"},medium:{bg:"var(--color-background-warning)",fg:"var(--color-text-warning)",lbl:"TB"},hard:{bg:"var(--color-background-danger)",fg:"var(--color-text-danger)",lbl:"Khó"}};
+
+function renderQ(){
+  const qs=lessonData.quiz;
+  if(qDone){
+    const score=Object.entries(qAnswers).filter(([i,a])=>qs[+i].correct===a).length;
+    const pct=Math.round(score/qs.length*100);
+    document.getElementById("quiz-root").innerHTML=`
+      <div style="text-align:center;padding:20px;border:0.5px solid var(--color-border-tertiary);border-radius:12px;margin-bottom:12px">
+        <div style="font-size:40px;font-weight:500;color:var(--color-text-primary)">${pct}%</div>
+        <div style="font-size:14px;color:var(--color-text-secondary);margin-top:6px">${score}/${qs.length} câu đúng</div>
+        <button onclick="qCur=0;qSel=null;qAnswers={};qDone=false;renderQ()"
+          style="margin-top:12px;padding:7px 20px;font-size:13px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary)">
+          Làm lại
+        </button>
+      </div>
+      ${qs.map((q,i)=>{const ok=qAnswers[i]===q.correct;return`<div style="margin-bottom:8px;padding:10px 12px;border-radius:8px;border:0.5px solid ${ok?"var(--color-border-success)":"var(--color-border-danger)"};background:${ok?"var(--color-background-success)":"var(--color-background-danger)"}">
+        <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px">${i+1}. ${q.question}</div>
+        <div style="font-size:12px;color:${ok?"var(--color-text-success)":"var(--color-text-danger)"}">${ok?"✓ Đúng":"✗ — "+q.options[q.correct]}</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:3px">${q.explanation}</div>
+      </div>`;}).join("")}`;
+    return;
+  }
+  const q=qs[qCur];const answered=qSel!==null;
+  const dc=DIFF_S[q.difficulty]||DIFF_S.medium;
+  document.getElementById("quiz-root").innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="flex:1;height:3px;background:var(--color-border-tertiary);border-radius:3px">
+        <div style="height:100%;border-radius:3px;background:var(--color-text-info);width:${(qCur+1)/qs.length*100}%"></div>
+      </div>
+      <span style="font-size:12px;color:var(--color-text-tertiary)">${qCur+1}/${qs.length}</span>
+      <span style="font-size:11px;padding:2px 7px;border-radius:10px;background:${dc.bg};color:${dc.fg}">${dc.lbl}</span>
+    </div>
+    ${q.mol_cid?`<div style="border-radius:8px;overflow:hidden;border:0.5px solid var(--color-border-tertiary);margin-bottom:10px;background:#fff">
+      <iframe src="https://embed.molview.org/v1/?mode=balls&cid=${q.mol_cid}&bg=white" allow="fullscreen" loading="lazy" style="width:100%;height:180px;border:none;display:block"></iframe>
+    </div>`:""}
+    <div style="font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:12px;line-height:1.5">${q.question}</div>
+    <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:12px">
+      ${q.options.map((opt,i)=>{
+        const isSel=qSel===i,isAns=i===q.correct;
+        let bg="var(--color-background-primary)",border="var(--color-border-secondary)",color="var(--color-text-primary)";
+        if(answered){if(isAns){bg="var(--color-background-success)";border="var(--color-border-success)";color="var(--color-text-success)";}else if(isSel){bg="var(--color-background-danger)";border="var(--color-border-danger)";color="var(--color-text-danger)";}}
+        return `<button onclick="if(!${answered}){qSel=${i};qAnswers[${qCur}]=${i};renderQ()}"
+          style="text-align:left;padding:9px 12px;border-radius:8px;cursor:${answered?"default":"pointer"};border:0.5px solid ${border};background:${bg};color:${color};font-size:13px;display:flex;align-items:center;gap:8px">
+          <span style="width:20px;height:20px;border-radius:50%;border:0.5px solid ${border};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">${answered&&isAns?"✓":answered&&isSel?"✗":String.fromCharCode(65+i)}</span>
+          ${opt}
+        </button>`;
+      }).join("")}
+    </div>
+    ${answered?`
+    <div style="padding:9px 12px;border-radius:8px;margin-bottom:10px;font-size:12px;line-height:1.6;
+      background:${qSel===q.correct?"var(--color-background-success)":"var(--color-background-danger)"};
+      color:${qSel===q.correct?"var(--color-text-success)":"var(--color-text-danger)"}">
+      ${qSel===q.correct?"✓ Chính xác! ":"✗ Chưa đúng. "}
+      <span style="color:var(--color-text-primary)">${q.explanation}</span>
+    </div>
+    <button onclick="${qCur<qs.length-1?"qCur++;qSel=qAnswers[qCur]??null;renderQ()":"qDone=true;renderQ()"}"
+      style="width:100%;padding:9px;font-size:13px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-weight:500">
+      ${qCur<qs.length-1?"Câu tiếp →":"Xem kết quả"}
+    </button>`:""}
+  `;
+}
+</script>

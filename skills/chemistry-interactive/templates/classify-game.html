@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCHEME_TITLE | Học liệu Hoá học</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a}
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 40px}
+footer{margin-top:20px;font-size:12px;color:#aaa;text-align:center}
+button{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="root"></div>
+  <footer>Học liệu Hoá học THPT · Phân loại phản ứng hoá học</footer>
+</div>
+
+<script type="text/babel">
+const { useState } = React;
+
+// Bảng màu (tương đương var(--color-*) trong bản React artifact)
+const C = {
+  textPrimary: "#1a1a1a", textSecondary: "#555555", textTertiary: "#999999",
+  bgPrimary: "#ffffff", bgSecondary: "#f0f0ee",
+  borderSecondary: "#dddddd", borderTertiary: "#e5e5e5",
+  textInfo: "#1d4ed8", bgInfo: "#dbeafe",
+  textSuccess: "#15803d", bgSuccess: "#dcfce7",
+  textDanger: "#dc2626", bgDanger: "#fee2e2",
+};
+
+// ===== THAY DỮ LIỆU GAME (cấu trúc giống templates/classify-game.jsx) =====
+const GAME = {
+  title: "TITLE",
+  subtitle: "SUBTITLE",
+  categories: [
+    { id: "c1", name: "CATEGORY_1" },
+    { id: "c2", name: "CATEGORY_2" },
+  ],
+  items: [
+    { id: "1", equation: "EQUATION_1", categoryId: "c1", explanation: "EXPLANATION_1" },
+    { id: "2", equation: "EQUATION_2", categoryId: "c2", explanation: "EXPLANATION_2" },
+  ],
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function ClassifyGame() {
+  const [order, setOrder] = useState(() => shuffle(GAME.items.map((_, i) => i)));
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState(0);
+
+  const finished = index >= order.length;
+  const item = !finished ? GAME.items[order[index]] : null;
+  const answered = selected !== null;
+
+  const handleSelect = (catId) => {
+    if (answered) return;
+    setSelected(catId);
+    if (catId === item.categoryId) setScore(s => s + 1);
+  };
+  const next = () => { setSelected(null); setIndex(i => i + 1); };
+  const restart = () => {
+    setOrder(shuffle(GAME.items.map((_, i) => i)));
+    setIndex(0); setSelected(null); setScore(0);
+  };
+
+  const catStyle = (cat) => {
+    let style = { border: `0.5px solid ${C.borderSecondary}`, background: C.bgPrimary, color: C.textPrimary };
+    if (answered) {
+      if (cat.id === item.categoryId) {
+        style = { border: `1.5px solid ${C.textSuccess}`, background: C.bgSuccess, color: C.textSuccess };
+      } else if (cat.id === selected) {
+        style = { border: `1.5px solid ${C.textDanger}`, background: C.bgDanger, color: C.textDanger };
+      }
+    }
+    return {
+      ...style, padding: "12px 10px", borderRadius: 10, fontSize: 13, fontWeight: 500,
+      cursor: answered ? "default" : "pointer", textAlign: "center", transition: "all .15s",
+    };
+  };
+
+  const ratio = order.length ? score / order.length : 0;
+  const summaryMsg = ratio >= 0.8 ? "Xuất sắc! 🎉" : ratio >= 0.5 ? "Khá tốt — ôn lại vài dạng nhé!" : "Cần ôn lại các loại phản ứng cơ bản.";
+
+  return (
+    <div style={{ fontFamily: "sans-serif", padding: "0 0 16px" }}>
+
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: C.textPrimary }}>{GAME.title}</div>
+        {GAME.subtitle && <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 2 }}>{GAME.subtitle}</div>}
+      </div>
+
+      {!finished ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: C.textTertiary, marginBottom: 8 }}>
+            <span>Câu {index + 1}/{order.length}</span>
+            <span>Điểm: {score}/{order.length}</span>
+          </div>
+          <div style={{ height: 4, background: C.bgSecondary, borderRadius: 4, marginBottom: 16, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${(index / order.length) * 100}%`, background: C.textInfo, transition: "width .3s" }} />
+          </div>
+
+          <div style={{
+            border: `0.5px solid ${C.borderTertiary}`, borderRadius: 12, padding: "20px 14px", marginBottom: 14,
+            textAlign: "center", fontSize: 17, fontFamily: "monospace", fontWeight: 600, color: C.textPrimary, background: C.bgPrimary,
+          }}>{item.equation}</div>
+
+          <div style={{ fontSize: 13, color: C.textSecondary, marginBottom: 10, textAlign: "center" }}>
+            Đây là loại phản ứng nào?
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 8, marginBottom: 12 }}>
+            {GAME.categories.map(cat => (
+              <button key={cat.id} onClick={() => handleSelect(cat.id)} style={catStyle(cat)}>
+                {cat.name}
+                {answered && cat.id === item.categoryId && " ✓"}
+                {answered && cat.id === selected && cat.id !== item.categoryId && " ✗"}
+              </button>
+            ))}
+          </div>
+
+          {answered && (
+            <div>
+              <div style={{
+                border: `0.5px solid ${C.borderTertiary}`, borderRadius: 10, padding: "10px 14px",
+                fontSize: 12, color: C.textSecondary, lineHeight: 1.6, marginBottom: 10, background: C.bgSecondary,
+              }}>{item.explanation}</div>
+              <button onClick={next} style={{
+                width: "100%", padding: "10px", fontSize: 13, fontWeight: 500, borderRadius: 10,
+                border: `1.5px solid ${C.textInfo}`, background: C.bgInfo, color: C.textInfo, cursor: "pointer",
+              }}>
+                {index + 1 === order.length ? "Xem kết quả →" : "Câu tiếp theo →"}
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <div style={{ fontSize: 36, fontWeight: 700, color: C.textInfo, marginBottom: 4 }}>{score}/{order.length}</div>
+          <div style={{ fontSize: 14, color: C.textSecondary, marginBottom: 18 }}>{summaryMsg}</div>
+          <button onClick={restart} style={{
+            padding: "10px 24px", fontSize: 13, fontWeight: 500, borderRadius: 10,
+            border: `1.5px solid ${C.textInfo}`, background: C.bgInfo, color: C.textInfo, cursor: "pointer",
+          }}>↺ Làm lại</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ClassifyGame />);
+</script>
+</body>
+</html>

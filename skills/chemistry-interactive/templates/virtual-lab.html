@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCHEME_TITLE | Học liệu Hoá học</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a}
+.wrap{max-width:560px;margin:0 auto;padding:24px 16px 40px}
+footer{margin-top:20px;font-size:12px;color:#aaa;text-align:center}
+button{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="root"></div>
+  <footer>Học liệu Hoá học THPT · Phòng thí nghiệm ảo (mô hình 3D)</footer>
+</div>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+// Bảng màu cho phần UI sáng (header, lưới chọn, panel kết quả) —
+// tương đương var(--color-*) trong bản React artifact. Khung 3D dùng tông tối riêng (xem dưới).
+const C = {
+  textPrimary: "#1a1a1a", textSecondary: "#555555", textTertiary: "#999999",
+  bgPrimary: "#ffffff", bgSecondary: "#f0f0ee",
+  borderSecondary: "#dddddd", borderTertiary: "#e5e5e5",
+  textInfo: "#1d4ed8", bgInfo: "#dbeafe",
+  textWarning: "#b45309",
+};
+
+// ===== THAY DỮ LIỆU LAB (cấu trúc giống templates/virtual-lab.jsx — dùng chung cho cả 2 bản) =====
+const LAB = {
+  title: "TITLE",
+  subtitle: "SUBTITLE",
+  reagents: [
+    { id: "r1", name: "NAME_1", formula: "FORMULA_1", color: "#eef2f7" },
+    { id: "r2", name: "NAME_2", formula: "FORMULA_2", color: "#eef2f7" },
+  ],
+  reactions: [
+    { pair: ["r1", "r2"], equation: "EQUATION", phenomenon: "PHENOMENON", effect: "none", resultColor: "#eef2f7", explanation: "EXPLANATION" },
+  ],
+  noReactionMessage: "Không có phản ứng xảy ra giữa 2 dung dịch này.",
+};
+
+function VirtualLab3D() {
+  const mountRef = useRef(null);
+  const canvasRef = useRef(null);
+  const stateRef = useRef(null);
+  const [slots, setSlots] = useState([LAB.reagents[0].id, LAB.reagents[1].id]);
+  const [active, setActive] = useState(0);
+  const [mixed, setMixed] = useState(false);
+
+  const reagentById = (id) => LAB.reagents.find(r => r.id === id);
+  const findReaction = () => LAB.reactions.find(r =>
+    (r.pair[0] === slots[0] && r.pair[1] === slots[1]) || (r.pair[0] === slots[1] && r.pair[1] === slots[0])
+  );
+  const sameReagent = slots[0] === slots[1];
+  const reaction = mixed ? findReaction() : null;
+
+  // ---- Khởi tạo scene 3D (chạy 1 lần) ----
+  useEffect(() => {
+    const container = mountRef.current;
+    const canvas = canvasRef.current;
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+    camera.position.set(0, 0.4, 4.6);
+    camera.lookAt(0, 0, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    const dir1 = new THREE.DirectionalLight(0xcfe8ff, 1.3); // đèn chính/viền - ánh sáng lạnh
+    dir1.position.set(2, 4, 5);
+    scene.add(dir1);
+    const dir2 = new THREE.DirectionalLight(0xffffff, 0.35);
+    dir2.position.set(-3, 1, -3);
+    scene.add(dir2);
+
+    const rig = new THREE.Group();
+    scene.add(rig);
+
+    // Thân cốc (ống trụ hở 2 đầu) + đáy — kính tông xanh lạnh, có lớp "clearcoat" cho bóng
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0x9fc6e0, transparent: true, opacity: 0.18,
+      roughness: 0.05, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.08,
+      side: THREE.DoubleSide,
+    });
+    const glass = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.1, 2.2, 32, 1, true), glassMat);
+    rig.add(glass);
+    const bottom = new THREE.Mesh(new THREE.CircleGeometry(1.1, 32), glassMat);
+    bottom.rotation.x = -Math.PI / 2;
+    bottom.position.y = -1.1;
+    rig.add(bottom);
+
+    // Vòng sáng ở miệng cốc — mô phỏng viền kính bắt sáng
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(1.2, 0.018, 8, 48),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 })
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 1.1;
+    rig.add(rim);
+
+    // Chất lỏng
+    const liquidMat = new THREE.MeshStandardMaterial({ color: 0xeef2f7, transparent: true, opacity: 0.85, roughness: 0.15 });
+    const liquid = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 1, 32), liquidMat);
+    liquid.scale.y = 0.001;
+    liquid.position.y = -1.1;
+    rig.add(liquid);
+
+    // Nhóm hạt (bong bóng / kết tủa)
+    const particles = new THREE.Group();
+    rig.add(particles);
+
+    const resize = () => {
+      const w = container.clientWidth, h = container.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    // Kéo để xoay
+    let rotY = 0.5, dragging = false, lastX = 0;
+    const onDown = (e) => { dragging = true; lastX = e.clientX; };
+    const onMove = (e) => { if (!dragging) return; rotY += (e.clientX - lastX) * 0.01; lastX = e.clientX; };
+    const onUp = () => { dragging = false; };
+    canvas.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+
+    stateRef.current = { particles, liquid, targetColor: new THREE.Color(0xeef2f7), targetScale: 0.001 };
+
+    let raf;
+    const animate = () => {
+      rig.rotation.y = rotY;
+      const st = stateRef.current;
+      liquid.material.color.lerp(st.targetColor, 0.07);
+      liquid.scale.y += (st.targetScale - liquid.scale.y) * 0.07;
+      liquid.position.y = -1.1 + liquid.scale.y * 0.5;
+      particles.children.forEach(p => {
+        if (p.userData.type === "bubble") {
+          p.position.y += p.userData.speed;
+          const top = -1.1 + liquid.scale.y - 0.05;
+          if (p.position.y > top) p.position.y = -1.05;
+        }
+      });
+      renderer.render(scene, camera);
+      raf = requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      canvas.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      renderer.dispose();
+    };
+  }, []);
+
+  const selectReagent = (id) => {
+    setSlots(s => s.map((v, i) => i === active ? id : v));
+    setMixed(false);
+    setActive(a => (a + 1) % 2);
+  };
+
+  const handleMix = () => {
+    if (sameReagent || !stateRef.current) return;
+    const r = findReaction();
+    const target = r ? r.resultColor : "#eef2f7";
+    const st = stateRef.current;
+    st.targetColor = new THREE.Color(target);
+    st.targetScale = 0.85;
+    while (st.particles.children.length) st.particles.remove(st.particles.children[0]);
+    if (r?.effect === "gas") {
+      for (let i = 0; i < 10; i++) {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 }));
+        m.position.set((Math.random() - 0.5) * 1.6, -1.05 + Math.random() * 0.7, (Math.random() - 0.5) * 1.6);
+        m.userData = { type: "bubble", speed: 0.006 + Math.random() * 0.01 };
+        st.particles.add(m);
+      }
+    } else if (r?.effect === "precipitate") {
+      const darker = new THREE.Color(target).multiplyScalar(0.55);
+      for (let i = 0; i < 16; i++) {
+        const m = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), new THREE.MeshStandardMaterial({ color: darker }));
+        m.position.set((Math.random() - 0.5) * 1.9, -1.06 + Math.random() * 0.07, (Math.random() - 0.5) * 1.9);
+        st.particles.add(m);
+      }
+    }
+    setMixed(true);
+  };
+
+  const handleReset = () => {
+    if (!stateRef.current) return;
+    const st = stateRef.current;
+    st.targetColor = new THREE.Color(0xeef2f7);
+    st.targetScale = 0.001;
+    while (st.particles.children.length) st.particles.remove(st.particles.children[0]);
+    setMixed(false);
+  };
+
+  const slotStyle = (i) => ({
+    flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10,
+    border: active === i ? `1.5px solid ${C.textInfo}` : `0.5px solid ${C.borderSecondary}`,
+    background: active === i ? C.bgInfo : C.bgPrimary,
+    cursor: "pointer",
+  });
+
+  const tileStyle = (r) => {
+    const isInSlots = slots.includes(r.id);
+    return {
+      display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "8px 4px",
+      borderRadius: 10, cursor: "pointer", fontSize: 11, fontWeight: 500,
+      border: isInSlots ? `1.5px solid ${C.textInfo}` : `0.5px solid ${C.borderSecondary}`,
+      background: isInSlots ? C.bgInfo : C.bgPrimary,
+      color: C.textPrimary,
+    };
+  };
+
+  return (
+    <div style={{ fontFamily: "sans-serif", padding: "0 0 16px" }}>
+
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 18, fontWeight: 600, color: C.textPrimary }}>{LAB.title}</div>
+        {LAB.subtitle && <div style={{ fontSize: 12, color: C.textTertiary, marginTop: 2 }}>{LAB.subtitle}</div>}
+      </div>
+
+      {/* 2 ống đang chọn */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        {[0, 1].map(i => (
+          <div key={i} onClick={() => setActive(i)} style={slotStyle(i)}>
+            <span style={{ width: 18, height: 18, borderRadius: "50%", background: reagentById(slots[i]).color, border: `1px solid ${C.borderSecondary}`, flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: C.textSecondary }}>Ống {i + 1}: <strong style={{ color: C.textPrimary }}>{reagentById(slots[i]).formula}</strong></span>
+          </div>
+        ))}
+      </div>
+
+      {/* Lưới chọn hoá chất */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 14 }}>
+        {LAB.reagents.map(r => (
+          <button key={r.id} onClick={() => selectReagent(r.id)} style={tileStyle(r)}>
+            <span style={{ width: 22, height: 22, borderRadius: "50%", background: r.color, border: `1px solid ${C.borderSecondary}` }} />
+            {r.formula}
+          </button>
+        ))}
+      </div>
+
+      {/* Canvas 3D — tông tối riêng, không theo bảng màu C ở trên */}
+      <div ref={mountRef} style={{
+        position: "relative", width: "100%", height: 240, borderRadius: 12,
+        border: "0.5px solid #2a3340", overflow: "hidden",
+        background: "linear-gradient(180deg, #1c232c, #05080c)",
+        marginBottom: 6,
+      }}>
+        <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", touchAction: "none", cursor: "grab" }} />
+        <div style={{ position: "absolute", bottom: 6, right: 10, fontSize: 10, color: "rgba(255,255,255,0.45)" }}>Kéo để xoay</div>
+      </div>
+
+      {sameReagent ? (
+        <div style={{ textAlign: "center", fontSize: 12, color: C.textWarning, marginBottom: 4 }}>
+          Chọn 2 dung dịch khác nhau để trộn
+        </div>
+      ) : (
+        <button onClick={mixed ? handleReset : handleMix} style={{
+          display: "block", width: "100%", padding: "10px", fontSize: 13, fontWeight: 500, borderRadius: 10,
+          border: `1.5px solid ${C.textInfo}`, background: C.bgInfo, color: C.textInfo, cursor: "pointer",
+        }}>
+          {mixed ? "↺ Làm lại" : "⚗️ Trộn"}
+        </button>
+      )}
+
+      {mixed && !sameReagent && (
+        <div style={{ marginTop: 14, border: `0.5px solid ${C.borderTertiary}`, borderRadius: 12, padding: 14, background: C.bgSecondary }}>
+          {reaction ? (
+            <React.Fragment>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.textInfo, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.4 }}>Hiện tượng</div>
+              <div style={{ fontSize: 13, color: C.textPrimary, marginBottom: 10 }}>{reaction.phenomenon}</div>
+              <div style={{ fontSize: 14, fontFamily: "monospace", fontWeight: 600, color: C.textPrimary, background: C.bgPrimary, padding: "8px 12px", borderRadius: 8, marginBottom: 10 }}>{reaction.equation}</div>
+              <div style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.6 }}>{reaction.explanation}</div>
+            </React.Fragment>
+          ) : (
+            <div style={{ fontSize: 13, color: C.textTertiary, textAlign: "center" }}>{LAB.noReactionMessage}</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<VirtualLab3D />);
+</script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIZ_TITLE | Quiz Hoá học</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;padding:0 0 32px}
+.wrap{max-width:680px;margin:0 auto;padding:24px 16px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e5e5e5}
+.hico{width:42px;height:42px;border-radius:50%;background:#dbeafe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.htitle{font-size:16px;font-weight:600}.hsub{font-size:12px;color:#888;margin-top:2px}
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.prog-bar{flex:1;height:5px;background:#e5e5e5;border-radius:5px}
+.prog-fill{height:100%;border-radius:5px;background:#2563eb;transition:width .3s}
+.prog-label{font-size:12px;color:#aaa;white-space:nowrap}
+.diff-badge{font-size:11px;padding:2px 9px;border-radius:12px}
+.diff-easy{background:#dcfce7;color:#16a34a}
+.diff-medium{background:#fef9c3;color:#ca8a04}
+.diff-hard{background:#fee2e2;color:#dc2626}
+.mol-box{border-radius:12px;overflow:hidden;border:1px solid #e5e5e5;background:#fff;margin-bottom:14px}
+.mol-viewer{width:100%;height:220px;position:relative;background:#fff}
+.mol-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12px;color:#aaa}
+.spinner{width:22px;height:22px;border:2px solid #e0e0e0;border-top-color:#2563eb;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.mol-label{padding:6px 12px;font-size:12px;color:#888;border-top:1px solid #f0f0f0}
+.question{font-size:15px;font-weight:500;line-height:1.6;margin-bottom:14px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e0e0e0;background:#fff;cursor:pointer;font-size:13px;text-align:left;font-family:inherit;transition:all .15s;width:100%}
+.opt:hover:not(:disabled){border-color:#93c5fd;background:#eff6ff}
+.opt:disabled{cursor:default}
+.opt.correct{border-color:#22c55e;background:#f0fdf4;color:#166534}
+.opt.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+.opt.selected{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8}
+.circle{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-weight:500}
+.expl{padding:12px 14px;border-radius:10px;margin-bottom:14px;font-size:13px;line-height:1.6}
+.expl.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}
+.expl.no{background:#fef2f2;border:1px solid #fecaca;color:#7f1d1d}
+.expl-head{font-weight:600;margin-bottom:4px}
+.next-btn{width:100%;padding:11px;font-size:13px;font-weight:500;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;font-family:inherit}
+.next-btn:hover{background:#f5f5f5}
+.result{text-align:center;padding:28px 16px 20px}
+.score-pct{font-size:52px;font-weight:600;line-height:1}
+.score-sub{font-size:14px;color:#888;margin:8px 0 4px}
+.score-msg{font-size:13px;color:#aaa}
+.restart{margin-top:18px;padding:9px 28px;font-size:13px;border-radius:24px;border:1px solid #ddd;background:#fff;cursor:pointer;font-family:inherit}
+.review{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+.rev-item{padding:10px 14px;border-radius:10px;border:1px solid #e0e0e0;background:#fff}
+.rev-item.ok{border-color:#bbf7d0;background:#f0fdf4}
+.rev-item.no{border-color:#fecaca;background:#fef2f2}
+.rev-q{font-size:13px;font-weight:500;margin-bottom:3px}
+.rev-ans{font-size:12px;margin-bottom:3px}
+.rev-exp{font-size:12px;color:#666}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="hico">⚗️</div>
+    <div>
+      <div class="htitle">QUIZ_TITLE</div>
+      <div class="hsub">QUIZ_SUBTITLE</div>
+    </div>
+  </div>
+  <div id="root"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.3/3Dmol-min.js"></script>
+<script>
+/* ===== ĐIỀN DỮ LIỆU CÂU HỎI VÀO ĐÂY ===== */
+const QUESTIONS = [
+  /* PASTE_QUESTIONS_HERE */
+  /*
+  {
+    q: "Câu hỏi?",
+    cid: 962,          // PubChem CID, null nếu không cần 3D
+    molName: "H₂O",
+    opts: ["A. ...", "B. ...", "C. ...", "D. ..."],
+    ans: 1,            // index đáp án đúng (0–3)
+    exp: "Giải thích...",
+    diff: "easy"       // easy | medium | hard
+  },
+  */
+];
+/* =========================================== */
+
+const DC={easy:'diff-easy',medium:'diff-medium',hard:'diff-hard'};
+const DL={easy:'Dễ',medium:'Trung bình',hard:'Khó'};
+let cur=0, sel=null, answers={}, done=false;
+
+/* Fetch SDF từ PubChem → render bằng 3Dmol.js (không dùng iframe) */
+function render3D(containerId, cid) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="mol-loading"><div class="spinner"></div><span>Đang tải cấu trúc 3D...</span></div>';
+  fetch(`https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/SDF?record_type=3d`)
+    .then(r => { if (!r.ok) throw new Error(); return r.text(); })
+    .then(sdf => {
+      el.innerHTML = '';
+      const init = () => {
+        if (typeof $3Dmol === 'undefined') { setTimeout(init, 100); return; }
+        const v = $3Dmol.createViewer(el, { backgroundColor:'white', antialias:true });
+        v.addModel(sdf, 'sdf');
+        v.setStyle({}, { sphere:{scale:0.35,colorscheme:'Jmol'}, stick:{radius:0.18,colorscheme:'Jmol'} });
+        v.zoomTo(); v.render();
+      };
+      init();
+    })
+    .catch(() => {
+      el.innerHTML = '<div class="mol-loading">⚠️ Không tải được 3D<br><small>Kiểm tra kết nối mạng</small></div>';
+    });
+}
+
+function renderRoot() {
+  const root = document.getElementById('root');
+  done ? renderResult(root) : renderQ(root);
+}
+
+function renderResult(root) {
+  const score = Object.entries(answers).filter(([i,a])=>QUESTIONS[+i].ans===a).length;
+  const p = Math.round(score/QUESTIONS.length*100);
+  const msg = p>=80?"Xuất sắc! Bạn nắm vững chủ đề này.":p>=60?"Khá tốt! Ôn lại câu sai nhé.":"Cần ôn thêm — thử lại!";
+  let html = `<div class="result">
+    <div class="score-pct">${p}%</div>
+    <div class="score-sub">${score}/${QUESTIONS.length} câu đúng</div>
+    <div class="score-msg">${msg}</div>
+    <button class="restart" onclick="restart()">Làm lại</button>
+  </div><div class="review">`;
+  QUESTIONS.forEach((q,i) => {
+    const ua=answers[i], ok=ua===q.ans;
+    html += `<div class="rev-item ${ok?'ok':'no'}">
+      <div class="rev-q">${i+1}. ${q.q}</div>
+      <div class="rev-ans" style="color:${ok?'#16a34a':'#dc2626'}">${ok?'✓ Đúng':'✗ Sai — Đáp án: '+q.opts[q.ans]}</div>
+      <div class="rev-exp">${q.exp}</div>
+    </div>`;
+  });
+  root.innerHTML = html + '</div>';
+}
+
+function renderQ(root) {
+  const q = QUESTIONS[cur];
+  const answered = sel!==null, correct = sel===q.ans;
+  const progress = Math.round((cur+1)/QUESTIONS.length*100);
+  const vid = `mol3d-${cur}`;
+
+  let html = `<div class="prog-row">
+    <div class="prog-bar"><div class="prog-fill" style="width:${progress}%"></div></div>
+    <span class="prog-label">${cur+1} / ${QUESTIONS.length}</span>
+    <span class="diff-badge ${DC[q.diff]}">${DL[q.diff]}</span>
+  </div>`;
+
+  if (q.cid) {
+    html += `<div class="mol-box">
+      <div class="mol-viewer" id="${vid}"></div>
+      ${q.molName?`<div class="mol-label">${q.molName}</div>`:''}
+    </div>`;
+  }
+
+  html += `<div class="question">${q.q}</div><div class="opts">`;
+  q.opts.forEach((opt,i) => {
+    const isSel=sel===i, isCorr=i===q.ans;
+    let cls='opt';
+    if(answered){if(isCorr)cls+=' correct';else if(isSel)cls+=' wrong';}
+    else if(isSel)cls+=' selected';
+    const lbl=answered&&isCorr?'✓':answered&&isSel?'✗':String.fromCharCode(65+i);
+    html+=`<button class="${cls}" ${answered?'disabled':''} onclick="pick(${i})">
+      <span class="circle">${lbl}</span>${opt}
+    </button>`;
+  });
+  html += '</div>';
+
+  if (answered) {
+    html += `<div class="expl ${correct?'ok':'no'}">
+      <div class="expl-head">${correct?'✓ Chính xác!':'✗ Chưa đúng'}</div>${q.exp}
+    </div>
+    <button class="next-btn" onclick="next()">${cur<QUESTIONS.length-1?'Câu tiếp theo →':'Xem kết quả'}</button>`;
+  }
+
+  root.innerHTML = html;
+  if (q.cid) render3D(vid, q.cid);
+}
+
+function pick(i){if(sel!==null)return;sel=i;answers[cur]=i;renderRoot();}
+function next(){if(cur<QUESTIONS.length-1){cur++;sel=answers[cur]??null;}else done=true;renderRoot();}
+function restart(){cur=0;sel=null;answers={};done=false;renderRoot();}
+
+renderRoot();
+</script>
+</body>
+</html>
