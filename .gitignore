@@ -219,6 +219,10 @@ src/modules/gen_material/backend/mr_combined.png
 src/modules/gen_material/backend/skyseg.onnx
 src/modules/gen_material/backend/=0.7.3
 src/modules/gen_material/demo_3d_viewer/build/
+src/modules/gen_img/weights/
+src/modules/gen_img/__pycache__/
+src/modules/gen_img/RealESRGAN/__pycache__/
+src/modules/gen_img/test_*.py
 
 # Ruff stuff:
 .ruff_cache/
