@@ -1,8 +1,9 @@
 <!-- TEMPLATE: ai-quiz-gen.html
      Tính năng:
-     - Nhập chủ đề / tên chương → Claude API sinh bộ câu hỏi JSON
+     - Nhập chủ đề / tên chương → Gemini API (qua proxy server/) sinh bộ câu hỏi JSON
      - Render quiz tương tác hoàn chỉnh với phân tử 3D nếu liên quan
      - Kết quả cuối: điểm số + review từng câu
+     - Cần chạy proxy: cd server && npm install && npm start (đọc GEMINI_API_KEY từ .env)
 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -131,17 +132,18 @@ Lưu ý:
 - Các đáp án sai phải hợp lý (không quá dễ đoán)`;
 
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
+    const res=await fetch("/api/gemini",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({
-        model:"claude-sonnet-4-6",
-        max_tokens:1000,
-        messages:[{role:"user",content:prompt}]
+        prompt:prompt,
+        maxTokens:3000,
+        json:true
       })
     });
     const data=await res.json();
-    const raw=data.content[0].text.trim();
+    if(data.error)throw new Error(data.error);
+    const raw=data.text.trim();
     const parsed=JSON.parse(raw);
     questions=parsed.questions;
     clearInterval(loadingInterval);

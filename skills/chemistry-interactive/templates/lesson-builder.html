@@ -1,9 +1,9 @@
 <!-- TEMPLATE: lesson-builder.html
      Tính năng:
-     - Nhập tên chương → Claude API tạo outline + danh sách phân tử key
+     - Nhập tên chương → Gemini API (qua proxy server/) tạo outline + danh sách phân tử key + quiz 5 câu
      - PubChem API lookup từng phân tử → render viewer đồng loạt
-     - Claude sinh quiz 5 câu → render interactive quiz
      - Output: bộ học liệu hoàn chỉnh (overview + viewers + quiz)
+     - Cần chạy proxy: cd server && npm install && npm start (đọc GEMINI_API_KEY từ .env)
 -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -126,12 +126,13 @@ Yêu cầu:
 - quiz: 5 câu hỏi đa dạng độ khó, phù hợp lớp ${grade}
 - mol_cid trong quiz: dùng CID nếu biết chắc (H2O=962, C6H6=241, C2H5OH=702, C6H12O6=5793, CH4=297, NH3=222, CO2=280, C2H4=6325, C2H2=6326), null nếu không chắc`;
 
-    const res1=await fetch("https://api.anthropic.com/v1/messages",{
+    const res1=await fetch("/api/gemini",{
       method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,messages:[{role:"user",content:outlinePrompt}]})
+      body:JSON.stringify({prompt:outlinePrompt,maxTokens:3000,json:true})
     });
     const d1=await res1.json();
-    lessonData=JSON.parse(d1.content[0].text.trim());
+    if(d1.error)throw new Error(d1.error);
+    lessonData=JSON.parse(d1.text.trim());
     setStep(STEPS,0,"done");
 
     // Step 1: summary ready

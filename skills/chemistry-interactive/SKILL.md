@@ -167,26 +167,30 @@ Thay:
 
 Đọc `templates/ai-quiz-gen.html`. File đã hoàn chỉnh — chỉ cần `present_files` (theo
 quy trình 3D vì có thể render 3Dmol.js). Tính năng: user nhập chủ đề/chương → gọi
-Claude API (trong file, qua `fetch` tới `/v1/messages`) sinh bộ câu hỏi JSON → tự
-render thành quiz tương tác → chấm điểm + review từng câu cuối bài.
+Gemini API qua proxy server cục bộ (`fetch` tới `http://localhost:8787/api/gemini`)
+sinh bộ câu hỏi JSON → tự render thành quiz tương tác → chấm điểm + review từng câu
+cuối bài. **Cần chạy proxy trước** (`cd server && npm install && npm start`, đọc
+`GEMINI_API_KEY` từ `.env` ở thư mục gốc).
 
 ---
 
 ## Template SMART VIEWER
 
 Đọc `templates/smart-viewer.html`. File đã hoàn chỉnh — chỉ cần `present_files`.
-Tính năng: nhập tên → PubChem lookup → render 3Dmol → hỏi Claude AI.
+Tính năng: nhập tên → PubChem lookup → render 3Dmol → hỏi AI (Gemini qua proxy
+`server/`, cần chạy `npm start` trước, đọc `GEMINI_API_KEY` từ `.env`).
 
 ---
 
 ## Template LESSON BUILDER
 
 Đọc `templates/lesson-builder.html`. File đã hoàn chỉnh — chỉ cần `present_files`
-(theo quy trình 3D). Tính năng: user nhập tên chương/chủ đề → gọi Claude API tạo
-outline + danh sách phân tử chính → PubChem lookup từng phân tử → render viewer 3D
-đồng loạt → Claude API sinh thêm 5 câu quiz → ghép tất cả thành 1 bộ học liệu hoàn
-chỉnh (tóm tắt lý thuyết + các mô hình 3D + quiz). Phù hợp khi user muốn "soạn cả
-bài/chương" thay vì 1 hoạt động đơn lẻ.
+(theo quy trình 3D). Tính năng: user nhập tên chương/chủ đề → gọi Gemini API qua
+proxy server cục bộ tạo outline + danh sách phân tử chính + 5 câu quiz trong 1 lần
+gọi → PubChem lookup từng phân tử → render viewer 3D đồng loạt → ghép tất cả thành
+1 bộ học liệu hoàn chỉnh (tóm tắt lý thuyết + các mô hình 3D + quiz). Phù hợp khi
+user muốn "soạn cả bài/chương" thay vì 1 hoạt động đơn lẻ. **Cần chạy proxy trước**
+(`cd server && npm install && npm start`).
 
 ---
 

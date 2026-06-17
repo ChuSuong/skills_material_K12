@@ -84,7 +84,7 @@ footer{margin-top:24px;font-size:12px;color:#aaa;text-align:center}
       <div id="ai-res" class="ai-res"></div>
     </div>
   </div>
-  <footer>Cấu trúc 3D từ PubChem (NIH) · Render bởi 3Dmol.js · AI bởi Claude</footer>
+  <footer>Cấu trúc 3D từ PubChem (NIH) · Render bởi 3Dmol.js · AI bởi Gemini (qua proxy server/)</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/3Dmol/2.0.3/3Dmol-min.js"></script>
@@ -205,14 +205,16 @@ async function askAI() {
   btn.textContent='Đang hỏi...'; btn.disabled=true;
   res.style.display='block'; res.style.color='#888'; res.textContent='⏳ AI đang suy nghĩ...';
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
+    const r = await fetch('/api/gemini',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,
+      body:JSON.stringify({
         system:'Bạn là giáo viên hoá học THPT Việt Nam. Giải thích ngắn gọn, sinh động cho học sinh lớp 10-12. Dùng tiếng Việt. Tối đa 180 từ.',
-        messages:[{role:'user',content:`Phân tử: ${curName} (CID: ${curCID})\nCâu hỏi: ${q}`}]})
+        prompt:`Phân tử: ${curName} (CID: ${curCID})\nCâu hỏi: ${q}`,
+        maxTokens:1000})
     });
     const d = await r.json();
-    res.style.color='#333'; res.textContent=d.content[0].text;
+    if(d.error)throw new Error(d.error);
+    res.style.color='#333'; res.textContent=d.text;
   } catch(e) {
     res.style.color='#dc2626'; res.textContent='Lỗi kết nối AI.';
   }
