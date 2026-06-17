@@ -1,0 +1,924 @@
+{
+  "id": "egypt",
+  "theme": "Ai Cập Cổ Đại",
+  "allowDissolve": true,
+  "particleColor": "#fcd34d",
+  "character": {
+    "name": "Nhà Khảo Cổ",
+    "voice_id": "vi-VN",
+    "animation": "idle"
+  },
+  "objects": [
+    {
+      "id": "temple_1",
+      "type": "temple",
+      "position": [
+        0,
+        -1.5,
+        8
+      ],
+      "scale": 1.2,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "color": "#d97706",
+      "interactable": true,
+      "info": "Đền Thờ Cổ: Nơi diễn ra các nghi lễ cúng bái thần linh. Tòa kiến trúc này được render hoàn toàn bằng các khối 3D nguyên bản (Native) đặt thẳng xuống mặt đất."
+    },
+    {
+      "id": "temple_2",
+      "type": "temple",
+      "position": [
+        -12,
+        -1.5,
+        12
+      ],
+      "scale": 1.5,
+      "rotation": [
+        0,
+        0.5,
+        0
+      ],
+      "color": "#b45309",
+      "interactable": true,
+      "info": "Khu di tích phụ: Đứng sừng sững trên cát, có đổ bóng và phản ứng với bão cát sa mạc một cách chân thực."
+    },
+    {
+      "id": "pyramid_main",
+      "type": "pyramid",
+      "position": [
+        0,
+        -1.5,
+        -20
+      ],
+      "scale": 3.0,
+      "rotation": [
+        0,
+        0.78,
+        0
+      ],
+      "color": "#d97706",
+      "interactable": true,
+      "info": "Kim Tự Tháp Khufu: Kỳ quan thế giới cổ đại duy nhất còn tồn tại, được xây dựng từ hàng triệu khối đá."
+    },
+    {
+      "id": "pyramid_2",
+      "type": "pyramid",
+      "position": [
+        -15,
+        -1.5,
+        -35
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        0.5,
+        0
+      ],
+      "color": "#b45309",
+      "interactable": true,
+      "info": "Kim Tự Tháp Khafre: Thường bị nhầm là kim tự tháp lớn nhất do nằm trên nền đất cao hơn."
+    },
+    {
+      "id": "pyramid_3",
+      "type": "pyramid",
+      "position": [
+        18,
+        -1.5,
+        -40
+      ],
+      "scale": 1.5,
+      "rotation": [
+        0,
+        1.2,
+        0
+      ],
+      "color": "#d97706",
+      "interactable": true,
+      "info": "Kim Tự Tháp Menkaure: Kim tự tháp nhỏ nhất trong quần thể Giza."
+    },
+    {
+      "id": "pharaoh_1",
+      "type": "pharaoh",
+      "position": [
+        -6,
+        -1.5,
+        -5
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        0.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Tượng Pharaoh: Biểu tượng quyền lực tuyệt đối của các vị vua Ai Cập, được xem như hiện thân của thần linh.",
+      "title": "Tượng Pharaoh",
+      "description": "Pharaoh là tước hiệu chỉ các vị vua của Ai Cập cổ đại. Họ không chỉ là người cai trị tối cao về mặt chính trị và quân sự, mà còn được coi là hiện thân của các vị thần trên mặt đất. Tượng Pharaoh thường được tạc với tư thế uy nghi, biểu thị sức mạnh vĩnh hằng.",
+      "quiz": {
+        "question": "Pharaoh trong Ai Cập cổ đại được xem là gì?",
+        "answers": ["Một thương nhân giàu có", "Hiện thân của thần linh trên mặt đất", "Người xây dựng kim tự tháp", "Một nhà thiên văn học"],
+        "correctAnswer": "Hiện thân của thần linh trên mặt đất"
+      }
+    },
+    {
+      "id": "pharaoh_2",
+      "type": "pharaoh",
+      "position": [
+        6,
+        -1.5,
+        -5
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        -0.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Tượng thần Anubis: Vị thần mình người đầu chó rừng, cai quản cái chết và quá trình ướp xác."
+    },
+    {
+      "id": "market_0",
+      "type": "market",
+      "position": [
+        5.6,
+        -1.5,
+        2.6
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        1.8,
+        0
+      ],
+      "color": "#8b5cf6",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_1",
+      "type": "market",
+      "position": [
+        -0.2,
+        -1.5,
+        3.1
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        2.0,
+        0
+      ],
+      "color": "#10b981",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_2",
+      "type": "market",
+      "position": [
+        2.9,
+        -1.5,
+        8.6
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        0.5,
+        0
+      ],
+      "color": "#3b82f6",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_3",
+      "type": "market",
+      "position": [
+        9.5,
+        -1.5,
+        2.4
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        1.2,
+        0
+      ],
+      "color": "#10b981",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_4",
+      "type": "market",
+      "position": [
+        5.7,
+        -1.5,
+        9.6
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        0.2,
+        0
+      ],
+      "color": "#f59e0b",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_5",
+      "type": "market",
+      "position": [
+        -9.5,
+        -1.5,
+        3.6
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        0.7,
+        0
+      ],
+      "color": "#8b5cf6",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_6",
+      "type": "market",
+      "position": [
+        7.4,
+        -1.5,
+        4.6
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        1.7,
+        0
+      ],
+      "color": "#ef4444",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "market_7",
+      "type": "market",
+      "position": [
+        8.5,
+        -1.5,
+        5.7
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        0.4,
+        0
+      ],
+      "color": "#10b981",
+      "interactable": true,
+      "info": "Khu chợ ốc đảo: Nơi giao thương sầm uất các mặt hàng gia vị, lụa là và trang sức."
+    },
+    {
+      "id": "citizen_0",
+      "type": "citizen",
+      "position": [
+        3.7,
+        -1.5,
+        7.0
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        4.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_1",
+      "type": "citizen",
+      "position": [
+        -6.2,
+        -1.5,
+        1.7
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        5.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_2",
+      "type": "citizen",
+      "position": [
+        -6.5,
+        -1.5,
+        11.9
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        1.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_3",
+      "type": "citizen",
+      "position": [
+        0.0,
+        -1.5,
+        0.6
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_4",
+      "type": "citizen",
+      "position": [
+        -1.1,
+        -1.5,
+        1.6
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        5.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_5",
+      "type": "citizen",
+      "position": [
+        1.3,
+        -1.5,
+        2.6
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        1.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_6",
+      "type": "citizen",
+      "position": [
+        7.1,
+        -1.5,
+        3.1
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        3.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_7",
+      "type": "citizen",
+      "position": [
+        -5.2,
+        -1.5,
+        3.7
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        3.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_8",
+      "type": "citizen",
+      "position": [
+        8.6,
+        -1.5,
+        13.4
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        6.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_9",
+      "type": "citizen",
+      "position": [
+        -11.1,
+        -1.5,
+        7.9
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        4.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_10",
+      "type": "citizen",
+      "position": [
+        1.6,
+        -1.5,
+        12.9
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        6.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_11",
+      "type": "citizen",
+      "position": [
+        -10.6,
+        -1.5,
+        5.7
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        1.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_12",
+      "type": "citizen",
+      "position": [
+        6.5,
+        -1.5,
+        0.8
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        3.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_13",
+      "type": "citizen",
+      "position": [
+        10.1,
+        -1.5,
+        0.7
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        2.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "citizen_14",
+      "type": "citizen",
+      "position": [
+        6.9,
+        -1.5,
+        13.8
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        4.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Thương nhân & Người dân Ai Cập sinh hoạt tại khu chợ."
+    },
+    {
+      "id": "cactus_0",
+      "type": "cactus",
+      "position": [
+        -14.9,
+        -1.5,
+        -6.9
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        0.6,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_1",
+      "type": "cactus",
+      "position": [
+        -0.6,
+        -1.5,
+        -4.3
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        2.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_2",
+      "type": "cactus",
+      "position": [
+        -2.9,
+        -1.5,
+        -8.4
+      ],
+      "scale": 2.5,
+      "rotation": [
+        0,
+        3.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_3",
+      "type": "cactus",
+      "position": [
+        -23.6,
+        -1.5,
+        2.3
+      ],
+      "scale": 1.6,
+      "rotation": [
+        0,
+        6.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_4",
+      "type": "cactus",
+      "position": [
+        21.4,
+        -1.5,
+        13.2
+      ],
+      "scale": 2.4,
+      "rotation": [
+        0,
+        3.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_5",
+      "type": "cactus",
+      "position": [
+        -16.5,
+        -1.5,
+        -8.7
+      ],
+      "scale": 1.6,
+      "rotation": [
+        0,
+        5.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_8",
+      "type": "cactus",
+      "position": [
+        -9.0,
+        -1.5,
+        21.6
+      ],
+      "scale": 1.6,
+      "rotation": [
+        0,
+        2.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_9",
+      "type": "cactus",
+      "position": [
+        -29.5,
+        -1.5,
+        18.9
+      ],
+      "scale": 2.4,
+      "rotation": [
+        0,
+        5.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_10",
+      "type": "cactus",
+      "position": [
+        -0.4,
+        -1.5,
+        19.5
+      ],
+      "scale": 1.3,
+      "rotation": [
+        0,
+        2.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_11",
+      "type": "cactus",
+      "position": [
+        13.1,
+        -1.5,
+        3.5
+      ],
+      "scale": 0.9,
+      "rotation": [
+        0,
+        2.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_12",
+      "type": "cactus",
+      "position": [
+        -14.0,
+        -1.5,
+        20.0
+      ],
+      "scale": 1.3,
+      "rotation": [
+        0,
+        5.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_13",
+      "type": "cactus",
+      "position": [
+        10.6,
+        -1.5,
+        17.2
+      ],
+      "scale": 0.8,
+      "rotation": [
+        0,
+        4.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_14",
+      "type": "cactus",
+      "position": [
+        13.8,
+        -1.5,
+        14.0
+      ],
+      "scale": 1.8,
+      "rotation": [
+        0,
+        1.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_15",
+      "type": "cactus",
+      "position": [
+        0.6,
+        -1.5,
+        28.8
+      ],
+      "scale": 2.0,
+      "rotation": [
+        0,
+        1.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_16",
+      "type": "cactus",
+      "position": [
+        13.4,
+        -1.5,
+        28.4
+      ],
+      "scale": 2.3,
+      "rotation": [
+        0,
+        4.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_17",
+      "type": "cactus",
+      "position": [
+        -23.5,
+        -1.5,
+        0.7
+      ],
+      "scale": 1.3,
+      "rotation": [
+        0,
+        2.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_18",
+      "type": "cactus",
+      "position": [
+        7.3,
+        -1.5,
+        25.0
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        5.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_19",
+      "type": "cactus",
+      "position": [
+        -1.9,
+        -1.5,
+        20.6
+      ],
+      "scale": 1.1,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_20",
+      "type": "cactus",
+      "position": [
+        -14.2,
+        -1.5,
+        -4.7
+      ],
+      "scale": 2.1,
+      "rotation": [
+        0,
+        2.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_21",
+      "type": "cactus",
+      "position": [
+        15.3,
+        -1.5,
+        -3.6
+      ],
+      "scale": 2.4,
+      "rotation": [
+        0,
+        2.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_22",
+      "type": "cactus",
+      "position": [
+        18.2,
+        -1.5,
+        7.3
+      ],
+      "scale": 1.9,
+      "rotation": [
+        0,
+        0.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    },
+    {
+      "id": "cactus_23",
+      "type": "cactus",
+      "position": [
+        -21.2,
+        -1.5,
+        14.5
+      ],
+      "scale": 1.5,
+      "rotation": [
+        0,
+        5.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Xương rồng sa mạc: Cây cỏ kiên cường vươn lên giữa vùng cát cháy nóng rực."
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "start",
+      "action": "speak",
+      "text": "Chào mừng đến với Ai Cập cổ đại! Hãy khám phá kim tự tháp, khu chợ sầm uất và các pho tượng thần linh vĩ đại."
+    }
+  ]
+}

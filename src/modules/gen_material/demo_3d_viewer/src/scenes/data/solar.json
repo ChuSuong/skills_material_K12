@@ -1,0 +1,97 @@
+{
+  "id": "solar",
+  "theme": "Hệ Mặt Trời",
+  "allowDissolve": true,
+  "particleColor": "#ffffff",
+  "character": {
+    "name": "Nhà Thiên Văn Học",
+    "voice_id": "vi-VN",
+    "animation": "idle"
+  },
+  "objects": [
+    {
+      "id": "sun",
+      "type": "sun",
+      "color": "#fbbf24",
+      "texture": "textures/sun.jpg",
+      "size": 1.2,
+      "position": [0, 0, 0],
+      "interactable": true,
+      "info": "Mặt Trời: Ngôi sao ở trung tâm hệ mặt trời. Nó là một quả cầu plasma khổng lồ, cung cấp ánh sáng và năng lượng duy trì sự sống trên Trái Đất."
+    },
+    {
+      "id": "mercury",
+      "type": "planet",
+      "name": "Sao Thủy",
+      "color": "#9ca3af",
+      "texture": "textures/mercury.jpg",
+      "size": 0.25,
+      "orbitRadius": 2.5,
+      "orbitSpeed": 1.5,
+      "interactable": true,
+      "info": "Sao Thủy: Hành tinh gần Mặt Trời nhất và cũng là hành tinh nhỏ nhất. Bề mặt của nó đầy rẫy các miệng hố va chạm giống như Mặt Trăng."
+    },
+    {
+      "id": "venus",
+      "type": "planet",
+      "name": "Sao Kim",
+      "color": "#fcd34d",
+      "texture": "textures/venus.jpg",
+      "size": 0.4,
+      "orbitRadius": 3.5,
+      "orbitSpeed": 1.1,
+      "interactable": true,
+      "info": "Sao Kim: Hành tinh nóng nhất hệ mặt trời do hiệu ứng nhà kính dày đặc. Nó có kích thước và khối lượng gần bằng Trái Đất."
+    },
+    {
+      "id": "earth",
+      "type": "planet",
+      "name": "Trái Đất",
+      "color": "#3b82f6",
+      "texture": "textures/earth.jpg",
+      "size": 0.45,
+      "orbitRadius": 5.0,
+      "orbitSpeed": 0.9,
+      "interactable": true,
+      "info": "Trái Đất: Hành tinh thứ 3 từ Mặt Trời, và là nơi duy nhất trong vũ trụ mà chúng ta biết là có sự sống tồn tại.",
+      "title": "Trái Đất - Hành tinh Xanh",
+      "description": "Trái Đất là hành tinh thứ ba tính từ Mặt Trời và là thiên thể duy nhất trong vũ trụ được biết đến là có sự sống. Với hơn 70% bề mặt được bao phủ bởi nước biển, Trái Đất có bầu khí quyển phong phú oxy, giúp duy trì các hệ sinh thái đa dạng.",
+      "quiz": {
+        "question": "Trái Đất là hành tinh thứ mấy tính từ Mặt Trời?",
+        "answers": ["Thứ nhất", "Thứ hai", "Thứ ba", "Thứ tư"],
+        "correctAnswer": "Thứ ba"
+      }
+    },
+    {
+      "id": "mars",
+      "type": "planet",
+      "name": "Sao Hỏa",
+      "color": "#ef4444",
+      "texture": "textures/mars.jpg",
+      "size": 0.35,
+      "orbitRadius": 6.5,
+      "orbitSpeed": 0.7,
+      "interactable": true,
+      "info": "Sao Hỏa: Còn được gọi là 'Hành tinh Đỏ' do lượng oxit sắt trên bề mặt. Đây là nơi có ngọn núi lửa Olympus Mons lớn nhất hệ mặt trời."
+    },
+    {
+      "id": "jupiter",
+      "type": "planet",
+      "name": "Sao Mộc",
+      "color": "#d97706",
+      "texture": "textures/jupiter.jpg",
+      "size": 0.9,
+      "orbitRadius": 9.0,
+      "orbitSpeed": 0.4,
+      "interactable": true,
+      "info": "Sao Mộc: Hành tinh khí khổng lồ lớn nhất hệ mặt trời, nổi tiếng với 'Vết Đỏ Lớn' - một siêu bão đã tồn tại hàng trăm năm."
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "start",
+      "action": "speak",
+      "text": "Chào mừng đến với Hệ Mặt Trời! Bạn có thể dùng chuột xoay không gian và click vào các hành tinh đang quay để tìm hiểu nhé."
+    }
+  ]
+}
