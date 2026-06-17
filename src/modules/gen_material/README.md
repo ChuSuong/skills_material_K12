@@ -62,6 +62,8 @@ git clone https://github.com/microsoft/TRELLIS.git .tmp/trellis-src
 
 Sau đó trỏ `.env` về các thư mục này, hoặc giữ nguyên giá trị mặc định nếu bạn đặt chúng đúng theo cấu trúc `.tmp` ở trên. `TRELLIS2_OVOXEL_PATH` hiện đang tham chiếu tới thư mục `o-voxel` nằm bên trong repo `TRELLIS.2`.
 
+`TRELLIS2_CONFIG_FILE` mặc định nên để `pipeline.json`. Trong source TRELLIS.2 đang dùng hiện tại không có file `pipeline_no_rembg.json`, nên nếu `.env` cũ của máy khác đang trỏ tới tên này thì cần đổi lại hoặc tự cung cấp file cấu hình tương ứng.
+
 Nếu các đường dẫn này không tồn tại thì backend vẫn có thể lên, nhưng luồng generate 3D bằng TRELLIS có thể không chạy đúng như môi trường gốc.
 
 ### 3. Tạo file môi trường
