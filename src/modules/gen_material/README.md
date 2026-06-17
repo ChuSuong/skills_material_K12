@@ -52,6 +52,16 @@ Các biến `.env.example` mặc định đang trỏ tới source ngoài repo:
 - `TRELLIS_SRC_PATH`
 - `TRELLIS2_OVOXEL_PATH`
 
+Với cấu hình hiện tại, máy đích nên clone thêm 2 repo ngoài source K12:
+
+```bash
+mkdir -p .tmp
+git clone https://github.com/microsoft/TRELLIS.2.git .tmp/trellis2-src
+git clone https://github.com/microsoft/TRELLIS.git .tmp/trellis-src
+```
+
+Sau đó trỏ `.env` về các thư mục này, hoặc giữ nguyên giá trị mặc định nếu bạn đặt chúng đúng theo cấu trúc `.tmp` ở trên. `TRELLIS2_OVOXEL_PATH` hiện đang tham chiếu tới thư mục `o-voxel` nằm bên trong repo `TRELLIS.2`.
+
 Nếu các đường dẫn này không tồn tại thì backend vẫn có thể lên, nhưng luồng generate 3D bằng TRELLIS có thể không chạy đúng như môi trường gốc.
 
 ### 3. Tạo file môi trường
