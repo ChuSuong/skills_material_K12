@@ -1,0 +1,1357 @@
+{
+  "id": "forest",
+  "theme": "Rừng thiêng hoàng hôn",
+  "allowDissolve": true,
+  "particleColor": "#fbbf24",
+  "character": {
+    "name": "Bác Kiểm Lâm",
+    "voice_id": "vi-VN",
+    "animation": "idle"
+  },
+  "objects": [
+    {
+      "id": "visitor_1",
+      "type": "fox",
+      "position": [
+        0,
+        -1.5,
+        2
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        -0.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Khách Tham Quan: Đang cắm trại giữa rừng sâu tĩnh lặng."
+    },
+    {
+      "id": "lantern_1",
+      "type": "lantern",
+      "position": [
+        1.5,
+        -1.3,
+        2.5
+      ],
+      "scale": 1.0,
+      "rotation": [
+        0,
+        0.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Đèn lồng: Soi sáng khu cắm trại."
+    },
+    {
+      "id": "tent_1",
+      "type": "tent",
+      "position": [
+        2.5,
+        -1.5,
+        1.5
+      ],
+      "scale": 1.5,
+      "rotation": [
+        0,
+        0.8,
+        0
+      ],
+      "color": "#f59e0b",
+      "interactable": true,
+      "info": "Lều cắm trại: Nơi nghỉ ngơi an toàn giữa thiên nhiên.",
+      "title": "Cắm Trại Trong Rừng",
+      "description": "Lều cắm trại cung cấp nơi trú ẩn tạm thời an toàn khỏi thời tiết và thú dữ khi con người hòa mình vào thiên nhiên. Đây cũng là một hoạt động giúp nâng cao nhận thức về bảo vệ môi trường và sinh thái rừng.",
+      "quiz": {
+        "question": "Lợi ích chính của việc sử dụng lều khi cắm trại trong rừng là gì?",
+        "answers": ["Dùng để bắt động vật hoang dã", "Cung cấp nơi trú ẩn an toàn khỏi thời tiết", "Dùng làm nơi đốt lửa trại", "Để trồng cây bên trong"],
+        "correctAnswer": "Cung cấp nơi trú ẩn an toàn khỏi thời tiết"
+      }
+    },
+    {
+      "id": "mountain_1",
+      "type": "mountain",
+      "position": [
+        -20,
+        -1.5,
+        -30
+      ],
+      "scale": 3.0,
+      "rotation": [
+        0,
+        1.2,
+        0
+      ],
+      "color": "#44403c",
+      "interactable": true,
+      "info": "Núi vĩ đại hùng vĩ phía chân trời."
+    },
+    {
+      "id": "mountain_2",
+      "type": "mountain",
+      "position": [
+        15,
+        -1.5,
+        -25
+      ],
+      "scale": 4.0,
+      "rotation": [
+        0,
+        -0.5,
+        0
+      ],
+      "color": "#57534e",
+      "interactable": true,
+      "info": "Dãy núi che chở khu rừng khỏi gió bão."
+    },
+    {
+      "id": "mountain_3",
+      "type": "mountain",
+      "position": [
+        -35,
+        -1.5,
+        10
+      ],
+      "scale": 5.0,
+      "rotation": [
+        0,
+        0.3,
+        0
+      ],
+      "color": "#292524",
+      "interactable": true,
+      "info": "Những đỉnh núi mờ ảo trong sương hoàng hôn."
+    },
+    {
+      "id": "cloud_0",
+      "type": "cloud",
+      "position": [
+        -26.9,
+        28.9,
+        -13.7
+      ],
+      "scale": 1.8,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_1",
+      "type": "cloud",
+      "position": [
+        24.1,
+        28.4,
+        -8.6
+      ],
+      "scale": 2.3,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_2",
+      "type": "cloud",
+      "position": [
+        21.1,
+        29.6,
+        -16.5
+      ],
+      "scale": 2.3,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_3",
+      "type": "cloud",
+      "position": [
+        -15.3,
+        28.0,
+        -12.5
+      ],
+      "scale": 1.7,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_4",
+      "type": "cloud",
+      "position": [
+        5.9,
+        28.7,
+        -17.4
+      ],
+      "scale": 2.6,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_5",
+      "type": "cloud",
+      "position": [
+        24.3,
+        28.9,
+        -24.3
+      ],
+      "scale": 3.5,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_6",
+      "type": "cloud",
+      "position": [
+        -28.7,
+        37.1,
+        -7.1
+      ],
+      "scale": 2.2,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_7",
+      "type": "cloud",
+      "position": [
+        20.3,
+        35.7,
+        -16.3
+      ],
+      "scale": 3.5,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_8",
+      "type": "cloud",
+      "position": [
+        -17.6,
+        34.1,
+        -8.9
+      ],
+      "scale": 3.5,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_9",
+      "type": "cloud",
+      "position": [
+        -11.1,
+        32.0,
+        0.8
+      ],
+      "scale": 2.8,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_10",
+      "type": "cloud",
+      "position": [
+        11.1,
+        34.4,
+        -3.3
+      ],
+      "scale": 3.7,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "cloud_11",
+      "type": "cloud",
+      "position": [
+        -0.8,
+        34.7,
+        -15.0
+      ],
+      "scale": 1.6,
+      "interactable": false,
+      "info": "Đám mây lơ lửng trên bầu trời chiều."
+    },
+    {
+      "id": "tree_0",
+      "type": "tree",
+      "color": "#047857",
+      "position": [
+        17.8,
+        -1.5,
+        -22.3
+      ],
+      "scale": 5.3,
+      "rotation": [
+        0,
+        5.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_1",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        26.9,
+        -1.5,
+        15.6
+      ],
+      "scale": 3.6,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_2",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -21.8,
+        -1.5,
+        -28.8
+      ],
+      "scale": 4.5,
+      "rotation": [
+        0,
+        0.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_3",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        34.8,
+        -1.5,
+        -6.6
+      ],
+      "scale": 4.0,
+      "rotation": [
+        0,
+        5.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_4",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        9.7,
+        -1.5,
+        34.4
+      ],
+      "scale": 5.9,
+      "rotation": [
+        0,
+        4.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_5",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        3.1,
+        -1.5,
+        33.6
+      ],
+      "scale": 2.6,
+      "rotation": [
+        0,
+        3.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_6",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        17.6,
+        -1.5,
+        -31.9
+      ],
+      "scale": 2.5,
+      "rotation": [
+        0,
+        1.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_7",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        20.9,
+        -1.5,
+        12.9
+      ],
+      "scale": 5.8,
+      "rotation": [
+        0,
+        4.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_8",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        -27.4,
+        -1.5,
+        -30.6
+      ],
+      "scale": 3.4,
+      "rotation": [
+        0,
+        0.6,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_9",
+      "type": "tree",
+      "color": "#047857",
+      "position": [
+        27.8,
+        -1.5,
+        20.7
+      ],
+      "scale": 3.5,
+      "rotation": [
+        0,
+        3.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_10",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -6.7,
+        -1.5,
+        34.0
+      ],
+      "scale": 3.1,
+      "rotation": [
+        0,
+        3.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_11",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        4.3,
+        -1.5,
+        -6.0
+      ],
+      "scale": 2.1,
+      "rotation": [
+        0,
+        4.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_12",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        26.9,
+        -1.5,
+        -5.7
+      ],
+      "scale": 4.9,
+      "rotation": [
+        0,
+        4.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_13",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        11.8,
+        -1.5,
+        17.1
+      ],
+      "scale": 5.3,
+      "rotation": [
+        0,
+        3.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_14",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        -24.8,
+        -1.5,
+        10.9
+      ],
+      "scale": 5.7,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_15",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -9.2,
+        -1.5,
+        2.4
+      ],
+      "scale": 3.4,
+      "rotation": [
+        0,
+        0.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_16",
+      "type": "tree",
+      "color": "#047857",
+      "position": [
+        21.2,
+        -1.5,
+        -8.0
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        0.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_17",
+      "type": "tree",
+      "color": "#047857",
+      "position": [
+        -33.6,
+        -1.5,
+        -3.5
+      ],
+      "scale": 5.0,
+      "rotation": [
+        0,
+        4.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_18",
+      "type": "tree",
+      "color": "#065f46",
+      "position": [
+        11.8,
+        -1.5,
+        -13.7
+      ],
+      "scale": 5.2,
+      "rotation": [
+        0,
+        0.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_19",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        -12.3,
+        -1.5,
+        1.2
+      ],
+      "scale": 4.2,
+      "rotation": [
+        0,
+        2.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_20",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        3.2,
+        -1.5,
+        -9.2
+      ],
+      "scale": 5.6,
+      "rotation": [
+        0,
+        2.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_21",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        30.1,
+        -1.5,
+        -18.0
+      ],
+      "scale": 5.5,
+      "rotation": [
+        0,
+        1.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_22",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        30.7,
+        -1.5,
+        -29.4
+      ],
+      "scale": 2.8,
+      "rotation": [
+        0,
+        1.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_23",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -21.4,
+        -1.5,
+        4.5
+      ],
+      "scale": 2.3,
+      "rotation": [
+        0,
+        2.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_24",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        3.8,
+        -1.5,
+        -25.7
+      ],
+      "scale": 5.6,
+      "rotation": [
+        0,
+        5.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_25",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        20.0,
+        -1.5,
+        -1.1
+      ],
+      "scale": 4.9,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_26",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        15.0,
+        -1.5,
+        23.0
+      ],
+      "scale": 5.5,
+      "rotation": [
+        0,
+        2.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_27",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        23.8,
+        -1.5,
+        29.7
+      ],
+      "scale": 4.4,
+      "rotation": [
+        0,
+        0.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_28",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        20.3,
+        -1.5,
+        7.6
+      ],
+      "scale": 4.0,
+      "rotation": [
+        0,
+        4.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_29",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        13.4,
+        -1.5,
+        -9.8
+      ],
+      "scale": 3.8,
+      "rotation": [
+        0,
+        6.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_30",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -5.5,
+        -1.5,
+        -9.9
+      ],
+      "scale": 3.4,
+      "rotation": [
+        0,
+        4.7,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_31",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        34.8,
+        -1.5,
+        -8.2
+      ],
+      "scale": 5.2,
+      "rotation": [
+        0,
+        5.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_32",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        0.0,
+        -1.5,
+        23.1
+      ],
+      "scale": 2.7,
+      "rotation": [
+        0,
+        3.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_33",
+      "type": "tree",
+      "color": "#065f46",
+      "position": [
+        -30.2,
+        -1.5,
+        -14.3
+      ],
+      "scale": 5.6,
+      "rotation": [
+        0,
+        3.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_34",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        -12.4,
+        -1.5,
+        31.1
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        2.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_35",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        -2.4,
+        -1.5,
+        18.6
+      ],
+      "scale": 4.8,
+      "rotation": [
+        0,
+        1.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_36",
+      "type": "tree",
+      "color": "#047857",
+      "position": [
+        -16.4,
+        -1.5,
+        -4.3
+      ],
+      "scale": 4.3,
+      "rotation": [
+        0,
+        1.6,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_37",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        29.6,
+        -1.5,
+        -11.4
+      ],
+      "scale": 2.2,
+      "rotation": [
+        0,
+        0.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_38",
+      "type": "tree",
+      "color": "#065f46",
+      "position": [
+        11.2,
+        -1.5,
+        16.4
+      ],
+      "scale": 3.9,
+      "rotation": [
+        0,
+        0.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_39",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -25.1,
+        -1.5,
+        25.9
+      ],
+      "scale": 5.6,
+      "rotation": [
+        0,
+        1.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_40",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -32.7,
+        -1.5,
+        0.3
+      ],
+      "scale": 5.6,
+      "rotation": [
+        0,
+        3.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_41",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        14.4,
+        -1.5,
+        28.1
+      ],
+      "scale": 2.1,
+      "rotation": [
+        0,
+        4.6,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_42",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        13.2,
+        -1.5,
+        -30.6
+      ],
+      "scale": 3.0,
+      "rotation": [
+        0,
+        1.1,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_43",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -10.0,
+        -1.5,
+        -32.0
+      ],
+      "scale": 2.1,
+      "rotation": [
+        0,
+        4.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_44",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -31.7,
+        -1.5,
+        1.7
+      ],
+      "scale": 5.1,
+      "rotation": [
+        0,
+        5.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_45",
+      "type": "tree",
+      "color": "#065f46",
+      "position": [
+        -21.4,
+        -1.5,
+        -0.0
+      ],
+      "scale": 5.5,
+      "rotation": [
+        0,
+        1.4,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_46",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -28.5,
+        -1.5,
+        -4.0
+      ],
+      "scale": 4.2,
+      "rotation": [
+        0,
+        1.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_47",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        1.4,
+        -1.5,
+        29.5
+      ],
+      "scale": 4.5,
+      "rotation": [
+        0,
+        2.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_48",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        20.4,
+        -1.5,
+        -27.2
+      ],
+      "scale": 4.3,
+      "rotation": [
+        0,
+        4.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_49",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        1.2,
+        -1.5,
+        -24.2
+      ],
+      "scale": 2.5,
+      "rotation": [
+        0,
+        5.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_50",
+      "type": "tree",
+      "color": "#166534",
+      "position": [
+        33.1,
+        -1.5,
+        -17.9
+      ],
+      "scale": 2.8,
+      "rotation": [
+        0,
+        2.5,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_51",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -34.2,
+        -1.5,
+        10.9
+      ],
+      "scale": 4.2,
+      "rotation": [
+        0,
+        0.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_52",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        16.2,
+        -1.5,
+        26.5
+      ],
+      "scale": 3.7,
+      "rotation": [
+        0,
+        1.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_53",
+      "type": "tree",
+      "color": "#15803d",
+      "position": [
+        -12.3,
+        -1.5,
+        1.1
+      ],
+      "scale": 5.0,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_54",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -7.7,
+        -1.5,
+        33.9
+      ],
+      "scale": 4.0,
+      "rotation": [
+        0,
+        0.3,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_55",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -1.7,
+        -1.5,
+        15.4
+      ],
+      "scale": 2.4,
+      "rotation": [
+        0,
+        0.8,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_56",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -10.3,
+        -1.5,
+        8.0
+      ],
+      "scale": 3.8,
+      "rotation": [
+        0,
+        2.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_57",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        -20.1,
+        -1.5,
+        30.6
+      ],
+      "scale": 2.4,
+      "rotation": [
+        0,
+        5.2,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_58",
+      "type": "tree",
+      "color": "#14532d",
+      "position": [
+        -28.4,
+        -1.5,
+        11.5
+      ],
+      "scale": 4.9,
+      "rotation": [
+        0,
+        4.9,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    },
+    {
+      "id": "tree_59",
+      "type": "tree",
+      "color": "#064e3b",
+      "position": [
+        32.1,
+        -1.5,
+        -22.4
+      ],
+      "scale": 2.5,
+      "rotation": [
+        0,
+        3.0,
+        0
+      ],
+      "interactable": true,
+      "info": "Cây Cổ Thụ vươn cao che bóng mặt trời."
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "start",
+      "action": "speak",
+      "text": "Một buổi chiều cắm trại yên bình dưới chân núi, nhìn mặt trời lặn sau những tán cây."
+    }
+  ]
+}

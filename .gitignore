@@ -203,6 +203,23 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Node / frontend build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Demo 3D runtime outputs
+src/modules/gen_material/backend/outputs/
+src/modules/gen_material/backend/.venv-trellis2/
+src/modules/gen_material/backend/.conda-compiler/
+src/modules/gen_material/backend/backend.log
+src/modules/gen_material/backend/temp.glb
+src/modules/gen_material/backend/mr_combined.png
+src/modules/gen_material/backend/skyseg.onnx
+src/modules/gen_material/backend/=0.7.3
+src/modules/gen_material/demo_3d_viewer/build/
+
 # Ruff stuff:
 .ruff_cache/
 

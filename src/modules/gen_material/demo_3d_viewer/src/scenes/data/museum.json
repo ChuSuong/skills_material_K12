@@ -1,0 +1,51 @@
+{
+  "id": "museum",
+  "theme": "Museum Prototype",
+  "allowDissolve": true,
+  "particleColor": "#a78bfa",
+  "character": {
+    "name": "Bảo tàng 3D",
+    "voice_id": "vi-VN",
+    "animation": "idle"
+  },
+  "objects": [
+    {
+      "id": "artifact_1",
+      "type": "torusKnot",
+      "color": "#d6b16a",
+      "position": [0, 1.45, 0],
+      "interactable": true,
+      "info": "Torus Knot (Nút thắt): Đại diện cho sự liên kết và vĩnh cửu. Đây là trung tâm của bảo tàng năng lượng.",
+      "title": "Nút thắt Torus (Torus Knot)",
+      "description": "Trong toán học và hình học không gian, nút thắt Torus là một đường cong kín nằm trên bề mặt của một hình xuyến (torus). Nó thường được dùng trong nghệ thuật và kiến trúc như một biểu tượng của sự vô cực, tuần hoàn và kết nối không điểm dừng.",
+      "quiz": {
+        "question": "Trong hình học, nút thắt Torus nằm trên bề mặt của hình gì?",
+        "answers": ["Hình cầu (Sphere)", "Hình nón (Cone)", "Hình xuyến (Torus)", "Hình chóp (Pyramid)"],
+        "correctAnswer": "Hình xuyến (Torus)"
+      }
+    },
+    {
+      "id": "crystal_1",
+      "type": "crystal",
+      "color": "#8b5cf6",
+      "position": [-3, 1.5, 0],
+      "interactable": true,
+      "info": "Pha lê năng lượng Tím: Vật thể cộng hưởng với lõi trung tâm, tích tụ năng lượng từ các vì sao."
+    },
+    {
+      "id": "cube_1",
+      "type": "floatingCube",
+      "color": "#38bdf8",
+      "position": [3, 2, 0],
+      "interactable": true,
+      "info": "Khối dữ liệu Hologram: Chứa đựng thông tin lưu trữ của nền văn minh cổ đại."
+    }
+  ],
+  "interactions": [
+    {
+      "trigger": "start",
+      "action": "speak",
+      "text": "Kéo chuột để xoay camera, scroll để zoom. Bấm nút dưới để thử hiệu ứng dissolve/restore đơn giản."
+    }
+  ]
+}
