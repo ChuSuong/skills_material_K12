@@ -58,12 +58,15 @@ Dùng checklist này trước khi code và trước khi review lần cuối.
 - Thí nghiệm nhiều bước cần nút reset.
 - Hành động sai cần có feedback cục bộ, không được im lặng.
 - Thay đổi trạng thái quan trọng phải cập nhật cả hình ảnh và text readout.
+- Với bài có đáp án nhận biết/phân loại, không render sẵn bảng đáp án hoặc legend đối chiếu ngay từ đầu. Trước khi hoàn thành quan sát chính, UI chỉ nên nhắc dự đoán, tiêu chí quan sát, hoặc trạng thái tiến trình.
 
 ## Thiết Kế Thị Giác
 
 - Dùng bằng chứng thị giác đặc trưng phòng thí nghiệm: bọt khí, kết tủa, độ đục, màu, nhiệt, thể tích khí, sản phẩm điện cực.
 - Lab-first: scene thí nghiệm, đồ thị hoặc vùng thao tác phải là trọng tâm thị giác.
 - Trên desktop, stage chính nên chiếm khoảng 70-85% viewport đầu tiên; panel chỉ số, graph, công thức và hướng dẫn cộng lại không nên lấn quá 25-30%.
+- Stage lớn phải có “evidence density” đủ cao: nhìn lướt 2-3 giây phải thấy rõ hiện tượng hoặc apparatus đang hoạt động. Không chấp nhận canvas lớn nhưng chỉ có nền tối, vài vật nhỏ, hoặc tín hiệu quá mờ.
+- Nếu stage gần như trống còn ý chính nằm ở card bên cạnh, giảm chiều cao stage hoặc đổi sang renderer nhẹ hơn. Không giữ Three.js chỉ để có cảm giác 3D.
 - Ngoại lệ có chủ đích: nếu bản chất bài học là so sánh theo panel, đọc đồ thị, hoặc điều khiển biến rồi quan sát hệ quả, panel phụ có thể lớn hơn miễn là nó rõ ràng phục vụ suy luận học tập chứ không chỉ trang trí.
 - Trong first viewport, mặc định chỉ dùng tối đa 2 panel phụ có giá trị cao. Không thêm card chỉ để nhắc lại learning loop bằng text.
 - Tiêu đề và chú thích gọn; tránh hero headline lớn, card giới thiệu dài hoặc text chiếm màn hình đầu.
@@ -88,6 +91,9 @@ Dùng checklist này trước khi code và trước khi review lần cuối.
 - Xác nhận canvas không trắng sau khi Three.js load.
 - Kiểm tra auto-run/demo: mở trang là thấy tiến trình chạy, hoặc một nút chính chạy toàn bộ không cần thao tác lặp.
 - Kiểm tra layout: title/chú thích không lấn át vùng thí nghiệm ở desktop và mobile.
+- Kiểm tra stage không bị “to nhưng trống”: khi che toàn bộ panel phụ và chỉ nhìn vùng stage, vẫn phải đọc ra hiện tượng chính hoặc apparatus chính.
+- Nếu stage có chiều cao rất lớn nhưng chỉ có ít tín hiệu thị giác, coi là fail review kể cả khi JS chạy bình thường.
+- Kiểm tra `spoiler`: trước khi bấm demo hoặc trước khi hoàn thành bước quan sát chính, learner không được nhìn thấy mapping đáp án đầy đủ qua status, legend, focus box, card kết quả, hoặc caption.
 - Nếu dùng Playwright hoặc browser automation, kiểm tra desktop và mobile emulation có screenshot artifact.
 - Nếu dùng Chart.js/GSAP/Matter.js/3Dmol.js hoặc thư viện khác, kiểm tra fallback khi CDN fail bằng cách nhìn có message lỗi rõ ràng trong code.
 - Nếu dùng `GSAP`, kiểm tra có `pause/resume/restart` hoặc control tương đương.

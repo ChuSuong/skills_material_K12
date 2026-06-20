@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pin điện hóa Zn-Cu (Daniell cell)</title>
+</head>
+<body>
+  <div id="chem-exp-pin-daniell-zn-cu" class="chem-exp">
+    <style>
+      #chem-exp-pin-daniell-zn-cu {
+        --bg-1: #f3f7fb;
+        --bg-2: #deebf8;
+        --ink: #173047;
+        --muted: #5d7486;
+        --line: rgba(23, 48, 71, 0.14);
+        --panel: rgba(255, 255, 255, 0.88);
+        --shadow: 0 24px 64px rgba(26, 59, 86, 0.14);
+        --zn: #75879a;
+        --zn-soft: #c3d0dd;
+        --cu: #be7149;
+        --cu-soft: #f0d1c1;
+        --bridge: #7f63d8;
+        --wire: #22303f;
+        --electron: #ffd455;
+        --good: #15856d;
+        --warn: #cb7a15;
+        min-height: 100vh;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(880px 440px at 12% -5%, rgba(103, 157, 214, 0.24), transparent 60%),
+          radial-gradient(620px 320px at 92% 4%, rgba(255, 212, 85, 0.18), transparent 58%),
+          linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      }
+      #chem-exp-pin-daniell-zn-cu *,
+      #chem-exp-pin-daniell-zn-cu *::before,
+      #chem-exp-pin-daniell-zn-cu *::after { box-sizing: border-box; }
+      #chem-exp-pin-daniell-zn-cu .shell {
+        width: min(1360px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-pin-daniell-zn-cu .topbar,
+      #chem-exp-pin-daniell-zn-cu .stage-card,
+      #chem-exp-pin-daniell-zn-cu .side-card,
+      #chem-exp-pin-daniell-zn-cu .strip {
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+      }
+      #chem-exp-pin-daniell-zn-cu .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 14px 16px;
+      }
+      #chem-exp-pin-daniell-zn-cu h1 {
+        margin: 0;
+        font-size: clamp(22px, 2.5vw, 32px);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+      #chem-exp-pin-daniell-zn-cu .sub {
+        margin: 6px 0 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      #chem-exp-pin-daniell-zn-cu .action-row,
+      #chem-exp-pin-daniell-zn-cu .choice-grid,
+      #chem-exp-pin-daniell-zn-cu .micro-metrics {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      #chem-exp-pin-daniell-zn-cu button {
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        color: #fff;
+        background: #1f3850;
+      }
+      #chem-exp-pin-daniell-zn-cu button.secondary {
+        color: #1f3850;
+        border-color: var(--line);
+        background: rgba(255, 255, 255, 0.95);
+      }
+      #chem-exp-pin-daniell-zn-cu button.choice {
+        color: #1f4967;
+        border-color: rgba(54, 112, 167, 0.12);
+        background: rgba(76, 143, 214, 0.08);
+      }
+      #chem-exp-pin-daniell-zn-cu button.choice.active {
+        color: #0f5f61;
+        border-color: rgba(21, 133, 109, 0.18);
+        background: rgba(21, 133, 109, 0.16);
+      }
+      #chem-exp-pin-daniell-zn-cu button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      #chem-exp-pin-daniell-zn-cu .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.32fr) minmax(300px, 0.68fr);
+        gap: 12px;
+        align-items: stretch;
+      }
+      #chem-exp-pin-daniell-zn-cu .stage-card {
+        position: relative;
+        min-height: 690px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0.72)),
+          radial-gradient(circle at 50% 88%, rgba(255,255,255,0.96), transparent 36%);
+      }
+      #chem-exp-pin-daniell-zn-cu .stage {
+        position: relative;
+        min-height: 690px;
+      }
+      #chem-exp-pin-daniell-zn-cu [data-role="stage"] {
+        width: 100%;
+        height: 690px;
+        display: block;
+      }
+      #chem-exp-pin-daniell-zn-cu .overlay,
+      #chem-exp-pin-daniell-zn-cu .stage-pill,
+      #chem-exp-pin-daniell-zn-cu .caption-box {
+        position: absolute;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(255, 255, 255, 0.82);
+        box-shadow: 0 16px 44px rgba(32, 67, 93, 0.12);
+      }
+      #chem-exp-pin-daniell-zn-cu .overlay {
+        left: 14px;
+        top: 14px;
+        width: min(330px, calc(100% - 28px));
+        border-radius: 18px;
+        padding: 12px;
+      }
+      #chem-exp-pin-daniell-zn-cu .overlay strong,
+      #chem-exp-pin-daniell-zn-cu .side-card h2,
+      #chem-exp-pin-daniell-zn-cu .strip h2 {
+        display: block;
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+      #chem-exp-pin-daniell-zn-cu .overlay span,
+      #chem-exp-pin-daniell-zn-cu .status,
+      #chem-exp-pin-daniell-zn-cu .small {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.42;
+      }
+      #chem-exp-pin-daniell-zn-cu .stage-pill {
+        right: 16px;
+        top: 16px;
+        border-radius: 999px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-pin-daniell-zn-cu .caption-box {
+        right: 16px;
+        bottom: 16px;
+        width: min(290px, calc(100% - 32px));
+        border-radius: 20px;
+        padding: 12px;
+      }
+      #chem-exp-pin-daniell-zn-cu .caption-box .title {
+        font-size: 13px;
+        font-weight: 800;
+      }
+      #chem-exp-pin-daniell-zn-cu .stage-label {
+        position: absolute;
+        font-size: 12px;
+        font-weight: 800;
+        color: #29445a;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      #chem-exp-pin-daniell-zn-cu .stage-label.wire { left: 52%; top: 14%; }
+      #chem-exp-pin-daniell-zn-cu .stage-label.bridge { left: 50%; top: 37%; }
+      #chem-exp-pin-daniell-zn-cu .stage-label.left { left: 26%; top: 76%; }
+      #chem-exp-pin-daniell-zn-cu .stage-label.right { left: 74%; top: 76%; }
+      #chem-exp-pin-daniell-zn-cu .side-card,
+      #chem-exp-pin-daniell-zn-cu .strip {
+        padding: 14px;
+      }
+      #chem-exp-pin-daniell-zn-cu .side-card {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+      }
+      #chem-exp-pin-daniell-zn-cu .panel-block {
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid rgba(34, 71, 102, 0.08);
+      }
+      #chem-exp-pin-daniell-zn-cu .panel-block h3 {
+        margin: 0 0 8px;
+        font-size: 13px;
+      }
+      #chem-exp-pin-daniell-zn-cu .panel-block p { margin: 0; }
+      #chem-exp-pin-daniell-zn-cu .prediction-group {
+        display: grid;
+        gap: 10px;
+      }
+      #chem-exp-pin-daniell-zn-cu .prediction-item {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-pin-daniell-zn-cu .prediction-item label {
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-pin-daniell-zn-cu .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #23465f;
+        background: rgba(76, 143, 214, 0.1);
+      }
+      #chem-exp-pin-daniell-zn-cu .badge.good {
+        color: #0f6451;
+        background: rgba(21, 133, 109, 0.14);
+      }
+      #chem-exp-pin-daniell-zn-cu .badge.warn {
+        color: #8a5715;
+        background: rgba(203, 122, 21, 0.14);
+      }
+      #chem-exp-pin-daniell-zn-cu .mini-bar {
+        height: 12px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(55, 90, 122, 0.1);
+      }
+      #chem-exp-pin-daniell-zn-cu .mini-bar > span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+      }
+      #chem-exp-pin-daniell-zn-cu .mini-bar.zn > span { background: linear-gradient(90deg, #b6c7d6, var(--zn)); }
+      #chem-exp-pin-daniell-zn-cu .mini-bar.cu > span { background: linear-gradient(90deg, #efceb8, var(--cu)); }
+      #chem-exp-pin-daniell-zn-cu .mini-bar.bridge > span { background: linear-gradient(90deg, #cebfff, var(--bridge)); }
+      #chem-exp-pin-daniell-zn-cu .equation {
+        font-size: 14px;
+        font-weight: 800;
+        color: #224460;
+      }
+      #chem-exp-pin-daniell-zn-cu .equation-line {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      #chem-exp-pin-daniell-zn-cu .footer-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+      }
+      #chem-exp-pin-daniell-zn-cu .fallback {
+        position: absolute;
+        inset: 16px;
+        display: none;
+        place-items: center;
+        text-align: center;
+        padding: 20px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #a33636;
+      }
+      #chem-exp-pin-daniell-zn-cu .fallback.show { display: grid; }
+      #chem-exp-pin-daniell-zn-cu .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+      }
+      @media (max-width: 980px) {
+        #chem-exp-pin-daniell-zn-cu .lab-grid,
+        #chem-exp-pin-daniell-zn-cu .footer-grid,
+        #chem-exp-pin-daniell-zn-cu .topbar {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-pin-daniell-zn-cu .topbar { align-items: start; }
+        #chem-exp-pin-daniell-zn-cu .stage-card,
+        #chem-exp-pin-daniell-zn-cu .stage,
+        #chem-exp-pin-daniell-zn-cu [data-role="stage"] {
+          min-height: 560px;
+          height: 560px;
+        }
+        #chem-exp-pin-daniell-zn-cu .overlay {
+          width: min(300px, calc(100% - 28px));
+        }
+      }
+      @media (max-width: 640px) {
+        #chem-exp-pin-daniell-zn-cu {
+          padding: 10px;
+        }
+        #chem-exp-pin-daniell-zn-cu .stage-card,
+        #chem-exp-pin-daniell-zn-cu .stage,
+        #chem-exp-pin-daniell-zn-cu [data-role="stage"] {
+          min-height: 470px;
+          height: 470px;
+        }
+        #chem-exp-pin-daniell-zn-cu .overlay,
+        #chem-exp-pin-daniell-zn-cu .caption-box {
+          position: absolute;
+          width: calc(100% - 24px);
+        }
+        #chem-exp-pin-daniell-zn-cu .stage-label {
+          font-size: 10px;
+        }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng pin điện hóa Zn-Cu">
+      <header class="topbar">
+        <div>
+          <h1>Pin điện hóa Zn-Cu (Daniell cell)</h1>
+          <p class="sub">Chốt dự đoán trước, rồi quan sát dòng electron, cầu muối, thanh Zn tan dần và lớp Cu bám lên điện cực còn lại. Đây là mô hình <strong>bán định tính</strong>: dùng chuyển động và độ dày lớp bám để biểu diễn xu hướng, không phải số đo thực nghiệm thật.</p>
+        </div>
+        <div class="action-row">
+          <button type="button" data-role="run">Khóa dự đoán và chạy</button>
+          <button type="button" class="secondary" data-role="toggle" disabled>Tạm dừng</button>
+          <button type="button" class="secondary" data-role="reset">Làm lại</button>
+        </div>
+      </header>
+
+      <div class="lab-grid">
+        <section class="stage-card">
+          <div class="stage">
+            <svg data-role="stage" viewBox="0 0 1080 690" aria-label="Sân khấu mô phỏng pin Daniell">
+              <defs>
+                <linearGradient id="chem-exp-daniell-bg" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#f9fcff"></stop>
+                  <stop offset="100%" stop-color="#e5eef6"></stop>
+                </linearGradient>
+                <linearGradient id="chem-exp-daniell-liquid-zn" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#d7e7f6"></stop>
+                  <stop offset="100%" stop-color="#b8d0ea"></stop>
+                </linearGradient>
+                <linearGradient id="chem-exp-daniell-liquid-cu" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#7ec4f4"></stop>
+                  <stop offset="100%" stop-color="#4c91d5"></stop>
+                </linearGradient>
+                <linearGradient id="chem-exp-daniell-bridge" x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stop-color="#b6a9ff"></stop>
+                  <stop offset="100%" stop-color="#7f63d8"></stop>
+                </linearGradient>
+                <filter id="chem-exp-daniell-soft" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="rgba(41,74,102,0.18)"></feDropShadow>
+                </filter>
+              </defs>
+
+              <rect x="0" y="0" width="1080" height="690" fill="url(#chem-exp-daniell-bg)"></rect>
+              <ellipse cx="540" cy="618" rx="458" ry="38" fill="rgba(157,181,201,0.22)"></ellipse>
+
+              <path d="M 205 202 C 205 126, 875 126, 875 202" fill="none" stroke="#243340" stroke-width="14" stroke-linecap="round"></path>
+              <circle cx="540" cy="150" r="34" fill="#ffef9a" stroke="#e3bb3d" stroke-width="6"></circle>
+              <circle cx="540" cy="150" r="15" fill="#fff8cf"></circle>
+
+              <path d="M 360 210 C 390 112, 690 112, 720 210" fill="none" stroke="url(#chem-exp-daniell-bridge)" stroke-width="26" stroke-linecap="round" opacity="0.88"></path>
+              <path d="M 360 210 C 390 112, 690 112, 720 210" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="10" stroke-linecap="round"></path>
+
+              <g filter="url(#chem-exp-daniell-soft)">
+                <path d="M 110 248 C 112 198, 130 170, 170 165 L 390 165 C 432 170, 448 198, 450 248 L 430 560 C 425 598, 404 617, 370 620 L 190 620 C 154 618, 133 596, 130 560 Z" fill="rgba(255,255,255,0.38)" stroke="rgba(120,148,173,0.54)" stroke-width="6"></path>
+                <path d="M 630 248 C 632 198, 650 170, 690 165 L 910 165 C 952 170, 968 198, 970 248 L 950 560 C 945 598, 924 617, 890 620 L 710 620 C 674 618, 653 596, 650 560 Z" fill="rgba(255,255,255,0.38)" stroke="rgba(120,148,173,0.54)" stroke-width="6"></path>
+              </g>
+
+              <path d="M 148 292 H 412 V 556 C 412 582, 392 602, 366 602 H 194 C 168 602, 148 582, 148 556 Z" fill="url(#chem-exp-daniell-liquid-zn)" opacity="0.94"></path>
+              <path d="M 668 292 H 932 V 556 C 932 582, 912 602, 886 602 H 714 C 688 602, 668 582, 668 556 Z" fill="url(#chem-exp-daniell-liquid-cu)" opacity="0.96" data-role="cuSolution"></path>
+
+              <rect x="250" y="190" width="54" height="302" rx="18" fill="#8a9aab" stroke="#677787" stroke-width="6"></rect>
+              <rect x="776" y="190" width="54" height="302" rx="18" fill="#c87a53" stroke="#9f5a37" stroke-width="6"></rect>
+              <rect x="776" y="190" width="54" height="8" rx="4" fill="#f5ddcf" opacity="0.8"></rect>
+
+              <rect x="250" y="438" width="54" height="54" rx="18" fill="#75879a" opacity="0.55" data-role="znCore"></rect>
+              <rect x="770" y="190" width="66" height="302" rx="22" fill="#f3d6c7" opacity="0.14" data-role="cuDeposit"></rect>
+
+              <g data-role="electronLayer"></g>
+              <g data-role="bridgeLayer"></g>
+              <g data-role="znIonLayer"></g>
+              <g data-role="cuIonLayer"></g>
+
+              <text x="226" y="122" fill="#304b63" font-size="28" font-weight="800">Anot (-)</text>
+              <text x="744" y="122" fill="#304b63" font-size="28" font-weight="800">Catot (+)</text>
+              <text x="202" y="644" fill="#3d5a73" font-size="24" font-weight="800">ZnSO₄</text>
+              <text x="734" y="644" fill="#3d5a73" font-size="24" font-weight="800">CuSO₄</text>
+            </svg>
+
+            <div class="overlay">
+              <strong data-role="phaseTitle">Bắt đầu từ dự đoán</strong>
+              <span data-role="phaseCopy">Chọn hướng electron, điện cực tan dần và điện cực bám lớp kim loại trước khi cho pin hoạt động.</span>
+            </div>
+            <div class="stage-pill badge" data-role="flowChip">Mạch ngoài: chưa chạy</div>
+            <div class="caption-box">
+              <div class="title" data-role="observationTitle">Điều cần quan sát</div>
+              <p class="small" data-role="observationCopy">Khi pin chạy, electron đi qua dây từ Zn sang Cu; trong dung dịch, cầu muối giúp cân bằng điện tích để dòng điện không bị tắc.</p>
+            </div>
+            <div class="stage-label wire">electron e⁻ trên dây ngoài</div>
+            <div class="stage-label bridge">cầu muối: ion dịch chuyển để giữ trung hòa điện</div>
+            <div class="stage-label left">Zn bị oxi hóa</div>
+            <div class="stage-label right">Cu²⁺ bị khử thành Cu</div>
+            <div class="fallback" data-role="fallback">Không dựng được mô phỏng SVG. Hãy mở lại bằng trình duyệt hiện đại để xem chuyển động của electron, ion cầu muối và lớp Cu bám.</div>
+          </div>
+        </section>
+
+        <aside class="side-card">
+          <section class="panel-block">
+            <h2>Bước 1. Dự đoán trước khi quan sát</h2>
+            <div class="prediction-group">
+              <div class="prediction-item">
+                <label>Electron chạy theo hướng nào trong dây ngoài?</label>
+                <div class="choice-grid">
+                  <button type="button" class="choice" data-role="predict-flow" data-value="zn-to-cu">Zn → Cu</button>
+                  <button type="button" class="choice" data-role="predict-flow" data-value="cu-to-zn">Cu → Zn</button>
+                </div>
+              </div>
+              <div class="prediction-item">
+                <label>Điện cực nào tan dần?</label>
+                <div class="choice-grid">
+                  <button type="button" class="choice" data-role="predict-dissolve" data-value="zn">Zn</button>
+                  <button type="button" class="choice" data-role="predict-dissolve" data-value="cu">Cu</button>
+                </div>
+              </div>
+              <div class="prediction-item">
+                <label>Điện cực nào được phủ thêm kim loại?</label>
+                <div class="choice-grid">
+                  <button type="button" class="choice" data-role="predict-deposit" data-value="cu">Cu</button>
+                  <button type="button" class="choice" data-role="predict-deposit" data-value="zn">Zn</button>
+                </div>
+              </div>
+            </div>
+            <p class="status" data-role="predictionStatus">Cần chốt đủ 3 dự đoán trước khi mô phỏng bắt đầu.</p>
+          </section>
+
+          <section class="panel-block">
+            <h3>Bước 2. Readout sống</h3>
+            <div class="micro-metrics">
+              <span class="badge warn" data-role="clockChip">0,0 s</span>
+              <span class="badge" data-role="saltChip">Cầu muối: đang chờ</span>
+            </div>
+            <div style="margin-top:10px; display:grid; gap:10px;">
+              <div>
+                <div class="small">Mức hòa tan của thanh Zn</div>
+                <div class="mini-bar zn"><span data-role="znBar"></span></div>
+              </div>
+              <div>
+                <div class="small">Mức Cu bám trên catot</div>
+                <div class="mini-bar cu"><span data-role="cuBar"></span></div>
+              </div>
+              <div>
+                <div class="small">Mức hoạt động của cầu muối</div>
+                <div class="mini-bar bridge"><span data-role="bridgeBar"></span></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel-block">
+            <h3>Bước 3. So sánh dự đoán với quan sát</h3>
+            <p class="status" data-role="compareStatus">Sau khi chạy xong một lượt, phần này sẽ chốt điều gì đúng và điều gì cần sửa.</p>
+          </section>
+
+          <section class="panel-block">
+            <h3>Ghi chú độ trung thực mô hình</h3>
+            <p class="status">Mô hình <strong>bán định tính</strong>: số electron, ion và độ dày lớp Cu chỉ là ký hiệu trực quan để thấy hướng biến đổi. Không dùng widget này để suy ra tốc độ, điện thế pin hay nồng độ chính xác.</p>
+          </section>
+        </aside>
+      </div>
+
+      <section class="strip">
+        <h2>Bán phản ứng và vai trò của cầu muối</h2>
+        <div class="footer-grid">
+          <div>
+            <div class="equation">Anot: Zn → Zn²⁺ + 2e⁻</div>
+            <div class="equation-line">Thanh Zn nhường electron nên mòn dần. Ion Zn²⁺ đi vào dung dịch, làm ngăn trái tích điện dương hơn nếu không có bù điện tích.</div>
+          </div>
+          <div>
+            <div class="equation">Catot: Cu²⁺ + 2e⁻ → Cu</div>
+            <div class="equation-line">Ion Cu²⁺ nhận electron tại catot và bám thành lớp đồng kim loại, nên điện cực Cu dày và sáng hơn.</div>
+          </div>
+          <div>
+            <div class="equation">Cầu muối: anion → ngăn Zn, cation → ngăn Cu</div>
+            <div class="equation-line">Ion từ cầu muối không cấp electron. Chúng chỉ giữ hai nửa pin gần trung hòa điện để electron tiếp tục chảy qua dây ngoài.</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <script>
+      (function(rootId) {
+        const EXPERIMENT = {
+          title: "Pin điện hóa Zn-Cu (Daniell cell)",
+          grade: "Hóa 12",
+          mode: "bán định lượng",
+          interactionPattern: "electrolysis-redox-cell",
+          learningGoal: "Nhận ra Zn là anot bị oxi hóa, Cu là catot nơi Cu2+ bị khử, và cầu muối chỉ giữ cân bằng điện tích.",
+          learningLoop: {
+            predict: "Dự đoán hướng electron, điện cực tan dần và điện cực bám kim loại.",
+            observe: "Xem electron đi trên dây, Zn hòa tan, Cu bám lên catot và ion trong cầu muối dịch chuyển.",
+            compare: "Đối chiếu dự đoán với readout cuối lượt.",
+            explain: "Giải thích vì sao pin chỉ chạy bền khi có mạch ngoài và cầu muối."
+          },
+          reaction: {
+            overall: "Zn + Cu2+ -> Zn2+ + Cu",
+            note: "Các hạt chuyển động là minh họa trực quan cho xu hướng biến đổi."
+          }
+        };
+
+        const root = document.getElementById(rootId);
+        if (!root) return;
+
+        const el = {
+          stage: root.querySelector("[data-role='stage']"),
+          electronLayer: root.querySelector("[data-role='electronLayer']"),
+          bridgeLayer: root.querySelector("[data-role='bridgeLayer']"),
+          znIonLayer: root.querySelector("[data-role='znIonLayer']"),
+          cuIonLayer: root.querySelector("[data-role='cuIonLayer']"),
+          cuSolution: root.querySelector("[data-role='cuSolution']"),
+          znCore: root.querySelector("[data-role='znCore']"),
+          cuDeposit: root.querySelector("[data-role='cuDeposit']"),
+          run: root.querySelector("[data-role='run']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          reset: root.querySelector("[data-role='reset']"),
+          phaseTitle: root.querySelector("[data-role='phaseTitle']"),
+          phaseCopy: root.querySelector("[data-role='phaseCopy']"),
+          flowChip: root.querySelector("[data-role='flowChip']"),
+          observationTitle: root.querySelector("[data-role='observationTitle']"),
+          observationCopy: root.querySelector("[data-role='observationCopy']"),
+          predictionStatus: root.querySelector("[data-role='predictionStatus']"),
+          compareStatus: root.querySelector("[data-role='compareStatus']"),
+          clockChip: root.querySelector("[data-role='clockChip']"),
+          saltChip: root.querySelector("[data-role='saltChip']"),
+          znBar: root.querySelector("[data-role='znBar']"),
+          cuBar: root.querySelector("[data-role='cuBar']"),
+          bridgeBar: root.querySelector("[data-role='bridgeBar']"),
+          fallback: root.querySelector("[data-role='fallback']")
+        };
+
+        const state = {
+          flow: "",
+          dissolve: "",
+          deposit: "",
+          running: false,
+          paused: false,
+          completed: false,
+          locked: false,
+          time: 0,
+          duration: 10,
+          rafId: 0,
+          lastTick: 0
+        };
+
+        const svgNS = "http://www.w3.org/2000/svg";
+        const particles = [];
+        const electronPath = [
+          { x: 277, y: 190 },
+          { x: 225, y: 168 },
+          { x: 250, y: 140 },
+          { x: 540, y: 128 },
+          { x: 830, y: 140 },
+          { x: 855, y: 168 },
+          { x: 803, y: 190 }
+        ];
+        const bridgeAnionPath = [
+          { x: 540, y: 122 },
+          { x: 508, y: 130 },
+          { x: 472, y: 148 },
+          { x: 430, y: 176 },
+          { x: 390, y: 202 },
+          { x: 340, y: 232 }
+        ];
+        const bridgeCationPath = [
+          { x: 540, y: 122 },
+          { x: 572, y: 130 },
+          { x: 608, y: 148 },
+          { x: 650, y: 176 },
+          { x: 690, y: 202 },
+          { x: 742, y: 232 }
+        ];
+        const znIonPath = [
+          { x: 277, y: 465 },
+          { x: 250, y: 448 },
+          { x: 226, y: 475 },
+          { x: 218, y: 522 }
+        ];
+        const cuIonPath = [
+          { x: 760, y: 360 },
+          { x: 778, y: 328 },
+          { x: 792, y: 286 },
+          { x: 804, y: 244 }
+        ];
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function lerp(a, b, t) {
+          return a + (b - a) * t;
+        }
+
+        function pointOnPath(path, t) {
+          const bounded = clamp(t, 0, 0.9999) * (path.length - 1);
+          const index = Math.floor(bounded);
+          const local = bounded - index;
+          const start = path[index];
+          const end = path[index + 1] || path[index];
+          return {
+            x: lerp(start.x, end.x, local),
+            y: lerp(start.y, end.y, local)
+          };
+        }
+
+        function createParticle(layer, options) {
+          const node = document.createElementNS(svgNS, "g");
+          const circle = document.createElementNS(svgNS, "circle");
+          circle.setAttribute("r", String(options.r || 8));
+          circle.setAttribute("fill", options.fill);
+          circle.setAttribute("opacity", options.opacity || "0.96");
+          node.appendChild(circle);
+
+          if (options.label) {
+            const text = document.createElementNS(svgNS, "text");
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("dy", "4");
+            text.setAttribute("font-size", String(options.fontSize || 10));
+            text.setAttribute("font-weight", "800");
+            text.setAttribute("fill", options.textFill || "#23384b");
+            text.textContent = options.label;
+            node.appendChild(text);
+          }
+
+          layer.appendChild(node);
+          particles.push({
+            node,
+            path: options.path,
+            phase: options.phase || 0,
+            speed: options.speed || 0.12,
+            activeWindow: options.activeWindow || [0, 1],
+            opacityIdle: options.opacityIdle || 0,
+            pulse: options.pulse || 0,
+            label: options.label || ""
+          });
+        }
+
+        function buildParticles() {
+          el.electronLayer.innerHTML = "";
+          el.bridgeLayer.innerHTML = "";
+          el.znIonLayer.innerHTML = "";
+          el.cuIonLayer.innerHTML = "";
+          particles.length = 0;
+
+          for (let i = 0; i < 6; i += 1) {
+            createParticle(el.electronLayer, {
+              path: electronPath,
+              phase: i / 6,
+              speed: 0.19,
+              fill: "#ffd455",
+              r: 8,
+              activeWindow: [0.06, 1]
+            });
+          }
+          for (let i = 0; i < 4; i += 1) {
+            createParticle(el.bridgeLayer, {
+              path: bridgeAnionPath,
+              phase: i / 4,
+              speed: 0.08,
+              fill: "#8d75ff",
+              label: "NO₃⁻",
+              r: 14,
+              fontSize: 8,
+              activeWindow: [0.18, 1],
+              opacityIdle: 0.14
+            });
+            createParticle(el.bridgeLayer, {
+              path: bridgeCationPath,
+              phase: (i / 4) + 0.12,
+              speed: 0.08,
+              fill: "#cebfff",
+              label: "K⁺",
+              r: 12,
+              fontSize: 9,
+              activeWindow: [0.18, 1],
+              opacityIdle: 0.14
+            });
+          }
+          for (let i = 0; i < 5; i += 1) {
+            createParticle(el.znIonLayer, {
+              path: znIonPath,
+              phase: i / 5,
+              speed: 0.11,
+              fill: "#eff5fb",
+              label: "Zn²⁺",
+              r: 16,
+              fontSize: 8,
+              activeWindow: [0.18, 1],
+              opacityIdle: 0.05
+            });
+          }
+          for (let i = 0; i < 4; i += 1) {
+            createParticle(el.cuIonLayer, {
+              path: cuIonPath,
+              phase: i / 4,
+              speed: 0.09,
+              fill: "#b8dff8",
+              label: "Cu²⁺",
+              r: 16,
+              fontSize: 8,
+              activeWindow: [0, 0.82],
+              opacityIdle: 0.3
+            });
+          }
+        }
+
+        function predictionReady() {
+          return !!(state.flow && state.dissolve && state.deposit);
+        }
+
+        function progress() {
+          return clamp(state.time / state.duration, 0, 1);
+        }
+
+        function setButtonsDisabled(disabled) {
+          root.querySelectorAll(".choice").forEach(function(button) {
+            button.disabled = disabled;
+          });
+        }
+
+        function updateChoiceUI() {
+          root.querySelectorAll("[data-role='predict-flow']").forEach(function(button) {
+            button.classList.toggle("active", button.dataset.value === state.flow);
+          });
+          root.querySelectorAll("[data-role='predict-dissolve']").forEach(function(button) {
+            button.classList.toggle("active", button.dataset.value === state.dissolve);
+          });
+          root.querySelectorAll("[data-role='predict-deposit']").forEach(function(button) {
+            button.classList.toggle("active", button.dataset.value === state.deposit);
+          });
+        }
+
+        function phaseForTime(t) {
+          if (!state.locked) {
+            return {
+              title: "Bắt đầu từ dự đoán",
+              copy: "Nếu pin thật sự phát điện, electron sẽ đi từ anot Zn sang catot Cu. Hãy tự chốt trước khi xem mô phỏng.",
+              observationTitle: "Điều cần quan sát",
+              observationCopy: "Tập trung vào 4 dấu hiệu: electron trên dây ngoài, ion trong cầu muối, Zn tan dần, Cu bám dần.",
+              flowChip: "Mạch ngoài: chưa chạy",
+              saltChip: "Cầu muối: đang chờ"
+            };
+          }
+          if (t < 2.2) {
+            return {
+              title: "Mạch kín, electron bắt đầu chạy",
+              copy: "Ngay khi khóa dự đoán, pin khép kín mạch ngoài. Electron rời thanh Zn và chạy qua dây đến phía Cu.",
+              observationTitle: "Dấu hiệu 1",
+              observationCopy: "Bóng đèn sáng nhẹ để báo có dòng electron trong dây ngoài.",
+              flowChip: "e⁻: Zn → Cu",
+              saltChip: "Cầu muối: chuẩn bị bù điện tích"
+            };
+          }
+          if (t < 5.2) {
+            return {
+              title: "Anot Zn bị oxi hóa",
+              copy: "Một phần Zn rời bề mặt điện cực thành Zn²⁺ đi vào dung dịch, nên thanh Zn mòn dần.",
+              observationTitle: "Dấu hiệu 2",
+              observationCopy: "Nhìn thanh Zn thấp đi và các hạt Zn²⁺ xuất hiện ở ngăn trái.",
+              flowChip: "Anot: Zn nhường e⁻",
+              saltChip: "Anion cầu muối đi về ngăn Zn"
+            };
+          }
+          if (t < 8.2) {
+            return {
+              title: "Catot Cu nhận electron",
+              copy: "Ion Cu²⁺ nhận electron ở catot và bám thành Cu kim loại, làm điện cực bên phải dày và sáng hơn.",
+              observationTitle: "Dấu hiệu 3",
+              observationCopy: "Màu xanh Cu²⁺ nhạt bớt khi một phần ion bị khử thành Cu bám trên catot.",
+              flowChip: "Catot: Cu²⁺ + 2e⁻ → Cu",
+              saltChip: "K⁺ đi về ngăn Cu"
+            };
+          }
+          return {
+            title: "Kết thúc lượt quan sát",
+            copy: "Pin chạy bền vì có hai dòng cùng phối hợp: electron trong dây ngoài và ion trong cầu muối để giữ trung hòa điện.",
+            observationTitle: "Điều chốt lại",
+            observationCopy: "Cầu muối không tạo electron; nó chỉ giữ hai nửa pin không bị tích điện quá mức.",
+            flowChip: "Mạch hoạt động ổn định",
+            saltChip: "Cầu muối: đang cân bằng điện tích"
+          };
+        }
+
+        function updateNarration() {
+          const phase = phaseForTime(state.time);
+          el.phaseTitle.textContent = phase.title;
+          el.phaseCopy.textContent = phase.copy;
+          el.observationTitle.textContent = phase.observationTitle;
+          el.observationCopy.textContent = phase.observationCopy;
+          el.flowChip.textContent = phase.flowChip;
+          el.saltChip.textContent = phase.saltChip;
+        }
+
+        function updatePredictionStatus() {
+          if (state.locked) {
+            el.predictionStatus.textContent = "Dự đoán đã khóa. Hãy xem hiện tượng rồi đối chiếu ở bước 3.";
+            return;
+          }
+          if (!predictionReady()) {
+            el.predictionStatus.textContent = "Cần chốt đủ 3 dự đoán trước khi mô phỏng bắt đầu.";
+            return;
+          }
+          el.predictionStatus.textContent = "Đã đủ dự đoán. Bấm “Khóa dự đoán và chạy” để xem pin Daniell hoạt động.";
+        }
+
+        function updateReadouts() {
+          const p = progress();
+          el.clockChip.textContent = state.time.toFixed(1).replace(".", ",") + " s";
+          el.znBar.style.width = (p * 100).toFixed(1) + "%";
+          el.cuBar.style.width = (Math.max(0, (p - 0.16) / 0.84) * 100).toFixed(1) + "%";
+          el.bridgeBar.style.width = (Math.max(0, (p - 0.1) / 0.9) * 100).toFixed(1) + "%";
+
+          const dissolveHeight = 54 - (28 * p);
+          const dissolveY = 438 + (54 - dissolveHeight);
+          el.znCore.setAttribute("y", dissolveY.toFixed(1));
+          el.znCore.setAttribute("height", dissolveHeight.toFixed(1));
+          el.znCore.setAttribute("opacity", String(0.58 + (1 - p) * 0.16));
+
+          const depositWidth = 16 + (24 * p);
+          el.cuDeposit.setAttribute("x", (803 - depositWidth / 2).toFixed(1));
+          el.cuDeposit.setAttribute("width", depositWidth.toFixed(1));
+          el.cuDeposit.setAttribute("opacity", String(0.12 + p * 0.54));
+
+          const cuBlue = 145 + Math.round((1 - p) * 52);
+          const cuBlueLight = 76 + Math.round((1 - p) * 34);
+          el.cuSolution.setAttribute("fill", "rgb(" + (88 + Math.round((1 - p) * 18)) + "," + cuBlue + "," + (cuBlue + cuBlueLight) + ")");
+        }
+
+        function updateParticles(nowSeconds) {
+          const p = progress();
+          particles.forEach(function(particle) {
+            const visible = p >= particle.activeWindow[0] && p <= particle.activeWindow[1];
+            const offset = ((nowSeconds * particle.speed) + particle.phase) % 1;
+            const point = pointOnPath(particle.path, offset);
+            particle.node.setAttribute("transform", "translate(" + point.x.toFixed(1) + "," + point.y.toFixed(1) + ")");
+            particle.node.setAttribute("opacity", visible ? "1" : String(particle.opacityIdle));
+          });
+        }
+
+        function evaluatePrediction() {
+          const okFlow = state.flow === "zn-to-cu";
+          const okDissolve = state.dissolve === "zn";
+          const okDeposit = state.deposit === "cu";
+          const score = [okFlow, okDissolve, okDeposit].filter(Boolean).length;
+          const summary = score === 3
+            ? "Khớp hoàn toàn: electron đi từ Zn sang Cu, Zn tan dần và Cu được phủ thêm kim loại."
+            : "Cần sửa dự đoán: chiều electron phải là Zn → Cu, điện cực tan dần là Zn và điện cực được phủ thêm là Cu.";
+          const detail = "Cầu muối không mang electron. Anion đi về ngăn Zn để bù phần Zn²⁺ tăng lên, còn cation đi về ngăn Cu khi Cu²⁺ bị tiêu thụ.";
+          el.compareStatus.innerHTML = "<strong>" + summary + "</strong><br>" + detail;
+        }
+
+        function stopRun(markCompleted) {
+          state.running = false;
+          state.paused = false;
+          cancelAnimationFrame(state.rafId);
+          state.rafId = 0;
+          if (markCompleted) {
+            state.completed = true;
+            state.time = state.duration;
+          }
+          el.toggle.disabled = !state.locked;
+          el.toggle.textContent = "Tạm dừng";
+          updateNarration();
+          updateReadouts();
+          evaluatePrediction();
+        }
+
+        function tick(now) {
+          if (!state.running) return;
+          if (!state.lastTick) state.lastTick = now;
+          const dt = Math.min((now - state.lastTick) / 1000, 0.05);
+          state.lastTick = now;
+          if (!state.paused) {
+            state.time = clamp(state.time + dt, 0, state.duration);
+            updateNarration();
+            updateReadouts();
+            updateParticles(now / 1000);
+          }
+          if (state.time >= state.duration) {
+            stopRun(true);
+            return;
+          }
+          state.rafId = requestAnimationFrame(tick);
+        }
+
+        function startRun() {
+          if (!predictionReady() || state.locked) return;
+          state.locked = true;
+          state.running = true;
+          state.completed = false;
+          state.paused = false;
+          state.time = 0;
+          state.lastTick = 0;
+          setButtonsDisabled(true);
+          el.toggle.disabled = false;
+          updatePredictionStatus();
+          updateNarration();
+          updateReadouts();
+          evaluatePrediction();
+          state.rafId = requestAnimationFrame(tick);
+        }
+
+        function togglePause() {
+          if (!state.locked || !state.running) return;
+          state.paused = !state.paused;
+          el.toggle.textContent = state.paused ? "Tiếp tục" : "Tạm dừng";
+          if (!state.paused) {
+            state.lastTick = 0;
+          }
+        }
+
+        function resetAll() {
+          cancelAnimationFrame(state.rafId);
+          state.flow = "";
+          state.dissolve = "";
+          state.deposit = "";
+          state.running = false;
+          state.paused = false;
+          state.completed = false;
+          state.locked = false;
+          state.time = 0;
+          state.lastTick = 0;
+          el.toggle.disabled = true;
+          el.toggle.textContent = "Tạm dừng";
+          setButtonsDisabled(false);
+          updateChoiceUI();
+          updatePredictionStatus();
+          updateNarration();
+          updateReadouts();
+          el.compareStatus.textContent = "Sau khi chạy xong một lượt, phần này sẽ chốt điều gì đúng và điều gì cần sửa.";
+          updateParticles(0);
+        }
+
+        function bindPrediction(role, key) {
+          root.querySelectorAll("[data-role='" + role + "']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              if (state.locked) return;
+              state[key] = button.dataset.value;
+              updateChoiceUI();
+              updatePredictionStatus();
+            });
+          });
+        }
+
+        function init() {
+          if (!el.stage || typeof document.createElementNS !== "function") {
+            el.fallback.classList.add("show");
+            return;
+          }
+          buildParticles();
+          bindPrediction("predict-flow", "flow");
+          bindPrediction("predict-dissolve", "dissolve");
+          bindPrediction("predict-deposit", "deposit");
+          el.run.addEventListener("click", startRun);
+          el.toggle.addEventListener("click", togglePause);
+          el.reset.addEventListener("click", resetAll);
+          resetAll();
+        }
+
+        init();
+      })("chem-exp-pin-daniell-zn-cu");
+    </script>
+  </div>
+</body>
+</html>

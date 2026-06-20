@@ -26,6 +26,7 @@ Mặc định, thí nghiệm 3D xuất ra file `.html` trong `outputs/` để m�
 6. Với mọi widget được tạo, làm theo `references/implementation-checklist.md`.
 7. Với mỗi output HTML/JSX trừ sửa nhanh rất nhỏ, chạy vòng `design -> generate -> validate -> verify -> score -> record -> improve` trong `references/evaluation-loop.md`.
 8. Lưu output vào `outputs/{slug}.html` hoặc `outputs/{slug}.jsx` trong thư mục skill này.
+9. Khi user phản hồi về chất lượng, xem feedback là tín hiệu để sửa output hiện tại trước; chỉ nâng feedback thành rule chung sau khi đã qua bước lọc trong `references/evaluation-loop.md`.
 
 ## Hợp Đồng Output
 
@@ -43,7 +44,38 @@ Với HTML 3D:
 - Ưu tiên autoplay hoặc một nút chạy toàn bộ thí nghiệm nếu mục tiêu học tập là quan sát tiến trình; vẫn giữ pause/reset/chỉnh tay khi cần.
 - Layout phải lab-first: vùng thí nghiệm/đồ thị là trọng tâm, tiêu đề và chú thích gọn, không dùng hero headline lớn chiếm màn hình.
 - Tránh layout kiểu dashboard nhiều card. Trên desktop, vùng sân khấu thí nghiệm nên chiếm khoảng 70-85% diện tích nhìn đầu tiên; chỉ số/đồ thị nên là overlay nhỏ, strip mỏng, hoặc panel phụ dưới 25% diện tích.
+- Không được tạo `stage` quá cao hoặc quá lớn nếu minh họa chính không đủ đậm. Stage lớn phải trả lại bằng chứng thị giác rõ trong vài giây đầu: ngọn lửa, bọt khí, lớp bám, kết tủa, đổi màu, hạt chuyển động, hoặc apparatus đang thao tác.
+- `Canvas to nhưng trống` bị coi là lỗi chất lượng. Nếu phần học sinh thực sự đọc lại nằm ở card HTML bên cạnh còn stage hầu như không có tín hiệu thị giác, phải thu nhỏ stage hoặc đổi sang SVG/DOM/2D thay vì cố giữ Three.js.
+- Với scene 3D, first viewport phải cho thấy ít nhất một hiện tượng chính đủ nổi bật ngay cả khi che phần text bên phải. Nếu tắt text mà học sinh không đoán được “đang có gì xảy ra”, coi như stage chưa đạt.
 - Không sinh panel riêng chỉ để lặp lại `predict -> observe -> compare -> explain` bằng text. Learning loop là logic thiết kế nội bộ; chỉ render ra UI khi nó thêm thông tin mới hoặc tạo thao tác học tập rõ ràng.
+- Không lộ đáp án trước khi học sinh hoàn thành bước dự đoán hoặc quan sát chính. Các vùng `legend`, `hint`, `status`, `focus`, `result` mặc định không được map thẳng từ mẫu sang đáp án khi thí nghiệm đang ở pha khám phá.
+- Với bài nhận biết/phân loại, trạng thái trước khi hoàn thành phải ưu tiên hiển thị `dự đoán của học sinh`, `yêu cầu quan sát`, hoặc `tiêu chí so sánh`, không được hiển thị sẵn bảng đối chiếu đúng-sai đầy đủ.
+
+## Semantic Test Contract
+
+Widget mới nên expose contract tối thiểu để verifier đọc semantics thay vì suy đoán từ text:
+
+- Root widget có `data-widget-family` và `data-phase`.
+- `data-phase` chỉ dùng `predict`, `observe`, `compare`, `explain`, hoặc `complete`.
+- DOM có đủ `data-role="stage"`, `data-role="primary-action"`, `data-role="reset"`, và `data-role="result"`.
+- Nhúng JSON trong `script[type="application/json"][data-role="test-contract"]`.
+- Contract v1 dùng `schema_version: "chem-lab.test-contract.v1"`, `interaction_family`, `answer_reveal_policy`, `primary_observation`, `supports_reset`, và `supports_pause`.
+- `answer_reveal_policy` chỉ dùng `immediate`, `after-observe`, hoặc `after-complete`.
+
+Ví dụ:
+
+```json
+{
+  "schema_version": "chem-lab.test-contract.v1",
+  "interaction_family": "classification",
+  "answer_reveal_policy": "after-complete",
+  "primary_observation": "flame-color-change",
+  "supports_reset": true,
+  "supports_pause": false
+}
+```
+
+Widget cũ không có contract vẫn được verify ở legacy lane. Widget mới có contract phải giữ các marker trên ổn định để `contract_checks`, `runtime_checks`, và family probe đọc được.
 
 Với tương tác 2D:
 
@@ -93,6 +125,8 @@ Dùng tiếng Việt có dấu cho UI học sinh. Có thể giữ công thức v
 - Chú thích không được che vùng thí nghiệm; ưu tiên overlay nhỏ hoặc side panel hẹp.
 - Với bài 3D, mặc định nên có orbit/drag hoặc camera interaction nhẹ nếu nó giúp đọc hiện tượng rõ hơn mà không làm UX rối.
 - Hiện tượng chính phải đọc được trong vài giây đầu: tăng tương phản, kích thước vùng tác động, particle density hoặc motion amplitude khi cần; tránh scene đẹp nhưng dấu hiệu hóa học quá mờ.
+- Không dùng scene 3D như nền trang trí. Nếu hiện tượng chính chỉ nhìn thấy sau khi đọc caption hoặc nhìn panel text, coi như scene thất bại.
+- Tránh stage cao vô lý trên desktop/mobile. `min-height` rất lớn chỉ được dùng khi bên trong thật sự có apparatus hoặc animation dày; nếu scene đơn giản, ưu tiên stage gọn hơn thay vì kéo viewport dài.
 - Motion phải có ý nghĩa sư phạm: mỗi biến đổi chính cần map được sang một bước học như dự đoán, quan sát, so sánh hoặc giải thích.
 - Nếu thêm hiệu ứng đẹp nhưng không tạo ra quan sát hoặc quyết định học tập nào, ưu tiên bỏ bớt hiệu ứng thay vì giữ lại.
 
@@ -124,7 +158,9 @@ Dùng tiếng Việt có dấu cho UI học sinh. Có thể giữ công thức v
 - Đọc `references/experiment-catalog.md` khi brainstorm kế hoạch bao phủ môn Hóa.
 - Đọc `references/implementation-checklist.md` trước khi code hoặc review widget đã sinh.
 - Đọc `references/evaluation-loop.md` khi cần chấm điểm, ghi record, hoặc nâng cấp skill từ kết quả test.
+- Đọc `references/current-workflow.md` khi cần nắm luồng hiện tại cho người mới hoặc khi muốn port workflow này sang môn khác.
 - Dùng `scripts/verify-widget.sh` khi cần verify desktop/mobile, screenshot artifact, và invariant checks cho một HTML output cụ thể.
+- Dùng `scripts/check-widget.sh` khi cần một lệnh tự test đầy đủ hơn cho một widget: runtime verify + static audit cho các guardrail như `spoiler UI`, `document.querySelector` global, và CDN không pin version.
 - Dùng `templates/single-widget-blueprint.html` làm khung kỹ thuật gọn cho widget Three.js tự chứa; không copy nguyên visual style nếu chủ đề cần một bố cục khác.
 - Dùng `templates/evaluation-record.schema.json` làm schema record máy đọc được trong `eval-runs/{slug}/{timestamp}.json`.
 - Dùng `templates/evaluation-record.md` nếu cần báo cáo người đọc trong `evaluations/`.
@@ -142,3 +178,14 @@ Mỗi widget hoàn chỉnh cần đạt các điểm sau:
 - Layout desktop và mobile giữ control dễ đọc, scene 3D không bị trắng hoặc lệch khung.
 - Dependency không được lấn át bài học: nếu thư viện hoặc hiệu ứng làm giảm tính lab-first hoặc không phục vụ mục tiêu học tập, phải bỏ hoặc đổi.
 - Widget nên đạt tối thiểu 80/100 theo rubric trong `references/evaluation-loop.md`; nếu thấp hơn, sửa output hoặc ghi rõ lý do chấp nhận.
+
+## Tự Cải Tiến Từ Feedback
+
+- Feedback người dùng là dữ liệu ưu tiên cao, nhưng không được chép nguyên văn thành rule mới.
+- Trước khi thêm một guardrail vào skill/checklist/template, phải lọc feedback theo 3 câu hỏi:
+  - Vấn đề có tái hiện được trên output hiện tại hoặc output cùng họ không?
+  - Đây là lỗi cục bộ của một file hay là pattern lặp lại có thể tổng quát hóa?
+  - Rule mới có kiểm soát invariant chất lượng không, hay chỉ ép mọi widget đi theo một style quá hẹp?
+- Chỉ promote feedback thành rule khi nó vừa đúng về kỹ thuật/sư phạm, vừa có ích cho nhiều widget, và không khóa sáng tạo hình thức.
+- Nếu feedback đúng nhưng chỉ là lỗi một file, sửa file và ghi record; không cập nhật `SKILL.md` vội.
+- Nếu feedback mâu thuẫn với rule cũ, giữ ưu tiên cho mục tiêu học tập và bằng chứng verify thay vì chiều theo một sở thích đơn lẻ.

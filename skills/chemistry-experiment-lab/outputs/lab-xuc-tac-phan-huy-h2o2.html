@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phòng thí nghiệm Hóa học - Xúc tác phân hủy H₂O₂</title>
+</head>
+<body>
+  <div id="chem-exp-xuc-tac-h2o2" class="chem-exp" data-widget-family="variable-comparison-lab" data-phase="predict">
+    <style>
+      #chem-exp-xuc-tac-h2o2 {
+        --bg: #07111f;
+        --bg2: #0f1d34;
+        --panel: rgba(7, 17, 31, 0.76);
+        --line: rgba(169, 205, 255, 0.18);
+        --text: #eff6ff;
+        --muted: #97abd0;
+        --accent: #7dd3fc;
+        --accent-2: #fde68a;
+        --good: #86efac;
+        --warn: #fca5a5;
+        --liquid: #60a5fa;
+        --liquid-hot: #c084fc;
+        position: relative;
+        color: var(--text);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(1000px 440px at 18% -10%, rgba(66, 153, 225, 0.22), transparent 55%),
+          radial-gradient(700px 320px at 86% -8%, rgba(168, 85, 247, 0.18), transparent 55%),
+          linear-gradient(160deg, var(--bg), var(--bg2));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 22px;
+        padding: 16px;
+        overflow: hidden;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      }
+      #chem-exp-xuc-tac-h2o2 * { box-sizing: border-box; }
+      #chem-exp-xuc-tac-h2o2 .shell {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.7fr);
+        gap: 14px;
+        align-items: stretch;
+      }
+      #chem-exp-xuc-tac-h2o2 .intro {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      #chem-exp-xuc-tac-h2o2 .title-wrap { max-width: 760px; }
+      #chem-exp-xuc-tac-h2o2 h2 {
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.12;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      #chem-exp-xuc-tac-h2o2 .subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      #chem-exp-xuc-tac-h2o2 .badge-row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      #chem-exp-xuc-tac-h2o2 .badge {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        background: rgba(255,255,255,0.07);
+        color: #dbeafe;
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      #chem-exp-xuc-tac-h2o2 .toolbox {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      #chem-exp-xuc-tac-h2o2 button {
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 999px;
+        padding: 9px 12px;
+        background: rgba(255,255,255,0.07);
+        color: var(--text);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+      }
+      #chem-exp-xuc-tac-h2o2 button:hover { transform: translateY(-1px); background: rgba(255,255,255,0.1); }
+      #chem-exp-xuc-tac-h2o2 button:active { transform: translateY(0); }
+      #chem-exp-xuc-tac-h2o2 button.primary {
+        background: linear-gradient(135deg, rgba(59,130,246,0.85), rgba(14,165,233,0.82));
+        border-color: rgba(125, 211, 252, 0.42);
+      }
+      #chem-exp-xuc-tac-h2o2 .stage-card {
+        position: relative;
+        min-height: min(72vh, 600px);
+        border-radius: 20px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      }
+      #chem-exp-xuc-tac-h2o2 canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+      }
+      #chem-exp-xuc-tac-h2o2 .overlay-top {
+        position: absolute;
+        inset: 12px 12px auto 12px;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        pointer-events: none;
+      }
+      #chem-exp-xuc-tac-h2o2 .metric {
+        padding: 9px 11px;
+        border-radius: 14px;
+        background: rgba(7, 17, 31, 0.58);
+        border: 1px solid rgba(255,255,255,0.11);
+        backdrop-filter: blur(8px);
+        min-width: 0;
+      }
+      #chem-exp-xuc-tac-h2o2 .metric .k {
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      #chem-exp-xuc-tac-h2o2 .metric .v {
+        margin-top: 4px;
+        font-size: 19px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      #chem-exp-xuc-tac-h2o2 .graph-overlay {
+        position: absolute;
+        z-index: 3;
+        left: 12px;
+        bottom: 12px;
+        width: min(44%, 360px);
+        padding: 10px 12px 8px;
+        border-radius: 16px;
+        background: rgba(7, 17, 31, 0.64);
+        border: 1px solid rgba(255,255,255,0.1);
+        backdrop-filter: blur(8px);
+      }
+      #chem-exp-xuc-tac-h2o2 .graph-title {
+        margin: 0 0 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      #chem-exp-xuc-tac-h2o2 .graph-overlay svg {
+        width: 100%;
+        height: 120px;
+        display: block;
+      }
+      #chem-exp-xuc-tac-h2o2 .stage-note {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 3;
+        max-width: 240px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(7,17,31,0.58);
+        border: 1px solid rgba(255,255,255,0.11);
+        backdrop-filter: blur(8px);
+        font-size: 12px;
+        line-height: 1.4;
+        color: #dbeafe;
+      }
+      #chem-exp-xuc-tac-h2o2 .side {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      #chem-exp-xuc-tac-h2o2 .panel {
+        padding: 13px 14px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid rgba(255,255,255,0.1);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+      }
+      #chem-exp-xuc-tac-h2o2 .panel h3 {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+      #chem-exp-xuc-tac-h2o2 .panel p,
+      #chem-exp-xuc-tac-h2o2 .panel li,
+      #chem-exp-xuc-tac-h2o2 .panel label,
+      #chem-exp-xuc-tac-h2o2 .panel .small {
+        font-size: 12px;
+        line-height: 1.45;
+        color: #d8e5ff;
+      }
+      #chem-exp-xuc-tac-h2o2 .panel .muted { color: var(--muted); }
+      #chem-exp-xuc-tac-h2o2 .choices {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-xuc-tac-h2o2 .choice {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        padding: 9px 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+      }
+      #chem-exp-xuc-tac-h2o2 .choice input { margin-top: 2px; }
+      #chem-exp-xuc-tac-h2o2 .control-stack {
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-xuc-tac-h2o2 .slider-wrap {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-xuc-tac-h2o2 .slider-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      #chem-exp-xuc-tac-h2o2 input[type="range"] {
+        width: 100%;
+        accent-color: #38bdf8;
+      }
+      #chem-exp-xuc-tac-h2o2 .value-chip {
+        min-width: 74px;
+        text-align: right;
+        font-weight: 800;
+        color: #e0f2fe;
+      }
+      #chem-exp-xuc-tac-h2o2 .status {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+      #chem-exp-xuc-tac-h2o2 .equation {
+        font-family: "SFMono-Regular", ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        color: #fde68a;
+        word-break: break-word;
+      }
+      #chem-exp-xuc-tac-h2o2 .result {
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+      }
+      #chem-exp-xuc-tac-h2o2 .result strong { color: #fef3c7; }
+      #chem-exp-xuc-tac-h2o2 .ok { color: var(--good); }
+      #chem-exp-xuc-tac-h2o2 .warn { color: var(--warn); }
+      #chem-exp-xuc-tac-h2o2 .fail {
+        min-height: 460px;
+        display: grid;
+        place-items: center;
+        padding: 28px;
+        color: #fee2e2;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      #chem-exp-xuc-tac-h2o2 .footer-note {
+        margin-top: 10px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      @media (max-width: 980px) {
+        #chem-exp-xuc-tac-h2o2 .shell { grid-template-columns: 1fr; }
+        #chem-exp-xuc-tac-h2o2 .toolbox { justify-content: flex-start; }
+        #chem-exp-xuc-tac-h2o2 .stage-card { min-height: 520px; }
+        #chem-exp-xuc-tac-h2o2 .graph-overlay { width: min(56%, 360px); }
+      }
+      @media (max-width: 720px) {
+        #chem-exp-xuc-tac-h2o2 { padding: 12px; border-radius: 18px; }
+        #chem-exp-xuc-tac-h2o2 .intro { flex-direction: column; }
+        #chem-exp-xuc-tac-h2o2 h2 { font-size: 21px; }
+        #chem-exp-xuc-tac-h2o2 .overlay-top {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          inset: 10px 10px auto 10px;
+        }
+        #chem-exp-xuc-tac-h2o2 .graph-overlay {
+          position: absolute;
+          left: 10px;
+          right: 10px;
+          width: auto;
+          bottom: 10px;
+        }
+        #chem-exp-xuc-tac-h2o2 .stage-note {
+          top: auto;
+          right: 10px;
+          max-width: 180px;
+          bottom: 146px;
+          font-size: 11px;
+        }
+        #chem-exp-xuc-tac-h2o2 .stage-card { min-height: 480px; }
+      }
+    </style>
+
+    <div class="intro">
+      <div class="title-wrap">
+        <h2>Xúc tác làm phản ứng phân hủy H₂O₂ diễn ra nhanh hơn như thế nào?</h2>
+        <p class="subtitle">Hóa 10–11 · Mô phỏng <strong>bán định lượng</strong>. Em hãy dự đoán bình nào tạo khí O₂ nhanh hơn, sau đó thay đổi lượng MnO₂ để quan sát tốc độ thoát bọt và độ dốc đường cong khí.</p>
+        <div class="badge-row">
+          <span class="badge">Learning loop: dự đoán → quan sát → kết luận</span>
+          <span class="badge">Pattern: variable-comparison-lab</span>
+          <span class="badge">Hiện tượng chính: bọt khí O₂</span>
+        </div>
+      </div>
+      <div class="toolbox">
+        <button type="button" class="primary" data-role="primary-action">Chạy thí nghiệm</button>
+        <button type="button" data-role="toggle">Tạm dừng</button>
+        <button type="button" data-role="reset">Làm lại</button>
+      </div>
+    </div>
+
+    <div class="shell">
+      <div class="stage-card" data-role="stage" aria-label="Mô phỏng hai bình H2O2 có và không có xúc tác MnO2">
+        <canvas data-role="canvas"></canvas>
+        <div class="overlay-top">
+          <div class="metric">
+            <div class="k">Pha hiện tại</div>
+            <div class="v" data-role="phase-readout">Dự đoán</div>
+          </div>
+          <div class="metric">
+            <div class="k">MnO₂ bình B</div>
+            <div class="v"><span data-role="catalyst-value">1,2</span> g</div>
+          </div>
+          <div class="metric">
+            <div class="k">Khí O₂ bình A</div>
+            <div class="v"><span data-role="o2-a">0</span> mL</div>
+          </div>
+          <div class="metric">
+            <div class="k">Khí O₂ bình B</div>
+            <div class="v"><span data-role="o2-b">0</span> mL</div>
+          </div>
+        </div>
+
+        <div class="graph-overlay" aria-hidden="true">
+          <p class="graph-title">Thể tích O₂ theo thời gian</p>
+          <svg viewBox="0 0 320 120" data-role="graph" role="img" aria-label="Đồ thị thể tích oxy tăng theo thời gian ở hai bình">
+            <defs>
+              <linearGradient id="chem-exp-xuc-tac-h2o2-grid" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+                <stop offset="100%" stop-color="rgba(255,255,255,0.02)" />
+              </linearGradient>
+            </defs>
+            <rect x="0" y="0" width="320" height="120" fill="rgba(255,255,255,0.02)"></rect>
+            <g stroke="rgba(255,255,255,0.08)" stroke-width="1">
+              <line x1="28" y1="12" x2="28" y2="100"></line>
+              <line x1="28" y1="100" x2="308" y2="100"></line>
+              <line x1="28" y1="78" x2="308" y2="78"></line>
+              <line x1="28" y1="56" x2="308" y2="56"></line>
+              <line x1="28" y1="34" x2="308" y2="34"></line>
+            </g>
+            <path data-role="path-a" d="M28 100 L308 100" fill="none" stroke="#7dd3fc" stroke-width="3" stroke-linecap="round"></path>
+            <path data-role="path-b" d="M28 100 L308 100" fill="none" stroke="#fde68a" stroke-width="3" stroke-linecap="round"></path>
+            <circle data-role="dot-a" cx="28" cy="100" r="4" fill="#7dd3fc"></circle>
+            <circle data-role="dot-b" cx="28" cy="100" r="4" fill="#fde68a"></circle>
+            <text x="36" y="17" fill="#97abd0" font-size="9">mL</text>
+            <text x="290" y="114" fill="#97abd0" font-size="9">t</text>
+          </svg>
+        </div>
+
+        <div class="stage-note" data-role="stage-note">Quan sát bọt khí và đường cong: xúc tác làm tốc độ phản ứng tăng nhưng không bị tiêu hao sau phản ứng.</div>
+      </div>
+
+      <div class="side">
+        <section class="panel">
+          <h3>1. Dự đoán trước khi chạy</h3>
+          <div class="choices" data-role="prediction-group">
+            <label class="choice"><input type="radio" name="chem-exp-xuc-tac-h2o2-predict" value="a" /> <span><strong>Bình A</strong> tạo khí O₂ nhanh hơn.</span></label>
+            <label class="choice"><input type="radio" name="chem-exp-xuc-tac-h2o2-predict" value="b" /> <span><strong>Bình B</strong> tạo khí O₂ nhanh hơn.</span></label>
+            <label class="choice"><input type="radio" name="chem-exp-xuc-tac-h2o2-predict" value="same" /> <span>Hai bình gần như giống nhau.</span></label>
+          </div>
+          <p class="footer-note">Chưa hiện đáp án ở bước này. Em cần chọn dự đoán rồi chạy thí nghiệm.</p>
+        </section>
+
+        <section class="panel">
+          <h3>2. Điều khiển biến thực nghiệm</h3>
+          <div class="control-stack">
+            <div class="slider-wrap">
+              <div class="slider-top">
+                <label for="chem-exp-xuc-tac-h2o2-slider">Khối lượng MnO₂ trong bình B</label>
+                <div class="value-chip"><span data-role="slider-readout">1,2</span> g</div>
+              </div>
+              <input id="chem-exp-xuc-tac-h2o2-slider" data-role="catalyst-slider" type="range" min="0" max="2" step="0.2" value="1.2" />
+              <p class="small muted">Bình A chỉ có H₂O₂ 3%. Bình B có cùng lượng H₂O₂ và thêm MnO₂ rắn làm xúc tác.</p>
+            </div>
+            <div class="status" data-role="status" aria-live="polite">Hãy chọn dự đoán rồi bấm <strong>Chạy thí nghiệm</strong>.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>3. Quan sát và kết luận</h3>
+          <div class="result" data-role="result">
+            <strong>Kết luận sẽ xuất hiện sau khi em quan sát đủ hiện tượng chính.</strong>
+          </div>
+          <p class="small muted" style="margin-top:8px;">Dấu hiệu cần chú ý: mật độ bọt khí, thể tích O₂ thu được và độ dốc của đường cong.</p>
+        </section>
+
+        <section class="panel">
+          <h3>Phương trình phản ứng</h3>
+          <div class="equation">2H₂O₂ → 2H₂O + O₂↑</div>
+          <p class="small muted">MnO₂ không xuất hiện trong phương trình tổng quát vì nó là <strong>xúc tác</strong>, làm phản ứng xảy ra nhanh hơn nhưng không bị tiêu hao.</p>
+        </section>
+      </div>
+    </div>
+
+    <div class="result" data-role="summary-strip" style="margin-top:12px;">
+      <strong>Mục tiêu học tập:</strong> Liên hệ chất xúc tác với tốc độ phản ứng thông qua hiện tượng quan sát được thay vì chỉ nhớ định nghĩa.
+    </div>
+
+    <script type="application/json" data-role="test-contract">
+      {
+        "schema_version": "chem-lab.test-contract.v1",
+        "interaction_family": "variable-comparison-lab",
+        "answer_reveal_policy": "after-observe",
+        "primary_observation": "oxygen-bubble-rate",
+        "supports_reset": true,
+        "supports_pause": true
+      }
+    </script>
+
+    <script>
+      (function(rootId) {
+        const EXPERIMENT = {
+          title: "Xúc tác phân hủy H2O2",
+          grade: "Hóa 10-11",
+          mode: "bán định lượng",
+          learningGoal: "Nhận ra xúc tác làm tăng tốc độ phản ứng thông qua tốc độ tạo bọt khí O2 và độ dốc đường cong thể tích.",
+          learningLoop: {
+            predict: "Bình nào tạo khí O2 nhanh hơn?",
+            observe: "Quan sát mật độ bọt khí và thể tích khí ở hai bình.",
+            compare: "So sánh đường cong O2 theo thời gian của bình A và bình B.",
+            explain: "MnO2 làm phản ứng diễn ra nhanh hơn nhưng không bị tiêu hao."
+          },
+          reaction: {
+            equation: "2H2O2 -> 2H2O + O2",
+            note: "Mô phỏng bán định lượng: nhấn mạnh xu hướng tốc độ, không dùng như dữ liệu thực nghiệm thật."
+          },
+          variables: [{ id: "catalyst_mass", label: "Khối lượng MnO2", unit: "g", min: 0, max: 2, step: 0.2 }],
+          observations: ["bọt khí O2 thoát ra", "bình có xúc tác tạo khí nhanh hơn", "xúc tác không bị tiêu hao"]
+        };
+
+        const root = document.getElementById(rootId);
+        if (!root) return;
+
+        const stage = root.querySelector('[data-role="stage"]');
+        const canvas = root.querySelector('[data-role="canvas"]');
+        const statusEl = root.querySelector('[data-role="status"]');
+        const resultEl = root.querySelector('[data-role="result"]');
+        const phaseReadout = root.querySelector('[data-role="phase-readout"]');
+        const stageNote = root.querySelector('[data-role="stage-note"]');
+        const primaryButton = root.querySelector('[data-role="primary-action"]');
+        const toggleButton = root.querySelector('[data-role="toggle"]');
+        const resetButton = root.querySelector('[data-role="reset"]');
+        const catalystSlider = root.querySelector('[data-role="catalyst-slider"]');
+        const catalystValue = root.querySelector('[data-role="catalyst-value"]');
+        const sliderReadout = root.querySelector('[data-role="slider-readout"]');
+        const o2AEl = root.querySelector('[data-role="o2-a"]');
+        const o2BEl = root.querySelector('[data-role="o2-b"]');
+        const pathA = root.querySelector('[data-role="path-a"]');
+        const pathB = root.querySelector('[data-role="path-b"]');
+        const dotA = root.querySelector('[data-role="dot-a"]');
+        const dotB = root.querySelector('[data-role="dot-b"]');
+        const summaryStrip = root.querySelector('[data-role="summary-strip"]');
+        const predictionInputs = Array.from(root.querySelectorAll('input[name="chem-exp-xuc-tac-h2o2-predict"]'));
+
+        const state = {
+          phase: 'predict',
+          running: false,
+          started: false,
+          elapsed: 0,
+          maxTime: 12,
+          catalystMass: parseFloat(catalystSlider.value),
+          prediction: '',
+          revealReady: false,
+          threeReady: false,
+          fadeInError: false,
+          aVolume: 0,
+          bVolume: 0,
+          bubbleTick: 0,
+          catalystParticles: [],
+          bubbleSets: [[], []]
+        };
+
+        function formatVN(value, digits) {
+          return Number(value).toFixed(digits).replace('.', ',');
+        }
+
+        function setPhase(phase) {
+          state.phase = phase;
+          root.dataset.phase = phase;
+          const labels = {
+            predict: 'Dự đoán',
+            observe: 'Quan sát',
+            compare: 'So sánh',
+            explain: 'Kết luận',
+            complete: 'Hoàn thành'
+          };
+          phaseReadout.textContent = labels[phase] || phase;
+        }
+
+        function updatePrediction() {
+          const selected = predictionInputs.find(function(input) { return input.checked; });
+          state.prediction = selected ? selected.value : '';
+        }
+
+        predictionInputs.forEach(function(input) {
+          input.addEventListener('change', function() {
+            updatePrediction();
+            if (!state.started) {
+              statusEl.innerHTML = 'Dự đoán đã ghi nhận. Bây giờ em có thể bấm <strong>Chạy thí nghiệm</strong> để quan sát hai bình.';
+            }
+          });
+        });
+
+        function updateSliderText() {
+          const text = formatVN(state.catalystMass, 1);
+          catalystValue.textContent = text;
+          sliderReadout.textContent = text;
+          if (!state.started) {
+            stageNote.textContent = state.catalystMass === 0
+              ? 'Nếu MnO₂ = 0 g, hai bình gần như giống nhau. Hãy thử tăng MnO₂ rồi quan sát tốc độ bọt khí.'
+              : 'MnO₂ chỉ có ở bình B. Hãy chú ý tốc độ thoát bọt và đường cong khí của bình B khi tăng lượng xúc tác.';
+          }
+        }
+
+        catalystSlider.addEventListener('input', function() {
+          state.catalystMass = parseFloat(catalystSlider.value);
+          updateSliderText();
+          if (!state.started) {
+            statusEl.innerHTML = 'Biến đã đổi. Hãy dự đoán rồi chạy thí nghiệm để xem lượng MnO₂ ảnh hưởng thế nào đến tốc độ phản ứng.';
+          }
+        });
+
+        function o2Progress(baseRate, time) {
+          const x = Math.min(time / state.maxTime, 1);
+          return 1 - Math.exp(-baseRate * 2.8 * x);
+        }
+
+        function updateVolumes() {
+          const baseA = 0.55;
+          const baseB = 0.55 + state.catalystMass * 0.85;
+          const finalVolume = 72;
+          state.aVolume = finalVolume * o2Progress(baseA, state.elapsed);
+          state.bVolume = finalVolume * o2Progress(baseB, state.elapsed);
+          o2AEl.textContent = Math.round(state.aVolume).toString();
+          o2BEl.textContent = Math.round(state.bVolume).toString();
+        }
+
+        function updateGraph() {
+          const samples = 24;
+          const pointsA = [];
+          const pointsB = [];
+          const width = 280;
+          const height = 82;
+          const left = 28;
+          const top = 18;
+          const finalVolume = 72;
+          const baseA = 0.55;
+          const baseB = 0.55 + state.catalystMass * 0.85;
+          let currentAX = left;
+          let currentAY = top + height;
+          let currentBX = left;
+          let currentBY = top + height;
+
+          for (let i = 0; i <= samples; i += 1) {
+            const t = state.maxTime * (i / samples);
+            const x = left + width * (t / state.maxTime);
+            const yA = top + height - (finalVolume * o2Progress(baseA, Math.min(t, state.elapsed)) / finalVolume) * height;
+            const yB = top + height - (finalVolume * o2Progress(baseB, Math.min(t, state.elapsed)) / finalVolume) * height;
+            pointsA.push((i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + yA.toFixed(1));
+            pointsB.push((i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + yB.toFixed(1));
+            if (t <= state.elapsed) {
+              currentAX = x; currentAY = yA;
+              currentBX = x; currentBY = yB;
+            }
+          }
+
+          pathA.setAttribute('d', pointsA.join(' '));
+          pathB.setAttribute('d', pointsB.join(' '));
+          dotA.setAttribute('cx', currentAX.toFixed(1));
+          dotA.setAttribute('cy', currentAY.toFixed(1));
+          dotB.setAttribute('cx', currentBX.toFixed(1));
+          dotB.setAttribute('cy', currentBY.toFixed(1));
+        }
+
+        function evaluateProgress() {
+          if (!state.started) {
+            setPhase('predict');
+            return;
+          }
+          if (state.elapsed < state.maxTime * 0.45) {
+            setPhase('observe');
+            statusEl.innerHTML = 'Quan sát giai đoạn đầu: bình nào có mật độ bọt khí dày hơn? Hãy nhìn cả hiện tượng trong bình và đồ thị O₂.';
+            return;
+          }
+          if (state.elapsed < state.maxTime) {
+            setPhase('compare');
+            statusEl.innerHTML = 'So sánh hai bình: đường cong nào dốc hơn, và thể tích O₂ bình nào tăng nhanh hơn?';
+            return;
+          }
+          state.revealReady = true;
+          setPhase('explain');
+          const correct = state.catalystMass > 0 ? 'b' : 'same';
+          const matched = state.prediction && state.prediction === correct;
+          const message = state.catalystMass > 0
+            ? 'Bình B tạo khí O₂ nhanh hơn vì có MnO₂ làm xúc tác. Xúc tác làm tăng tốc độ phản ứng nhưng không bị tiêu hao.'
+            : 'Khi MnO₂ = 0 g, hai bình gần như giống nhau nên tốc độ tạo khí gần nhau.';
+          resultEl.innerHTML = (state.prediction
+            ? '<span class="' + (matched ? 'ok' : 'warn') + '">' + (matched ? 'Dự đoán của em phù hợp với quan sát.' : 'Dự đoán ban đầu chưa khớp hoàn toàn với quan sát.') + '</span><br />'
+            : '') + '<strong>Kết luận:</strong> ' + message;
+          statusEl.innerHTML = 'Hãy kéo lại thanh MnO₂ và chạy lại để xem độ dốc đường cong và tốc độ bọt khí thay đổi ra sao.';
+          summaryStrip.innerHTML = '<strong>Kết luận ngắn:</strong> Tăng lượng MnO₂ làm bình B tạo O₂ nhanh hơn trong cùng một khoảng thời gian, nhưng MnO₂ không biến mất khỏi hệ phản ứng.';
+        }
+
+        function resetExperiment() {
+          state.running = false;
+          state.started = false;
+          state.elapsed = 0;
+          state.revealReady = false;
+          state.aVolume = 0;
+          state.bVolume = 0;
+          state.bubbleTick = 0;
+          setPhase('predict');
+          o2AEl.textContent = '0';
+          o2BEl.textContent = '0';
+          toggleButton.textContent = 'Tạm dừng';
+          resultEl.innerHTML = '<strong>Kết luận sẽ xuất hiện sau khi em quan sát đủ hiện tượng chính.</strong>';
+          statusEl.innerHTML = 'Hãy chọn dự đoán rồi bấm <strong>Chạy thí nghiệm</strong>.';
+          summaryStrip.innerHTML = '<strong>Mục tiêu học tập:</strong> Liên hệ chất xúc tác với tốc độ phản ứng thông qua hiện tượng quan sát được thay vì chỉ nhớ định nghĩa.';
+          updateGraph();
+          updateSliderText();
+        }
+
+        primaryButton.addEventListener('click', function() {
+          updatePrediction();
+          if (!state.prediction) {
+            statusEl.innerHTML = '<span class="warn">Em chưa chọn dự đoán.</span> Hãy chọn một phương án trước khi chạy thí nghiệm.';
+            return;
+          }
+          state.running = true;
+          state.started = true;
+          setPhase('observe');
+          statusEl.innerHTML = 'Thí nghiệm đang chạy. Hãy nhìn mật độ bọt khí trong hai bình và theo dõi đồ thị O₂.';
+        });
+
+        toggleButton.addEventListener('click', function() {
+          state.running = !state.running;
+          toggleButton.textContent = state.running ? 'Tạm dừng' : 'Tiếp tục';
+          if (state.started) {
+            statusEl.innerHTML = state.running
+              ? 'Thí nghiệm tiếp tục. Hãy quan sát sự khác nhau về tốc độ tạo bọt khí.'
+              : 'Thí nghiệm đang tạm dừng. Em có thể đọc lại đồ thị rồi tiếp tục.';
+          }
+        });
+
+        resetButton.addEventListener('click', function() {
+          resetExperiment();
+        });
+
+        function showFail(message) {
+          stage.innerHTML = '<div class="fail">' + message + '<br /><br />Phần học tập vẫn giữ được: bình có MnO₂ sẽ tạo O₂ nhanh hơn bình không có xúc tác; MnO₂ không bị tiêu hao.</div>';
+        }
+
+        function loadScript(urls, globalName, done, fail) {
+          if (window[globalName]) {
+            done(window[globalName]);
+            return;
+          }
+          let index = 0;
+          function next() {
+            if (index >= urls.length) {
+              fail();
+              return;
+            }
+            const script = document.createElement('script');
+            script.src = urls[index];
+            script.onload = function() {
+              if (window[globalName]) done(window[globalName]);
+              else {
+                index += 1;
+                next();
+              }
+            };
+            script.onerror = function() {
+              index += 1;
+              next();
+            };
+            document.head.appendChild(script);
+          }
+          next();
+        }
+
+        function hasWebGL() {
+          try {
+            const testCanvas = document.createElement('canvas');
+            return !!(window.WebGLRenderingContext && (testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl')));
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function loadThree(done) {
+          loadScript([
+            'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+            'https://unpkg.com/three@0.137.0/build/three.min.js'
+          ], 'THREE', done, function() {
+            showFail('Không tải được thư viện Three.js. Hãy kiểm tra mạng rồi mở lại file HTML này.');
+          });
+        }
+
+        function startThree(THREE) {
+          if (!hasWebGL()) {
+            showFail('Trình duyệt hiện tại không hỗ trợ WebGL. Hãy mở bằng Chrome, Edge hoặc Firefox mới hơn.');
+            return;
+          }
+
+          state.threeReady = true;
+          const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.Fog(0x081221, 10, 22);
+
+          const camera = new THREE.PerspectiveCamera(39, 1, 0.1, 100);
+          camera.position.set(0, 4.4, 12.2);
+          camera.lookAt(0, 1.9, 0);
+
+          scene.add(new THREE.AmbientLight(0xe8f4ff, 0.92));
+          const hemi = new THREE.HemisphereLight(0xcfe9ff, 0x0c1320, 1.35);
+          scene.add(hemi);
+          const key = new THREE.DirectionalLight(0xffffff, 1.05);
+          key.position.set(5, 8, 7);
+          scene.add(key);
+          const fill = new THREE.PointLight(0x8b5cf6, 0.55, 18);
+          fill.position.set(-4, 4, 4);
+          scene.add(fill);
+
+          const root3d = new THREE.Group();
+          scene.add(root3d);
+
+          const bench = new THREE.Mesh(
+            new THREE.BoxGeometry(12, 0.7, 6),
+            new THREE.MeshStandardMaterial({ color: 0x182739, roughness: 0.92, metalness: 0.05 })
+          );
+          bench.position.y = -0.35;
+          root3d.add(bench);
+
+          const backPanel = new THREE.Mesh(
+            new THREE.BoxGeometry(14, 5.8, 0.2),
+            new THREE.MeshStandardMaterial({ color: 0x0d1727, roughness: 1 })
+          );
+          backPanel.position.set(0, 2.4, -2.5);
+          root3d.add(backPanel);
+
+          const equationBoard = new THREE.Mesh(
+            new THREE.PlaneGeometry(6, 1.5),
+            new THREE.MeshStandardMaterial({ color: 0x10233b, emissive: 0x123456, emissiveIntensity: 0.25 })
+          );
+          equationBoard.position.set(0, 4.2, -2.38);
+          root3d.add(equationBoard);
+
+          function makeBeaker(x, labelText) {
+            const group = new THREE.Group();
+            group.position.set(x, 0, 0);
+
+            const glass = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.32, 1.18, 3.3, 56, 1, true),
+              new THREE.MeshPhysicalMaterial({
+                color: 0xe9f5ff,
+                transparent: true,
+                opacity: 0.24,
+                roughness: 0.06,
+                transmission: 0.72,
+                side: THREE.DoubleSide,
+                thickness: 0.35
+              })
+            );
+            glass.position.y = 1.8;
+            group.add(glass);
+
+            const rim = new THREE.Mesh(
+              new THREE.TorusGeometry(1.23, 0.05, 10, 48),
+              new THREE.MeshStandardMaterial({ color: 0xd6ecff, metalness: 0.18, roughness: 0.34 })
+            );
+            rim.rotation.x = Math.PI / 2;
+            rim.position.y = 3.45;
+            group.add(rim);
+
+            const liquid = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.1, 1.06, 2.22, 40),
+              new THREE.MeshStandardMaterial({ color: 0x4f9cf6, emissive: 0x1d4ed8, emissiveIntensity: 0.18, transparent: true, opacity: 0.82 })
+            );
+            liquid.position.y = 1.2;
+            group.add(liquid);
+
+            const base = new THREE.Mesh(
+              new THREE.CylinderGeometry(1.15, 1.15, 0.12, 40),
+              new THREE.MeshStandardMaterial({ color: 0x0d1727, roughness: 0.9 })
+            );
+            base.position.y = 0.05;
+            group.add(base);
+
+            const label = makeLabelPlane(labelText);
+            label.position.set(0, 0.35, 1.28);
+            group.add(label);
+
+            const gasGlow = new THREE.Mesh(
+              new THREE.SphereGeometry(0.5, 18, 18),
+              new THREE.MeshBasicMaterial({ color: 0xdbeafe, transparent: true, opacity: 0.14 })
+            );
+            gasGlow.position.set(0, 3.2, 0);
+            group.add(gasGlow);
+
+            return { group: group, liquid: liquid, glow: gasGlow };
+          }
+
+          function makeLabelPlane(text) {
+            const labelCanvas = document.createElement('canvas');
+            labelCanvas.width = 256;
+            labelCanvas.height = 96;
+            const ctx = labelCanvas.getContext('2d');
+            ctx.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+            ctx.fillStyle = 'rgba(8, 15, 28, 0.84)';
+            roundRect(ctx, 10, 14, 236, 66, 22);
+            ctx.fillStyle = '#e0f2fe';
+            ctx.font = '700 32px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, 128, 47);
+            const texture = new THREE.CanvasTexture(labelCanvas);
+            texture.needsUpdate = true;
+            return new THREE.Mesh(
+              new THREE.PlaneGeometry(1.1, 0.42),
+              new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+            );
+          }
+
+          function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+            ctx.fill();
+          }
+
+          function makeCatalystGranule() {
+            return new THREE.Mesh(
+              new THREE.DodecahedronGeometry(0.06 + Math.random() * 0.03, 0),
+              new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.95, metalness: 0.02 })
+            );
+          }
+
+          function makeBubble(radius, color) {
+            return new THREE.Mesh(
+              new THREE.SphereGeometry(radius, 12, 12),
+              new THREE.MeshStandardMaterial({ color: color, transparent: true, opacity: 0.56, emissive: color, emissiveIntensity: 0.18 })
+            );
+          }
+
+          const beakerA = makeBeaker(-2.6, 'Bình A');
+          const beakerB = makeBeaker(2.6, 'Bình B');
+          root3d.add(beakerA.group);
+          root3d.add(beakerB.group);
+
+          const spoon = new THREE.Group();
+          const handle = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.05, 0.05, 2.1, 18),
+            new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.64, roughness: 0.28 })
+          );
+          handle.rotation.z = 0.6;
+          handle.position.set(4.8, 2.7, 0.5);
+          spoon.add(handle);
+          const scoop = new THREE.Mesh(
+            new THREE.SphereGeometry(0.24, 18, 18),
+            new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.7, roughness: 0.22 })
+          );
+          scoop.scale.set(1, 0.4, 0.8);
+          scoop.position.set(4.2, 2, 0.5);
+          spoon.add(scoop);
+          root3d.add(spoon);
+
+          const catalystPlate = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.72, 0.78, 0.08, 30),
+            new THREE.MeshStandardMaterial({ color: 0x202c3f, roughness: 0.95 })
+          );
+          catalystPlate.position.set(4.3, 0.28, 0.8);
+          root3d.add(catalystPlate);
+
+          const orbit = { dragging: false, startX: 0, velocity: 0, rotation: -0.22 };
+          canvas.addEventListener('pointerdown', function(event) {
+            orbit.dragging = true;
+            orbit.startX = event.clientX;
+            canvas.setPointerCapture(event.pointerId);
+          });
+          canvas.addEventListener('pointermove', function(event) {
+            if (!orbit.dragging) return;
+            const dx = event.clientX - orbit.startX;
+            orbit.startX = event.clientX;
+            orbit.velocity = dx * 0.004;
+          });
+          function releaseOrbit() { orbit.dragging = false; }
+          canvas.addEventListener('pointerup', releaseOrbit);
+          canvas.addEventListener('pointercancel', releaseOrbit);
+          canvas.addEventListener('pointerleave', releaseOrbit);
+
+          function spawnCatalyst() {
+            state.catalystParticles.forEach(function(item) { beakerB.group.remove(item); });
+            state.catalystParticles = [];
+            const count = Math.max(0, Math.round(state.catalystMass * 14));
+            for (let i = 0; i < count; i += 1) {
+              const granule = makeCatalystGranule();
+              granule.position.set((Math.random() - 0.5) * 0.84, 0.34 + Math.random() * 0.12, (Math.random() - 0.5) * 0.84);
+              granule.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+              state.catalystParticles.push(granule);
+              beakerB.group.add(granule);
+            }
+          }
+
+          function spawnBubble(beakerIndex, intensity) {
+            const bubble = makeBubble(0.06 + Math.random() * 0.06, beakerIndex === 0 ? 0x8be3ff : 0xfff3b0);
+            bubble.position.set((Math.random() - 0.5) * 0.8, 0.6 + Math.random() * 0.3, (Math.random() - 0.5) * 0.8);
+            bubble.userData.speed = 0.36 + intensity * 0.5 + Math.random() * 0.18;
+            bubble.userData.wobble = 0.4 + Math.random() * 0.8;
+            bubble.userData.age = 0;
+            state.bubbleSets[beakerIndex].push(bubble);
+            (beakerIndex === 0 ? beakerA.group : beakerB.group).add(bubble);
+          }
+
+          function updateBubbles(dt) {
+            const rateA = 3 + state.aVolume / 18;
+            const rateB = 3 + state.bVolume / 12 + state.catalystMass * 4;
+            state.bubbleTick += dt;
+            if (state.running) {
+              const aCount = Math.min(2, Math.floor(rateA * dt * 2.2));
+              const bCount = Math.min(4, Math.floor(rateB * dt * 2.6));
+              for (let i = 0; i < aCount; i += 1) spawnBubble(0, 0.5);
+              for (let j = 0; j < bCount; j += 1) spawnBubble(1, 0.8 + state.catalystMass * 0.2);
+            }
+            [beakerA.group, beakerB.group].forEach(function(group, index) {
+              const list = state.bubbleSets[index];
+              for (let i = list.length - 1; i >= 0; i -= 1) {
+                const bubble = list[i];
+                bubble.userData.age += dt;
+                bubble.position.y += bubble.userData.speed * dt;
+                bubble.position.x += Math.sin(bubble.userData.age * (3 + bubble.userData.wobble)) * dt * 0.05;
+                bubble.material.opacity = Math.max(0, 0.56 - bubble.userData.age * 0.14);
+                bubble.scale.multiplyScalar(1 + dt * 0.22);
+                if (bubble.position.y > 3.45 || bubble.material.opacity <= 0.02) {
+                  group.remove(bubble);
+                  list.splice(i, 1);
+                }
+              }
+            });
+          }
+
+          function updateChemVisuals() {
+            const aLevel = 1.8 + state.aVolume / 90;
+            const bLevel = 1.8 + state.bVolume / 88;
+            beakerA.liquid.scale.y = Math.max(0.82, aLevel / 2.22);
+            beakerB.liquid.scale.y = Math.max(0.82, bLevel / 2.22);
+            beakerA.liquid.position.y = 1.2 + (beakerA.liquid.scale.y - 1) * 0.5;
+            beakerB.liquid.position.y = 1.2 + (beakerB.liquid.scale.y - 1) * 0.5;
+            beakerA.glow.scale.setScalar(1 + state.aVolume / 120);
+            beakerB.glow.scale.setScalar(1 + state.bVolume / 90);
+            beakerA.glow.material.opacity = 0.08 + state.aVolume / 320;
+            beakerB.glow.material.opacity = 0.1 + state.bVolume / 220;
+            beakerA.liquid.material.color.setHex(0x4f9cf6);
+            beakerB.liquid.material.color.setHex(state.catalystMass > 0 ? 0xa78bfa : 0x4f9cf6);
+            beakerB.liquid.material.emissive.setHex(state.catalystMass > 0 ? 0x7c3aed : 0x1d4ed8);
+          }
+
+          function resize() {
+            const width = canvas.clientWidth || stage.clientWidth || 960;
+            const height = canvas.clientHeight || stage.clientHeight || 560;
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+          resize();
+          if (window.ResizeObserver) {
+            new ResizeObserver(resize).observe(stage);
+          } else {
+            window.addEventListener('resize', resize);
+          }
+
+          spawnCatalyst();
+          updateChemVisuals();
+
+          let last = performance.now();
+          function frame(now) {
+            const dt = Math.min((now - last) / 1000, 0.05);
+            last = now;
+
+            orbit.rotation += orbit.velocity;
+            orbit.velocity *= orbit.dragging ? 0.82 : 0.92;
+            root3d.rotation.y = orbit.rotation;
+
+            if (state.running) {
+              state.elapsed = Math.min(state.elapsed + dt * 1.18, state.maxTime);
+              updateVolumes();
+              updateGraph();
+              evaluateProgress();
+              if (state.elapsed >= state.maxTime) {
+                state.running = false;
+                toggleButton.textContent = 'Tiếp tục';
+                setPhase('complete');
+              }
+            }
+
+            updateBubbles(dt);
+            updateChemVisuals();
+            spoon.position.y = 0.05 * Math.sin(now * 0.0012);
+            catalystPlate.rotation.y += dt * 0.18;
+            renderer.render(scene, camera);
+            requestAnimationFrame(frame);
+          }
+          requestAnimationFrame(frame);
+
+          catalystSlider.addEventListener('input', function() {
+            if (!state.started) {
+              spawnCatalyst();
+              updateGraph();
+              updateChemVisuals();
+            }
+          });
+          resetButton.addEventListener('click', function() {
+            spawnCatalyst();
+            state.bubbleSets.forEach(function(list, index) {
+              const group = index === 0 ? beakerA.group : beakerB.group;
+              list.forEach(function(mesh) { group.remove(mesh); });
+            });
+            state.bubbleSets = [[], []];
+            updateChemVisuals();
+          });
+        }
+
+        catalystSlider.addEventListener('input', function() {
+          state.catalystMass = parseFloat(catalystSlider.value);
+          updateSliderText();
+          updateGraph();
+        });
+
+        resetExperiment();
+        updateGraph();
+        loadThree(startThree);
+      })('chem-exp-xuc-tac-h2o2');
+    </script>
+  </div>
+</body>
+</html>
