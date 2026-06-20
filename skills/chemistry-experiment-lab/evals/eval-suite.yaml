@@ -1,0 +1,123 @@
+suite_id: chemistry-experiment-lab-v2-regression
+cases:
+  - id: electrolysis-published-pass
+    slug: lab-dien-phan-cuso4-dien-cuc-than-chi
+    design_family: electrolysis
+    source:
+      type: output_html
+      path: outputs/lab-dien-phan-cuso4-dien-cuc-than-chi.html
+      verification_result: evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z/result.json
+      eval_record: eval-runs/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z.json
+    must_show:
+      - điện phân
+      - catot
+      - anot
+    must_control:
+      - Tạm dừng
+      - Chạy tự động
+    forbidden_shortcuts:
+      - TODO
+      - lorem ipsum
+    expected_verify: pass
+
+  - id: kinetics-output-pass
+    slug: lab-anh-huong-nong-do-toc-do
+    design_family: kinetics
+    source:
+      type: output_html
+      path: outputs/html_hoahoc_gpt_3.html
+      eval_record: eval-runs/lab-anh-huong-nong-do-toc-do/2026-06-19T19-16-07Z.json
+    must_show:
+      - nồng độ
+      - dấu X
+      - tốc độ phản ứng
+    must_control:
+      - Tạm dừng
+      - Chạy lại
+    forbidden_shortcuts:
+      - lorem ipsum
+
+  - id: sulfuric-acid-virtual-mix-pass
+    slug: lab-h2so4-lop10-tinh-chat-co-ban
+    design_family: virtual-mix-lab
+    source:
+      type: output_html
+      path: outputs/lab-h2so4-lop10-tinh-chat-co-ban.html
+    must_show:
+      - H₂SO₄
+      - Zn
+      - CuO
+    must_control:
+      - Chạy demo
+      - Tạm dừng
+    forbidden_shortcuts:
+      - lorem ipsum
+
+  - id: flame-test-published-pass
+    slug: lab-ngon-lua-kim-loai
+    design_family: apparatus-drag-drop
+    source:
+      type: output_html
+      path: outputs/lab-ngon-lua-kim-loai.html
+      verification_result: evaluations/artifacts/lab-ngon-lua-kim-loai/2026-06-20T12-37-40Z/result.json
+      live_verify: true
+    must_show:
+      - Li+
+      - Na+
+      - K+
+      - Ca2+
+      - Cu2+
+    must_control:
+      - Quan sát khay lửa
+      - Làm lại
+    forbidden_shortcuts:
+      - lorem ipsum
+    required_probes:
+      - classification
+    expected_verify: pass
+
+  - id: canonical-bundle-pin-pass
+    slug: pin-daniel-fixture
+    design_family: electrolysis
+    source:
+      type: bundle_attempt
+      path: runs/2026-06-20T12-50-00Z-pin-daniel-fixture/attempts/attempt_0
+    must_show:
+      - Zn tan dần
+      - Cu bám dần
+      - electron
+    must_control:
+      - Chạy pin
+      - Làm lại
+    forbidden_shortcuts: []
+    expected_verify: pass
+
+  - id: canonical-bundle-titration-pass
+    slug: titration-fixture
+    design_family: titration
+    source:
+      type: bundle_attempt
+      path: runs/2026-06-20T12-55-00Z-titration-fixture/attempts/attempt_0
+    must_show:
+      - pH
+      - hồng bền
+      - điểm tương đương
+    must_control:
+      - Chạy demo
+      - Làm lại
+    forbidden_shortcuts: []
+    expected_verify: pass
+
+  - id: equilibrium-must-show-fail
+    slug: lab-can-bang-fescn
+    design_family: equilibrium
+    source:
+      type: output_html
+      path: outputs/lab-can-bang-fescn.html
+      verification_result: evaluations/artifacts/lab-can-bang-fescn/2026-06-19T20-32-52Z/result.json
+    must_show:
+      - Chất chỉ thị không tồn tại
+    must_control:
+      - Chạy demo
+    forbidden_shortcuts: []
+    expected_verify: pass
