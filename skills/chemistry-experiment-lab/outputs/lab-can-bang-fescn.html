@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cân bằng Fe³⁺ + SCN⁻ ⇌ FeSCN²⁺</title>
+</head>
+<body>
+  <div id="chem-exp-can-bang-fescn" class="chem-exp">
+    <style>
+      #chem-exp-can-bang-fescn {
+        --bg-a: #f6f9ff;
+        --bg-b: #e5eefc;
+        --panel: rgba(255,255,255,.88);
+        --line: rgba(33, 55, 84, .12);
+        --ink: #1d2940;
+        --muted: #61728d;
+        --red: #b7203b;
+        --amber: #e7b15f;
+        --blue: #4d85d9;
+        --teal: #198d94;
+        --shadow: 0 24px 70px rgba(32, 53, 84, .15);
+        box-sizing: border-box;
+        min-height: 100vh;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(680px 360px at 8% -8%, rgba(77,133,217,.2), transparent 62%),
+          radial-gradient(620px 320px at 96% 2%, rgba(231,177,95,.18), transparent 56%),
+          linear-gradient(160deg, var(--bg-a), var(--bg-b));
+      }
+      #chem-exp-can-bang-fescn *,
+      #chem-exp-can-bang-fescn *::before,
+      #chem-exp-can-bang-fescn *::after { box-sizing: inherit; }
+      #chem-exp-can-bang-fescn .shell {
+        width: min(1380px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-can-bang-fescn .topbar,
+      #chem-exp-can-bang-fescn .stage-card,
+      #chem-exp-can-bang-fescn .control-card,
+      #chem-exp-can-bang-fescn .explain-card,
+      #chem-exp-can-bang-fescn .chart-card {
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,.74);
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+        min-width: 0;
+      }
+      #chem-exp-can-bang-fescn .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 12px 14px;
+      }
+      #chem-exp-can-bang-fescn h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.25vw, 30px);
+        line-height: 1.06;
+        letter-spacing: -.035em;
+      }
+      #chem-exp-can-bang-fescn h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      #chem-exp-can-bang-fescn .microcopy,
+      #chem-exp-can-bang-fescn .status,
+      #chem-exp-can-bang-fescn .small {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+      #chem-exp-can-bang-fescn .actions,
+      #chem-exp-can-bang-fescn .button-row,
+      #chem-exp-can-bang-fescn .choice-grid,
+      #chem-exp-can-bang-fescn .chip-row,
+      #chem-exp-can-bang-fescn .tube-row,
+      #chem-exp-can-bang-fescn .legend-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      #chem-exp-can-bang-fescn button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        background: #22364b;
+        cursor: pointer;
+      }
+      #chem-exp-can-bang-fescn button.secondary {
+        background: rgba(255,255,255,.92);
+        color: #2b4560;
+        border: 1px solid var(--line);
+      }
+      #chem-exp-can-bang-fescn button.choice {
+        color: #23435e;
+        background: rgba(77,133,217,.08);
+        border: 1px solid rgba(77,133,217,.15);
+      }
+      #chem-exp-can-bang-fescn button.choice.active {
+        color: #145759;
+        background: rgba(25,141,148,.16);
+        border-color: rgba(25,141,148,.3);
+      }
+      #chem-exp-can-bang-fescn .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(480px, 1.26fr) minmax(300px, .74fr);
+        gap: 12px;
+      }
+      #chem-exp-can-bang-fescn .stage-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 760px;
+        background:
+          radial-gradient(circle at 50% 82%, rgba(255,255,255,.9), transparent 34%),
+          linear-gradient(180deg, rgba(255,255,255,.34), rgba(255,255,255,.78));
+      }
+      #chem-exp-can-bang-fescn .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 760px;
+        cursor: grab;
+        touch-action: none;
+      }
+      #chem-exp-can-bang-fescn .stage-note,
+      #chem-exp-can-bang-fescn .live-pill,
+      #chem-exp-can-bang-fescn .equation-pill {
+        position: absolute;
+        z-index: 3;
+        border: 1px solid rgba(255,255,255,.78);
+        background: rgba(255,255,255,.9);
+        box-shadow: 0 16px 44px rgba(35, 58, 82, .12);
+      }
+      #chem-exp-can-bang-fescn .stage-note {
+        left: 14px;
+        top: 14px;
+        width: min(336px, calc(100% - 28px));
+        padding: 12px;
+        border-radius: 18px;
+      }
+      #chem-exp-can-bang-fescn .stage-note strong,
+      #chem-exp-can-bang-fescn .equation-pill strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      #chem-exp-can-bang-fescn .stage-note span,
+      #chem-exp-can-bang-fescn .equation-pill span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.38;
+      }
+      #chem-exp-can-bang-fescn .stage-note em {
+        display: block;
+        margin-top: 4px;
+        color: #406485;
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #chem-exp-can-bang-fescn .live-pill {
+        right: 16px;
+        bottom: 16px;
+        width: min(294px, calc(100% - 32px));
+        padding: 12px;
+        border-radius: 22px;
+      }
+      #chem-exp-can-bang-fescn .equation-pill {
+        right: 16px;
+        top: 16px;
+        width: min(260px, calc(100% - 32px));
+        padding: 10px 12px;
+        border-radius: 18px;
+      }
+      #chem-exp-can-bang-fescn .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 31px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(77,133,217,.11);
+        color: #1f4a73;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-can-bang-fescn .chip.red {
+        background: rgba(183,32,59,.12);
+        color: #8c1c33;
+      }
+      #chem-exp-can-bang-fescn .chip.good {
+        background: rgba(25,141,148,.15);
+        color: #135f63;
+      }
+      #chem-exp-can-bang-fescn .meter {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-can-bang-fescn .meter-row {
+        display: grid;
+        grid-template-columns: 78px 1fr;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+      }
+      #chem-exp-can-bang-fescn .swatch {
+        height: 16px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(90deg, rgba(77,133,217,.11), rgba(25,141,148,.12));
+      }
+      #chem-exp-can-bang-fescn .fill {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+      }
+      #chem-exp-can-bang-fescn .fill.product { background: linear-gradient(90deg, #d95f73, var(--red)); }
+      #chem-exp-can-bang-fescn .fill.reactant { background: linear-gradient(90deg, #8eb8ff, var(--blue)); }
+      #chem-exp-can-bang-fescn .right-stack {
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-can-bang-fescn .control-card,
+      #chem-exp-can-bang-fescn .explain-card,
+      #chem-exp-can-bang-fescn .chart-card { padding: 14px; }
+      #chem-exp-can-bang-fescn .field {
+        display: grid;
+        gap: 6px;
+        margin: 12px 0;
+      }
+      #chem-exp-can-bang-fescn label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: #30495e;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      #chem-exp-can-bang-fescn input[type="range"] {
+        width: 100%;
+        accent-color: var(--red);
+      }
+      #chem-exp-can-bang-fescn .guess-box,
+      #chem-exp-can-bang-fescn .tube-card,
+      #chem-exp-can-bang-fescn .note-item {
+        padding: 10px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.8);
+      }
+      #chem-exp-can-bang-fescn .guess-box strong,
+      #chem-exp-can-bang-fescn .tube-card strong,
+      #chem-exp-can-bang-fescn .note-item strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+      #chem-exp-can-bang-fescn .tube-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      #chem-exp-can-bang-fescn .tube-visual {
+        position: relative;
+        height: 120px;
+        border-radius: 18px 18px 22px 22px;
+        background: linear-gradient(180deg, rgba(255,255,255,.84), rgba(233,241,252,.62));
+        border: 2px solid rgba(111,146,185,.18);
+        overflow: hidden;
+      }
+      #chem-exp-can-bang-fescn .tube-liquid {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        height: 74px;
+        border-radius: 0 0 16px 16px;
+        background: rgba(255,255,255,.18);
+        transition: background .25s ease;
+      }
+      #chem-exp-can-bang-fescn .tube-label {
+        margin-top: 8px;
+        color: #3a5675;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-can-bang-fescn .equation-grid {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      #chem-exp-can-bang-fescn .eq-card {
+        padding: 10px 12px;
+        border-radius: 18px;
+        font-size: 13px;
+        line-height: 1.42;
+        font-weight: 800;
+        background: rgba(183,32,59,.08);
+        color: #7f1f31;
+      }
+      #chem-exp-can-bang-fescn .eq-card.blue {
+        background: rgba(77,133,217,.09);
+        color: #23496f;
+      }
+      #chem-exp-can-bang-fescn .legend-row { margin-top: 10px; }
+      #chem-exp-can-bang-fescn .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 6px;
+      }
+      #chem-exp-can-bang-fescn .chart-wrap {
+        position: relative;
+        height: 330px;
+      }
+      #chem-exp-can-bang-fescn .chart-wrap canvas {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+      }
+      #chem-exp-can-bang-fescn .fallback {
+        position: absolute;
+        inset: 16px;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        text-align: center;
+        border-radius: 20px;
+        background: rgba(255,255,255,.96);
+        color: #2b4154;
+        z-index: 5;
+      }
+      #chem-exp-can-bang-fescn .fallback.show { display: grid; }
+      #chem-exp-can-bang-fescn details {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      #chem-exp-can-bang-fescn summary {
+        color: #35516a;
+        cursor: pointer;
+        font-weight: 800;
+      }
+      #chem-exp-can-bang-fescn sub,
+      #chem-exp-can-bang-fescn sup { line-height: 0; }
+      @media (max-width: 980px) {
+        #chem-exp-can-bang-fescn {
+          padding: 10px;
+        }
+        #chem-exp-can-bang-fescn .topbar,
+        #chem-exp-can-bang-fescn .lab-grid,
+        #chem-exp-can-bang-fescn .tube-row { grid-template-columns: 1fr; }
+        #chem-exp-can-bang-fescn .stage-card,
+        #chem-exp-can-bang-fescn .stage-canvas { min-height: 560px; }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng cân bằng sắt(III) - thiocyanat">
+      <header class="topbar">
+        <div>
+          <h1>Cân bằng Fe<sup>3+</sup> + SCN<sup>-</sup> ⇌ FeSCN<sup>2+</sup></h1>
+          <p class="microcopy">Dự đoán ống nghiệm nào đỏ đậm hơn khi thêm Fe<sup>3+</sup>, SCN<sup>-</sup> hoặc nước, rồi quan sát cân bằng dịch chuyển theo Le Chatelier.</p>
+        </div>
+        <div class="actions">
+          <button type="button" data-role="toggle">Tạm dừng</button>
+          <button type="button" class="secondary" data-role="autorun">Chạy demo</button>
+          <button type="button" class="secondary" data-role="reset">Chạy lại</button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <section class="stage-card" aria-label="Mô hình 3D cân bằng hóa học">
+          <canvas class="stage-canvas" data-role="scene"></canvas>
+          <div class="stage-note">
+            <strong data-role="phase">Cân bằng ban đầu</strong>
+            <span data-role="observation">Dung dịch có màu đỏ vừa phải vì đã có một phần ion Fe<sup>3+</sup> và SCN<sup>-</sup> tạo thành phức FeSCN<sup>2+</sup>.</span>
+            <em>Kéo để xoay mô hình và quan sát ba ống nghiệm.</em>
+          </div>
+          <div class="equation-pill">
+            <strong>Learning loop</strong>
+            <span>Dự đoán → thêm chất → so sánh độ đỏ → kết luận cân bằng dịch chuyển theo phía tạo hay giảm FeSCN<sup>2+</sup>.</span>
+          </div>
+          <div class="live-pill">
+            <div class="chip-row" style="margin-bottom:8px">
+              <span class="chip" data-role="timeChip">t = 0.0 s</span>
+              <span class="chip red" data-role="intensityChip">Đỏ: trung bình</span>
+            </div>
+            <div class="meter">
+              <div class="meter-row">
+                <strong>FeSCN<sup>2+</sup></strong>
+                <div class="swatch"><div class="fill product" data-role="productFill"></div></div>
+              </div>
+              <div class="meter-row">
+                <strong>Chất phản ứng</strong>
+                <div class="swatch"><div class="fill reactant" data-role="reactantFill"></div></div>
+              </div>
+            </div>
+            <p class="status" style="margin-top:8px" data-role="liveStatus">Mô phỏng đang tự chạy để cho thấy màu thay đổi theo từng thao tác.</p>
+          </div>
+          <div class="fallback" data-role="fallback">
+            <div>
+              <strong>Không thể hiển thị Three.js/WebGL.</strong>
+              <p>Vẫn có thể dùng phần dự đoán, biểu đồ và các ống nghiệm 2D để rút ra kết luận.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="right-stack">
+          <section class="control-card">
+            <h2>Dự đoán và thao tác</h2>
+            <p class="status">Chọn trước tác động nào làm đỏ đậm nhất, rồi chạy hoặc kéo thời gian để kiểm tra.</p>
+            <div class="guess-box">
+              <strong>Nếu thêm một chất vào hệ đang cân bằng, điều gì làm dung dịch đỏ đậm nhất?</strong>
+              <div class="choice-grid">
+                <button type="button" class="choice" data-role="guess" data-value="fe">Thêm Fe<sup>3+</sup></button>
+                <button type="button" class="choice" data-role="guess" data-value="scn">Thêm SCN<sup>-</sup></button>
+                <button type="button" class="choice" data-role="guess" data-value="water">Thêm nước</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="actionSelect">Tác động đang mô phỏng <span data-role="actionLabel">Thêm Fe<sup>3+</sup></span></label>
+              <input id="actionSelect" data-role="action" type="range" min="0" max="2" step="1" value="0">
+            </div>
+            <div class="field">
+              <label for="timeSlider">Tiến trình quan sát <span data-role="timeValue">0.0 s</span></label>
+              <input id="timeSlider" data-role="time" type="range" min="0" max="12" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label for="speedSlider">Tốc độ demo <span data-role="speedValue">1.0x</span></label>
+              <input id="speedSlider" data-role="speed" type="range" min="0.5" max="2.2" step="0.1" value="1">
+            </div>
+            <div class="button-row">
+              <button type="button" class="secondary" data-role="midpoint">Đến lúc trộn</button>
+              <button type="button" class="secondary" data-role="endpoint">Đến kết quả</button>
+            </div>
+            <p class="status" data-role="feedback">Gợi ý: thêm Fe<sup>3+</sup> hoặc SCN<sup>-</sup> đều có thể làm cân bằng dịch phải, còn thêm nước thường làm màu nhạt đi.</p>
+          </section>
+
+          <section class="explain-card">
+            <h2>Ba ống nghiệm để so sánh</h2>
+            <p class="small">Ống giữa là mẫu ban đầu, hai ống còn lại là các kết quả sau tác động. Màu đỏ càng đậm thì lượng FeSCN<sup>2+</sup> càng nhiều.</p>
+            <div class="tube-row">
+              <div class="tube-card">
+                <strong>Thêm Fe<sup>3+</sup></strong>
+                <div class="tube-visual"><div class="tube-liquid" data-role="tube-fe"></div></div>
+                <div class="tube-label" data-role="tube-fe-label">Đỏ hơn mẫu ban đầu</div>
+              </div>
+              <div class="tube-card">
+                <strong>Thêm SCN<sup>-</sup></strong>
+                <div class="tube-visual"><div class="tube-liquid" data-role="tube-scn"></div></div>
+                <div class="tube-label" data-role="tube-scn-label">Đỏ hơn mẫu ban đầu</div>
+              </div>
+              <div class="tube-card">
+                <strong>Thêm nước</strong>
+                <div class="tube-visual"><div class="tube-liquid" data-role="tube-water"></div></div>
+                <div class="tube-label" data-role="tube-water-label">Nhạt màu hơn</div>
+              </div>
+            </div>
+            <div class="equation-grid">
+              <div class="eq-card">Phía phải tạo phức đỏ máu FeSCN<sup>2+</sup>, nên màu đỏ là dấu hiệu trực tiếp của sản phẩm.</div>
+              <div class="eq-card blue">Khi tăng nồng độ Fe<sup>3+</sup> hoặc SCN<sup>-</sup>, cân bằng dịch sang phải; khi pha loãng, màu thường nhạt hơn.</div>
+            </div>
+            <details>
+              <summary>Mô hình đang giả định gì?</summary>
+              <p class="small">Đây là mô hình bán định lượng: cường độ màu được dùng như proxy cho lượng FeSCN<sup>2+</sup>. Nó giúp học Le Chatelier chứ không thay thế phép đo quang phổ thật.</p>
+            </details>
+          </section>
+        </div>
+      </main>
+
+      <section class="chart-card">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap;margin-bottom:8px">
+          <div>
+            <h2>Biểu đồ cường độ màu theo thời gian</h2>
+            <p class="status" data-role="chartStatus">Sau khi thêm chất, đường màu đỏ tăng nếu cân bằng dịch phải và giảm nếu hệ bị pha loãng.</p>
+          </div>
+          <div class="legend-row">
+            <span class="chip red" data-role="chartProductChip">FeSCN<sup>2+</sup>: 0%</span>
+            <span class="chip good" data-role="chartShiftChip">Xu hướng: dịch phải</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas data-role="chart"></canvas>
+        </div>
+      </section>
+    </section>
+
+    <script>
+      (function(rootId) {
+        "use strict";
+        const EXPERIMENT = {
+          title: "Cân bằng Fe3+ + SCN- ⇌ FeSCN2+",
+          grade: "Hóa 11",
+          mode: "bán định lượng",
+          learningGoal: "Liên hệ độ đậm màu đỏ với lượng FeSCN2+ để suy ra chiều chuyển dịch cân bằng.",
+          learningLoop: {
+            predict: "Tác động nào làm dung dịch đỏ đậm nhất?",
+            observe: "Quan sát độ đậm màu sau khi thêm Fe3+, SCN- hoặc nước.",
+            compare: "So sánh ba ống nghiệm với mẫu ban đầu.",
+            explain: "Tăng chất phản ứng làm cân bằng dịch phải; pha loãng làm màu nhạt hơn."
+          },
+          reaction: {
+            equation: "Fe3+ + SCN- ⇌ FeSCN2+",
+            note: "Màu đỏ dùng làm proxy cho lượng phức FeSCN2+."
+          }
+        };
+        const root = document.getElementById(rootId);
+        if (!root) return;
+        const el = {
+          scene: root.querySelector("[data-role='scene']"),
+          chart: root.querySelector("[data-role='chart']"),
+          fallback: root.querySelector("[data-role='fallback']"),
+          phase: root.querySelector("[data-role='phase']"),
+          observation: root.querySelector("[data-role='observation']"),
+          timeChip: root.querySelector("[data-role='timeChip']"),
+          intensityChip: root.querySelector("[data-role='intensityChip']"),
+          liveStatus: root.querySelector("[data-role='liveStatus']"),
+          productFill: root.querySelector("[data-role='productFill']"),
+          reactantFill: root.querySelector("[data-role='reactantFill']"),
+          action: root.querySelector("[data-role='action']"),
+          actionLabel: root.querySelector("[data-role='actionLabel']"),
+          time: root.querySelector("[data-role='time']"),
+          speed: root.querySelector("[data-role='speed']"),
+          timeValue: root.querySelector("[data-role='timeValue']"),
+          speedValue: root.querySelector("[data-role='speedValue']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          autorun: root.querySelector("[data-role='autorun']"),
+          reset: root.querySelector("[data-role='reset']"),
+          midpoint: root.querySelector("[data-role='midpoint']"),
+          endpoint: root.querySelector("[data-role='endpoint']"),
+          feedback: root.querySelector("[data-role='feedback']"),
+          chartStatus: root.querySelector("[data-role='chartStatus']"),
+          chartProductChip: root.querySelector("[data-role='chartProductChip']"),
+          chartShiftChip: root.querySelector("[data-role='chartShiftChip']"),
+          tubeFe: root.querySelector("[data-role='tube-fe']"),
+          tubeScn: root.querySelector("[data-role='tube-scn']"),
+          tubeWater: root.querySelector("[data-role='tube-water']"),
+          tubeFeLabel: root.querySelector("[data-role='tube-fe-label']"),
+          tubeScnLabel: root.querySelector("[data-role='tube-scn-label']"),
+          tubeWaterLabel: root.querySelector("[data-role='tube-water-label']")
+        };
+        const ACTIONS = [
+          { id: "fe", label: "Thêm Fe3+", shift: "right", final: 0.9, reactantFinal: 0.55, mixColor: "rgba(183,32,59,.82)", note: "Tăng Fe3+ làm cân bằng dịch phải để tiêu bớt ion vừa thêm." },
+          { id: "scn", label: "Thêm SCN-", shift: "right", final: 0.84, reactantFinal: 0.58, mixColor: "rgba(175,34,58,.78)", note: "Tăng SCN- cũng làm hệ tạo thêm FeSCN2+ nên màu đỏ đậm lên." },
+          { id: "water", label: "Thêm nước", shift: "left", final: 0.28, reactantFinal: 0.84, mixColor: "rgba(232,188,198,.48)", note: "Pha loãng làm hệ có xu hướng giảm nồng độ phức đỏ, nên màu nhạt hơn." }
+        ];
+        const state = {
+          time: 0,
+          maxTime: 12,
+          speed: 1,
+          running: true,
+          actionIndex: 0,
+          guess: null,
+          chart: null,
+          chartReady: false,
+          sceneReady: false,
+          chartFallback: false,
+          timeline: null,
+          threeScene: null
+        };
+        function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+        function ease(value) { return value * value * (3 - 2 * value); }
+        function currentAction() { return ACTIONS[state.actionIndex]; }
+        function progress() { return clamp(state.time / state.maxTime, 0, 1); }
+        function mixProgress() { return ease(progress()); }
+        function productAt(index, time) {
+          const action = ACTIONS[index];
+          const base = 0.5;
+          return base + (action.final - base) * ease(clamp(time / state.maxTime, 0, 1));
+        }
+        function reactantAt(index, time) {
+          const action = ACTIONS[index];
+          const base = 0.72;
+          return base + (action.reactantFinal - base) * ease(clamp(time / state.maxTime, 0, 1));
+        }
+        function intensityLabel(value) {
+          if (value < 0.34) return "Đỏ: rất nhạt";
+          if (value < 0.56) return "Đỏ: trung bình";
+          if (value < 0.78) return "Đỏ: đậm";
+          return "Đỏ: rất đậm";
+        }
+        function phaseAt(time) {
+          const action = currentAction();
+          if (time < 3.2) {
+            return {
+              title: "Cân bằng ban đầu",
+              observation: "Mẫu ban đầu đỏ vừa phải vì đã có một lượng phức FeSCN2+ trong hệ cân bằng."
+            };
+          }
+          if (time < 7.5) {
+            return {
+              title: "Đang thêm tác động: " + action.label,
+              observation: action.shift === "right"
+                ? "Sau khi thêm chất phản ứng, độ đỏ tăng lên vì cân bằng dịch sang phải tạo thêm FeSCN2+."
+                : "Khi pha loãng bằng nước, màu đỏ nhạt đi vì lượng phức đỏ giảm tương đối."
+            };
+          }
+          return {
+            title: action.shift === "right" ? "Kết quả: dịch cân bằng sang phải" : "Kết quả: hệ nhạt màu hơn",
+            observation: action.note
+          };
+        }
+        function colorForValue(value) {
+          const red = Math.round(247 - value * 75);
+          const green = Math.round(223 - value * 150);
+          const blue = Math.round(231 - value * 145);
+          return "rgb(" + red + "," + green + "," + blue + ")";
+        }
+        function updateGuessButtons() {
+          root.querySelectorAll("[data-role='guess']").forEach(function(button) {
+            button.classList.toggle("active", button.getAttribute("data-value") === state.guess);
+          });
+        }
+        function updateFeedback() {
+          const action = currentAction();
+          if (!state.guess) {
+            el.feedback.innerHTML = "Hãy chọn một dự đoán rồi xem màu đỏ thay đổi thế nào khi hệ bị tác động.";
+            return;
+          }
+          if (state.time < 4) {
+            el.feedback.innerHTML = "Quan sát trước khi kết luận: khi chất vừa được thêm vào, độ đỏ bắt đầu đổi theo chiều cân bằng.";
+            return;
+          }
+          if (state.time < 9) {
+            el.feedback.innerHTML = state.guess === action.id
+              ? "Dự đoán hiện tại <strong>đang khớp</strong> với hiện tượng quan sát được."
+              : "Tạm thời chưa khớp: hãy đối chiếu lại xem ống nghiệm đang đỏ đậm hơn hay nhạt đi.";
+            return;
+          }
+          if (state.guess === action.id) {
+            el.feedback.innerHTML = action.shift === "right"
+              ? "Kết luận đúng: thêm <strong>" + action.label.replace("Thêm ", "") + "</strong> làm hệ đỏ đậm hơn vì cân bằng dịch <strong>sang phải</strong>."
+              : "Kết luận đúng: thêm <strong>nước</strong> làm hệ <strong>nhạt màu hơn</strong> do pha loãng.";
+          } else {
+            el.feedback.innerHTML = action.shift === "right"
+              ? "Kết luận: ở lượt này, tác động đúng là <strong>" + action.label + "</strong> vì nó làm tăng FeSCN<sup>2+</sup>."
+              : "Kết luận: ở lượt này, thêm <strong>nước</strong> làm màu nhạt hơn so với mẫu ban đầu.";
+          }
+        }
+        function updateTubeComparisons() {
+          const feValue = productAt(0, state.maxTime);
+          const scnValue = productAt(1, state.maxTime);
+          const waterValue = productAt(2, state.maxTime);
+          el.tubeFe.style.background = colorForValue(feValue);
+          el.tubeScn.style.background = colorForValue(scnValue);
+          el.tubeWater.style.background = colorForValue(waterValue);
+          el.tubeFeLabel.textContent = feValue > 0.78 ? "Đỏ rất đậm vì thêm Fe3+" : "Đỏ hơn mẫu ban đầu";
+          el.tubeScnLabel.textContent = scnValue > 0.74 ? "Đỏ đậm vì thêm SCN-" : "Đỏ hơn mẫu ban đầu";
+          el.tubeWaterLabel.textContent = waterValue < 0.36 ? "Nhạt màu rõ vì pha loãng" : "Nhạt màu hơn";
+        }
+        function updateReadout() {
+          const action = currentAction();
+          const product = productAt(state.actionIndex, state.time);
+          const reactant = reactantAt(state.actionIndex, state.time);
+          const phase = phaseAt(state.time);
+          el.actionLabel.innerHTML = action.label.replace("3", "<sup>3+</sup>").replace("SCN-", "SCN<sup>-</sup>");
+          el.phase.textContent = phase.title;
+          el.observation.textContent = phase.observation;
+          el.timeChip.textContent = "t = " + state.time.toFixed(1) + " s";
+          el.timeValue.textContent = state.time.toFixed(1) + " s";
+          el.speedValue.textContent = state.speed.toFixed(1) + "x";
+          el.intensityChip.textContent = intensityLabel(product);
+          el.liveStatus.textContent = state.running
+            ? "Mô phỏng đang chạy cho tác động: " + action.label + "."
+            : "Đang tạm dừng tại mốc " + state.time.toFixed(1) + " s để so sánh độ đỏ.";
+          el.productFill.style.width = Math.round(product * 100) + "%";
+          el.reactantFill.style.width = Math.round(reactant * 100) + "%";
+          el.chartProductChip.innerHTML = "FeSCN<sup>2+</sup>: " + Math.round(product * 100) + "%";
+          el.chartShiftChip.textContent = action.shift === "right" ? "Xu hướng: dịch phải" : "Xu hướng: nhạt màu";
+          el.chartStatus.innerHTML = action.shift === "right"
+            ? "Ở mốc này, lượng FeSCN<sup>2+</sup> tăng lên khoảng <strong>" + Math.round(product * 100) + "%</strong>, nên màu đỏ đậm hơn mẫu ban đầu."
+            : "Ở mốc này, lượng FeSCN<sup>2+</sup> hiệu dụng chỉ còn khoảng <strong>" + Math.round(product * 100) + "%</strong>, nên màu nhạt hơn.";
+          updateFeedback();
+          updateTubeComparisons();
+          if (state.chartReady) updateChart();
+          else drawFallbackChart();
+          if (state.sceneReady) updateScene();
+        }
+        function hasWebGL() {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+        function showFallback(message) {
+          el.fallback.classList.add("show");
+          const strong = el.fallback.querySelector("strong");
+          if (strong) strong.textContent = message;
+        }
+        function loadScript(urls, globalName) {
+          return new Promise(function(resolve, reject) {
+            if (window[globalName]) {
+              resolve(window[globalName]);
+              return;
+            }
+            let index = 0;
+            function tryNext() {
+              if (index >= urls.length) {
+                reject(new Error("Không tải được " + globalName));
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = urls[index++];
+              script.async = true;
+              script.onload = function() { if (window[globalName]) resolve(window[globalName]); else tryNext(); };
+              script.onerror = tryNext;
+              document.head.appendChild(script);
+            }
+            tryNext();
+          });
+        }
+        function setupScene(THREE) {
+          if (!hasWebGL()) {
+            showFallback("Trình duyệt không hỗ trợ WebGL.");
+            return;
+          }
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0xf7fbff);
+          const camera = new THREE.PerspectiveCamera(33, 1, 0.1, 100);
+          const renderer = new THREE.WebGLRenderer({ canvas: el.scene, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+          scene.add(new THREE.HemisphereLight(0xffffff, 0xafbdd6, 1.08));
+          const key = new THREE.DirectionalLight(0xffffff, 1.15);
+          key.position.set(4.6, 7.5, 5.2);
+          key.castShadow = true;
+          scene.add(key);
+          const table = new THREE.Mesh(new THREE.CylinderGeometry(4.3, 4.7, 0.18, 96), new THREE.MeshStandardMaterial({ color: 0xe8dfcf, roughness: 0.78 }));
+          table.position.y = -0.11;
+          table.receiveShadow = true;
+          scene.add(table);
+          const rack = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.18, 1.2), new THREE.MeshStandardMaterial({ color: 0xb98e62, roughness: 0.82 }));
+          rack.position.set(0, 0.8, 0.15);
+          rack.receiveShadow = true;
+          scene.add(rack);
+          const rackBack = rack.clone();
+          rackBack.position.set(0, 2.15, 0.15);
+          scene.add(rackBack);
+          const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.24, roughness: 0.08, transmission: 0.54 });
+          const tubeGroup = new THREE.Group();
+          const tubes = [];
+          const droplets = [];
+          const positions = [-1.35, 0, 1.35];
+          positions.forEach(function(x, index) {
+            const tube = new THREE.Group();
+            const shell = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.28, 2.75, 48, 1, true), glassMat);
+            shell.position.y = 2;
+            shell.castShadow = true;
+            const bottom = new THREE.Mesh(new THREE.SphereGeometry(0.29, 32, 18, 0, Math.PI * 2, 0, Math.PI / 2), glassMat.clone());
+            bottom.position.y = 0.64;
+            bottom.scale.y = 0.48;
+            const liquidMat = new THREE.MeshPhysicalMaterial({ color: 0xe6d4d9, transparent: true, opacity: 0.78, roughness: 0.14, transmission: 0.1 });
+            const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.2, 1.34, 40), liquidMat);
+            liquid.position.y = 1.33;
+            const cap = new THREE.Mesh(new THREE.SphereGeometry(0.245, 30, 16, 0, Math.PI * 2, 0, Math.PI / 2), liquidMat.clone());
+            cap.position.y = 0.67;
+            cap.scale.y = 0.45;
+            tube.add(shell, bottom, liquid, cap);
+            tube.position.x = x;
+            tubeGroup.add(tube);
+            tubes.push({ shell: shell, liquid: liquid, cap: cap, group: tube, targetX: x });
+            if (index !== 1) {
+              const droplet = new THREE.Mesh(new THREE.SphereGeometry(0.08, 20, 16), new THREE.MeshStandardMaterial({ color: index === 0 ? 0xf2c463 : 0x4d85d9, transparent: true, opacity: 0.92, emissive: index === 0 ? 0x5b4d10 : 0x173456, emissiveIntensity: 0.16 }));
+              droplet.position.set(x, 4.2, 0);
+              droplet.castShadow = true;
+              scene.add(droplet);
+              droplets.push(droplet);
+            }
+          });
+          scene.add(tubeGroup);
+          const stirBars = [];
+          positions.forEach(function(x) {
+            const stir = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.42, 4, 12), new THREE.MeshStandardMaterial({ color: 0xf9f9f9, roughness: 0.22 }));
+            stir.rotation.z = Math.PI / 2;
+            stir.position.set(x, 1.06, 0);
+            scene.add(stir);
+            stirBars.push(stir);
+          });
+          const labels = [];
+          ["Fe3+", "Mẫu", "SCN- / H2O"].forEach(function(text, index) {
+            const canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 96;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.fillStyle = "rgba(255,255,255,.96)";
+              ctx.fillRect(0, 0, 256, 96);
+              ctx.fillStyle = "#22364b";
+              ctx.font = "700 38px Aptos";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              ctx.fillText(text, 128, 48);
+            }
+            const texture = new THREE.CanvasTexture(canvas);
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+            sprite.position.set(positions[index], 3.6, 0);
+            sprite.scale.set(0.88, 0.33, 1);
+            scene.add(sprite);
+            labels.push(sprite);
+          });
+          const orbit = { theta: 0.94, phi: 1.02, radius: 10.4, dragging: false, pointerId: null, lastX: 0, lastY: 0 };
+          state.threeScene = { scene: scene, camera: camera, renderer: renderer, tubes: tubes, droplets: droplets, stirBars: stirBars, orbit: orbit, target: new THREE.Vector3(0, 1.9, 0) };
+          function resize() {
+            const rect = el.scene.getBoundingClientRect();
+            const width = Math.max(360, rect.width);
+            const height = Math.max(420, rect.height);
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+          el.scene.addEventListener("pointerdown", function(event) {
+            orbit.dragging = true;
+            orbit.pointerId = event.pointerId;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            el.scene.style.cursor = "grabbing";
+            if (el.scene.setPointerCapture) el.scene.setPointerCapture(event.pointerId);
+          });
+          el.scene.addEventListener("pointermove", function(event) {
+            if (!orbit.dragging || orbit.pointerId !== event.pointerId) return;
+            const dx = event.clientX - orbit.lastX;
+            const dy = event.clientY - orbit.lastY;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            orbit.theta -= dx * 0.008;
+            orbit.phi = clamp(orbit.phi + dy * 0.006, 0.64, 1.36);
+          });
+          function endDrag(event) {
+            if (event.pointerId !== undefined && orbit.pointerId !== event.pointerId) return;
+            orbit.dragging = false;
+            orbit.pointerId = null;
+            el.scene.style.cursor = "grab";
+          }
+          el.scene.addEventListener("pointerup", endDrag);
+          el.scene.addEventListener("pointercancel", endDrag);
+          resize();
+          if (window.ResizeObserver) new ResizeObserver(resize).observe(el.scene);
+          window.addEventListener("resize", resize);
+          state.sceneReady = true;
+          updateScene();
+          animateScene();
+        }
+        function updateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const action = currentAction();
+          const p = mixProgress();
+          const mainValue = productAt(state.actionIndex, state.time);
+          const baseValue = productAt(0, 0);
+          sceneData.tubes.forEach(function(tube, index) {
+            let value = baseValue;
+            if (index === 0) value = state.actionIndex === 0 ? mainValue : productAt(0, state.maxTime);
+            if (index === 1) value = baseValue;
+            if (index === 2) value = state.actionIndex === 2 ? mainValue : productAt(1, state.maxTime);
+            const color = colorForValue(value);
+            tube.liquid.material.color.set(color);
+            tube.cap.material.color.set(color);
+            tube.liquid.material.opacity = 0.74 + value * 0.12;
+            tube.cap.material.opacity = 0.7 + value * 0.12;
+            tube.liquid.scale.y = 0.92 + value * 0.14;
+            tube.liquid.position.y = 1.28 + value * 0.06;
+            tube.group.rotation.z = Math.sin((performance.now() * 0.001) + index) * 0.015;
+          });
+          if (sceneData.droplets[0]) {
+            sceneData.droplets[0].visible = state.actionIndex !== 2;
+            sceneData.droplets[0].position.y = 4.15 - p * 2.35;
+            sceneData.droplets[0].position.x = state.actionIndex === 1 ? 1.35 : -1.35;
+          }
+          if (sceneData.droplets[1]) {
+            sceneData.droplets[1].visible = state.actionIndex === 2;
+            sceneData.droplets[1].material.color.set(0x99cff4);
+            sceneData.droplets[1].position.y = 4.15 - p * 2.28;
+            sceneData.droplets[1].position.x = 1.35;
+            sceneData.droplets[1].scale.setScalar(1 + p * 0.42);
+          }
+          sceneData.stirBars.forEach(function(stir, index) {
+            stir.rotation.y = performance.now() * 0.0035 * (index % 2 === 0 ? 1 : -1);
+          });
+          if (action.shift === "left") {
+            sceneData.tubes[2].liquid.material.color.set(colorForValue(mainValue));
+            sceneData.tubes[2].cap.material.color.set(colorForValue(mainValue));
+          }
+        }
+        function animateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const orbit = sceneData.orbit;
+          if (!orbit.dragging) orbit.theta += 0.0015;
+          const sinPhi = Math.sin(orbit.phi);
+          sceneData.camera.position.x = Math.cos(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.position.y = orbit.radius * Math.cos(orbit.phi) + 2.4;
+          sceneData.camera.position.z = Math.sin(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.lookAt(sceneData.target);
+          sceneData.renderer.render(sceneData.scene, sceneData.camera);
+          requestAnimationFrame(animateScene);
+        }
+        function sampleSeries(index) {
+          const data = [];
+          for (let i = 0; i <= 12; i += 1) data.push({ x: i, y: Number(productAt(index, i).toFixed(3)) });
+          return data;
+        }
+        function drawFallbackChart() {
+          const canvas = el.chart;
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(320, rect.width || 320);
+          const height = Math.max(240, rect.height || 240);
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, width, height);
+          const pad = { left: 42, right: 18, top: 18, bottom: 32 };
+          const plotW = width - pad.left - pad.right;
+          const plotH = height - pad.top - pad.bottom;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
+          ctx.strokeStyle = "rgba(43, 71, 98, 0.1)";
+          for (let i = 0; i <= 4; i += 1) {
+            const y = pad.top + plotH * i / 4;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, y);
+            ctx.lineTo(width - pad.right, y);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = "#2b4762";
+          ctx.beginPath();
+          ctx.moveTo(pad.left, pad.top);
+          ctx.lineTo(pad.left, height - pad.bottom);
+          ctx.lineTo(width - pad.right, height - pad.bottom);
+          ctx.stroke();
+          function drawSeries(color, index) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.3;
+            ctx.beginPath();
+            for (let i = 0; i <= 64; i += 1) {
+              const t = state.maxTime * i / 64;
+              const value = productAt(index, t);
+              const x = pad.left + plotW * i / 64;
+              const y = pad.top + plotH * (1 - value);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          drawSeries("#b7203b", state.actionIndex);
+          drawSeries("#4d85d9", 2);
+        }
+        function setupChart(ChartCtor) {
+          const ctx = el.chart.getContext("2d");
+          if (!ctx) {
+            state.chartFallback = true;
+            drawFallbackChart();
+            return;
+          }
+          state.chart = new ChartCtor(ctx, {
+            type: "line",
+            data: {
+              datasets: [
+                { label: "FeSCN2+ ở lượt hiện tại", data: sampleSeries(state.actionIndex), borderColor: "#b7203b", pointRadius: 0, borderWidth: 3, tension: 0.3 },
+                { label: "Mẫu pha loãng", data: sampleSeries(2), borderColor: "#4d85d9", pointRadius: 0, borderWidth: 2.5, tension: 0.28 },
+                { label: "Mẫu ban đầu", data: [{ x: 0, y: 0.5 }, { x: 12, y: 0.5 }], borderColor: "#c2a974", pointRadius: 0, borderDash: [6, 6], borderWidth: 2, tension: 0 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: {
+                    boxWidth: 14,
+                    color: "#2d455a",
+                    font: { family: "Aptos, Segoe UI, sans-serif", weight: "700" }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) { return context.dataset.label + ": " + Math.round(context.parsed.y * 100) + "%"; }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  type: "linear",
+                  min: 0,
+                  max: state.maxTime,
+                  title: { display: true, text: "Thời gian quan sát (s)", color: "#476179", font: { weight: "700" } },
+                  grid: { color: "rgba(43,71,98,.08)" },
+                  ticks: { color: "#567087" }
+                },
+                y: {
+                  min: 0,
+                  max: 1,
+                  title: { display: true, text: "Cường độ màu tương đối", color: "#476179", font: { weight: "700" } },
+                  grid: { color: "rgba(43,71,98,.08)" },
+                  ticks: { color: "#567087", callback: function(value) { return Math.round(value * 100) + "%"; } }
+                }
+              }
+            }
+          });
+          state.chartReady = true;
+        }
+        function updateChart() {
+          if (!state.chart) return;
+          state.chart.data.datasets[0].label = "FeSCN2+ - " + currentAction().label;
+          state.chart.data.datasets[0].data = sampleSeries(state.actionIndex);
+          state.chart.update("none");
+        }
+        function gotoTime(target) {
+          state.time = clamp(target, 0, state.maxTime);
+          el.time.value = state.time.toFixed(1);
+          updateReadout();
+        }
+        function syncActionUI() {
+          el.action.value = String(state.actionIndex);
+          updateReadout();
+        }
+        function startLoop(gsapInstance) {
+          const driver = { value: 0 };
+          state.timeline = gsapInstance.timeline({ repeat: -1, defaults: { ease: "none" } });
+          state.timeline.to(driver, {
+            duration: state.maxTime,
+            value: state.maxTime,
+            onUpdate: function() {
+              state.time = clamp(driver.value, 0, state.maxTime);
+              el.time.value = state.time.toFixed(1);
+              updateReadout();
+            },
+            onRepeat: function() {
+              driver.value = 0;
+              state.time = 0;
+              el.time.value = "0.0";
+              updateReadout();
+            }
+          });
+          state.timeline.timeScale(state.speed);
+        }
+        function bindEvents() {
+          root.querySelectorAll("[data-role='guess']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              state.guess = button.getAttribute("data-value");
+              updateGuessButtons();
+              updateReadout();
+            });
+          });
+          el.action.addEventListener("input", function() {
+            state.actionIndex = Number(el.action.value);
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(0);
+          });
+          el.toggle.addEventListener("click", function() {
+            state.running = !state.running;
+            el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+            if (state.timeline) {
+              if (state.running) state.timeline.resume();
+              else state.timeline.pause();
+            }
+            updateReadout();
+          });
+          el.autorun.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            if (state.timeline) state.timeline.resume();
+            updateReadout();
+          });
+          el.reset.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            state.actionIndex = 0;
+            el.action.value = "0";
+            gotoTime(0);
+            if (state.timeline) {
+              state.timeline.pause(0);
+              state.timeline.resume();
+            }
+          });
+          el.time.addEventListener("input", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(Number(el.time.value));
+          });
+          el.speed.addEventListener("input", function() {
+            state.speed = Number(el.speed.value);
+            if (state.timeline) state.timeline.timeScale(state.speed);
+            updateReadout();
+          });
+          el.midpoint.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(5.8);
+          });
+          el.endpoint.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(state.maxTime);
+          });
+        }
+        Promise.all([
+          loadScript([
+            "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+            "https://unpkg.com/three@0.160.0/build/three.min.js"
+          ], "THREE").catch(function() { return null; }),
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+            "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+          ], "gsap"),
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+            "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+          ], "Chart").catch(function() { return null; })
+        ]).then(function(loaded) {
+          const THREE = loaded[0];
+          const gsapInstance = loaded[1];
+          const ChartCtor = loaded[2];
+          if (THREE) setupScene(THREE);
+          else showFallback("Không tải được Three.js.");
+          if (ChartCtor) setupChart(ChartCtor);
+          else {
+            state.chartFallback = true;
+            drawFallbackChart();
+          }
+          startLoop(gsapInstance);
+          bindEvents();
+          updateTubeComparisons();
+          updateReadout();
+        }).catch(function(error) {
+          showFallback(error && error.message ? error.message : "Không khởi tạo được mô phỏng.");
+          state.chartFallback = true;
+          drawFallbackChart();
+          bindEvents();
+          updateTubeComparisons();
+          updateReadout();
+        });
+      })("chem-exp-can-bang-fescn");
+    </script>
+  </div>
+</body>
+</html>

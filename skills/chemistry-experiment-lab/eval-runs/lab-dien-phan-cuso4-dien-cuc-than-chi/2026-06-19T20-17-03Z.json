@@ -1,0 +1,117 @@
+{
+  "slug": "lab-dien-phan-cuso4-dien-cuc-than-chi",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-dien-phan-cuso4-dien-cuc-than-chi.html",
+  "prompt": "Tighten the electrolysis lesson so the stage is larger, the 3D scene is rotatable, the phenomena are clearer, and redundant text panels are removed.",
+  "experiment": {
+    "title": "Điện phân dung dịch CuSO4 với điện cực than chì",
+    "grade": "Hóa 12",
+    "learning_goal": "Nhận ra catot tạo Cu, anot tạo O2, đồng thời gắn ba dấu hiệu quan sát được với sản phẩm điện cực.",
+    "learning_loop": {
+      "predict": "Chọn sản phẩm ở catot và anot.",
+      "observe": "Quan sát đồng bám, bọt khí O2 và màu Cu2+ nhạt dần.",
+      "compare": "Đối chiếu dự đoán với hiện tượng ở từng điện cực.",
+      "explain": "Giải thích vì sao Cu2+ bị khử còn nước bị oxi hóa ở điện cực trơ."
+    },
+    "reaction": "Catot: Cu2+ + 2e -> Cu; Anot: 2H2O -> O2 + 4H+ + 4e",
+    "notes": "Bản này bỏ process card lặp ý, tăng kích thước stage, thêm orbit drag và tăng độ nổi của lớp đồng, bọt khí, đổi màu."
+  },
+  "interaction_pattern": "electrolysis-rotatable-3d-observation",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "0.160.0",
+      "role": "render",
+      "rationale": "render becher, điện cực, lớp đồng, bọt khí và hiệu ứng màu dung dịch như hiện tượng học tập chính",
+      "cdn_urls": [
+        "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+        "https://unpkg.com/three@0.160.0/build/three.min.js"
+      ]
+    },
+    {
+      "name": "GSAP",
+      "version": "3.12.5",
+      "role": "timeline",
+      "rationale": "autoplay, pause/resume/reset và checkpoint cho các mốc quan sát",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+        "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+      ]
+    },
+    {
+      "name": "Chart.js",
+      "version": "4.4.3",
+      "role": "chart",
+      "rationale": "giải thích tiến triển của đồng bám, O2 và màu Cu2+ theo thời gian",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+        "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: inline script extracted and checked with node --check",
+    "risky_globals": "pass: output file has no matches for GK/gkStart/gkLoadThree/unscoped document.querySelector/latest/next",
+    "cdn_version_pin": "pass: library URLs are version pinned",
+    "fallbacks": "pass: visible fallback is present for Three.js/WebGL failure and chart has canvas fallback",
+    "autoplay_or_demo": "pass: autoplay timeline plus pause/reset and two checkpoint actions",
+    "layout": "pass: stage dominates first viewport and redundant text-only process panel was removed",
+    "browser_smoke": "pass: verify-widget.sh produced desktop/mobile screenshots and trace artifacts",
+    "mobile_check": "pass: mobile screenshot shows no overflow and primary controls remain visible"
+  },
+  "scores": {
+    "chemistry_pedagogy": 20,
+    "visual_dynamism": 15,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 15,
+    "technical_html": 15,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 99
+  },
+  "blockers": [],
+  "warnings": [],
+  "chemistry_review": "Phần giải thích và dấu hiệu quan sát khớp mức SGK: catot bám Cu, anot thoát O2 với điện cực than chì trơ.",
+  "browser_checks": "Playwright-based verifier passed on desktop and mobile. WebGL ran through SwiftShader fallback in headless Chromium.",
+  "mobile_checks": "Mobile verification passed with no overflow and visible primary controls.",
+  "design_family": "electrolysis",
+  "design_fingerprint": "light-lab-panel-large-rotatable-stage-clear-phenomena-no-process-card",
+  "promoted_as_baseline": false,
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "fallback_used": true
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z/desktop.png",
+    "mobile_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z/mobile.png",
+    "trace": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z"
+  },
+  "improvement_plan": [
+    "If this family is reused, keep the no-process-card rule and prefer one chart plus one schematic over multiple explanatory cards.",
+    "Promote as baseline only after visual inspection on a real GPU browser in addition to headless SwiftShader."
+  ],
+  "changes_applied": [
+    "Rebuilt the electrolysis HTML after the previous file became empty during a failed low-disk patch attempt.",
+    "Removed the redundant process-diagram panel.",
+    "Increased stage size, added drag orbit, and amplified copper deposition, oxygen bubbles, and solution fade."
+  ],
+  "final_status": "pass",
+  "created_at": "2026-06-19T20:17:03Z",
+  "tool_model": "gpt-5 codex"
+}

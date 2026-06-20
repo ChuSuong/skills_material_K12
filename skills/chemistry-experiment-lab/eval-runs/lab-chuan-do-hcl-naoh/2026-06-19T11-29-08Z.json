@@ -1,0 +1,65 @@
+{
+  "slug": "lab-chuan-do-hcl-naoh",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-chuan-do-hcl-naoh.html",
+  "prompt": "Sửa output vì layout cũ xấu, giống dashboard, chỉ số quá to; thí nghiệm phải là chủ đạo và không theo template cứng.",
+  "experiment": {
+    "title": "Chuẩn độ HCl bằng NaOH",
+    "grade": "Hóa 11",
+    "learning_goal": "Nhận ra điểm tương đương qua bước nhảy pH và màu phenolphthalein.",
+    "reaction": "HCl + NaOH -> NaCl + H2O",
+    "notes": "Bản mới dùng sân khấu 3D lớn, pH curve thu gọn thành overlay phụ."
+  },
+  "interaction_pattern": "titration-ph-indicator",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "r128 / 0.137.0 fallback",
+      "role": "render burette, flask, liquid and droplets in a 3D lab scene",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://unpkg.com/three@0.137.0/build/three.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: inline script extracted and checked with node --check",
+    "risky_globals": "pass: no legacy GK/gkStart/gkLoadThree and no unscoped document.querySelector in output",
+    "cdn_version_pin": "pass: CDN URLs are version-pinned; no latest/next pattern in output",
+    "fallbacks": "pass: Three.js load failure and WebGL unsupported states show visible messages",
+    "autoplay_or_demo": "pass: titration starts automatically and has pause/reset controls",
+    "layout": "pass: experiment stage occupies almost the full viewport; readouts and pH curve are compact overlays",
+    "browser_smoke": "pass: Google Chrome headless produced /tmp/chem-titration-v2.png; WebGL ran through software fallback",
+    "mobile_check": "pass: 390x844 Chrome headless screenshot produced /tmp/chem-titration-mobile.png; controls and readouts stay compact"
+  },
+  "scores": {
+    "chemistry_pedagogy": 18,
+    "visual_dynamism": 14,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 14,
+    "technical_html": 15,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 95
+  },
+  "blockers": [],
+  "warnings": [
+    "Headless Chrome used software WebGL fallback; real GPU browser should be checked for final visual QA."
+  ],
+  "chemistry_review": "Reaction and phenolphthalein behavior are appropriate for SGK-level semi-quantitative visualization.",
+  "browser_checks": "Static JS parse passed; desktop Chrome headless screenshot confirmed nonblank WebGL scene and compact overlays.",
+  "mobile_checks": "390x844 screenshot keeps apparatus visible; secondary chart/indicator are hidden on narrow screens and controls/readouts stay compact.",
+  "improvement_plan": [
+    "If later batching many lessons, add Playwright evaluator for desktop/mobile screenshots.",
+    "Consider adding optional manual drop-rate slider only if the lesson requires student control."
+  ],
+  "changes_applied": [
+    "Replaced dashboard-like two-column layout with one large stage.",
+    "Moved pH curve and indicator into small overlays.",
+    "Kept autoplay as default with pause/reset.",
+    "Updated skill guidance to penalize dashboard-style layout."
+  ],
+  "final_status": "pass-with-warnings",
+  "created_at": "2026-06-19T11:29:08Z",
+  "tool_model": "gpt-5 codex"
+}

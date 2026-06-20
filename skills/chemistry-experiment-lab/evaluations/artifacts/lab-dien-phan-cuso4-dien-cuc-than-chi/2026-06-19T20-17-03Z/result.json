@@ -1,0 +1,78 @@
+{
+  "slug": "lab-dien-phan-cuso4-dien-cuc-than-chi",
+  "html_file": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-dien-phan-cuso4-dien-cuc-than-chi.html",
+  "final_status": "pass",
+  "blockers": [],
+  "warnings": [],
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "fallback_used": true
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z/desktop.png",
+    "mobile_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z/mobile.png",
+    "trace": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T20-17-03Z"
+  },
+  "checks": {
+    "desktop": {
+      "title": "Điện phân dung dịch CuSO4 với điện cực than chì",
+      "stagePresent": true,
+      "stageAreaRatio": 0.5573003253936768,
+      "scrollWidth": 1280,
+      "innerWidth": 1280,
+      "fallbackPresent": false,
+      "primaryRunControlPresent": true,
+      "buttonTexts": [
+        "Tạm dừng",
+        "Chạy tự động",
+        "Chạy lại",
+        "Cu",
+        "H2",
+        "O2",
+        "O2",
+        "Cu",
+        "H2",
+        "Đến mốc giữa",
+        "Đến kết quả"
+      ]
+    },
+    "mobile": {
+      "title": "Điện phân dung dịch CuSO4 với điện cực than chì",
+      "stagePresent": true,
+      "stageAreaRatio": 0.7682576459684893,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "fallbackPresent": false,
+      "primaryRunControlPresent": true,
+      "buttonTexts": [
+        "Tạm dừng",
+        "Chạy tự động",
+        "Chạy lại",
+        "Cu",
+        "H2",
+        "O2",
+        "O2",
+        "Cu",
+        "H2",
+        "Đến mốc giữa",
+        "Đến kết quả"
+      ]
+    }
+  }
+}

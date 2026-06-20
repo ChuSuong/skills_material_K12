@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chuẩn độ HCl bằng NaOH</title>
+</head>
+<body>
+  <div id="chem-exp-chuan-do-hcl-naoh" class="chem-exp">
+    <style>
+      #chem-exp-chuan-do-hcl-naoh {
+        --ink: #231d18;
+        --muted: #706358;
+        --cream: #fff7e9;
+        --panel: rgba(255, 252, 245, 0.86);
+        --line: rgba(54, 40, 24, 0.14);
+        --acid: #3479c9;
+        --base: #18a379;
+        --pink: #df4f8d;
+        --amber: #f1b23d;
+        --shadow: 0 26px 88px rgba(80, 54, 24, 0.19);
+        box-sizing: border-box;
+        min-height: 100vh;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(760px 400px at 8% -8%, rgba(241, 178, 61, 0.36), transparent 62%),
+          radial-gradient(760px 520px at 96% 4%, rgba(223, 79, 141, 0.25), transparent 64%),
+          linear-gradient(142deg, #fff8ea 0%, #f0dfc7 48%, #cfb286 100%);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .shell {
+        width: min(1360px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .topbar,
+      #chem-exp-chuan-do-hcl-naoh .stage-card,
+      #chem-exp-chuan-do-hcl-naoh .chart-card,
+      #chem-exp-chuan-do-hcl-naoh .control-card,
+      #chem-exp-chuan-do-hcl-naoh .notes-card {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 12px 14px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.25vw, 30px);
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+        overflow-wrap: anywhere;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .microcopy {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .actions,
+      #chem-exp-chuan-do-hcl-naoh .chips,
+      #chem-exp-chuan-do-hcl-naoh .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        color: #fff;
+        background: #2b2018;
+        font-weight: 850;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(43, 32, 24, 0.14);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh button.secondary {
+        color: #31251c;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid var(--line);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(360px, 0.86fr) minmax(420px, 1.14fr);
+        gap: 12px;
+        min-width: 0;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .stage-card {
+        position: relative;
+        min-height: 620px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.36), rgba(255, 248, 234, 0.72)),
+          radial-gradient(circle at 55% 80%, rgba(255, 255, 255, 0.86), transparent 36%);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 620px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .floating-readout {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        z-index: 3;
+        display: grid;
+        gap: 8px;
+        width: min(300px, calc(100% - 28px));
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.74);
+        border-radius: 20px;
+        background: rgba(38, 29, 20, 0.78);
+        color: #fff7eb;
+        backdrop-filter: blur(12px);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .floating-readout strong {
+        font-size: 14px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .floating-readout span {
+        color: rgba(255, 247, 235, 0.78);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .indicator-pill {
+        position: absolute;
+        right: 16px;
+        bottom: 16px;
+        z-index: 3;
+        width: min(270px, calc(100% - 32px));
+        padding: 12px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 18px 54px rgba(64, 40, 20, 0.17);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .swatch {
+        height: 56px;
+        margin-bottom: 8px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 0 0 999px rgba(223, 79, 141, var(--pink-alpha, 0));
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .fallback {
+        position: absolute;
+        inset: 16px;
+        z-index: 5;
+        display: none;
+        place-items: center;
+        padding: 24px;
+        border-radius: 22px;
+        background: rgba(255, 252, 245, 0.96);
+        color: #30261d;
+        text-align: center;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .fallback.show {
+        display: grid;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .right-column {
+        display: grid;
+        grid-template-rows: minmax(380px, 1fr) auto;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chart-card {
+        padding: 14px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chart-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+        margin-bottom: 8px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chart-wrap {
+        position: relative;
+        height: min(52vh, 460px);
+        min-height: 330px;
+        min-width: 0;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chart-wrap canvas {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .control-card {
+        display: grid;
+        grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.68fr);
+        gap: 12px;
+        padding: 14px;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .field {
+        display: grid;
+        gap: 6px;
+        margin: 10px 0;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: #3d3025;
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh input[type="range"] {
+        width: 100%;
+        accent-color: var(--pink);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 31px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(24, 163, 121, 0.12);
+        color: #145f4b;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .chip.pink {
+        background: rgba(223, 79, 141, 0.16);
+        color: #893053;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh .equation {
+        padding: 10px;
+        border-radius: 16px;
+        background: rgba(24, 163, 121, 0.09);
+        color: #145846;
+        font-size: 13px;
+        font-weight: 850;
+        line-height: 1.45;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh sub {
+        font-size: 0.68em;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh details {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+
+      #chem-exp-chuan-do-hcl-naoh summary {
+        color: #3f3024;
+        cursor: pointer;
+        font-weight: 850;
+      }
+
+      #chem-exp-chuan-do-hcl-naoh details p,
+      #chem-exp-chuan-do-hcl-naoh .status {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      @media (max-width: 980px) {
+        #chem-exp-chuan-do-hcl-naoh {
+          padding: 10px;
+        }
+
+        #chem-exp-chuan-do-hcl-naoh .topbar,
+        #chem-exp-chuan-do-hcl-naoh .lab-grid,
+        #chem-exp-chuan-do-hcl-naoh .control-card {
+          grid-template-columns: 1fr;
+        }
+
+        #chem-exp-chuan-do-hcl-naoh .stage-card,
+        #chem-exp-chuan-do-hcl-naoh .stage-canvas {
+          min-height: 520px;
+        }
+
+        #chem-exp-chuan-do-hcl-naoh .right-column {
+          grid-template-rows: auto auto;
+        }
+
+        #chem-exp-chuan-do-hcl-naoh .chart-wrap {
+          min-height: 300px;
+          height: 340px;
+        }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng chuẩn độ axit bazơ">
+      <header class="topbar">
+        <div>
+          <h1>Chuẩn độ HCl bằng NaOH với phenolphthalein</h1>
+          <p class="microcopy">NaOH nhỏ từ buret vào HCl; gần điểm tương đương, pH tăng rất nhanh và chỉ thị chuyển hồng nhạt.</p>
+        </div>
+        <div class="actions">
+          <button type="button" data-role="toggle">Tạm dừng</button>
+          <button type="button" class="secondary" data-role="reset">Chạy lại</button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <section class="stage-card" aria-label="Buret và bình nón 3D">
+          <canvas class="stage-canvas" data-role="scene"></canvas>
+          <div class="floating-readout" aria-live="polite">
+            <strong data-role="phase">Đang nhỏ NaOH vào HCl</strong>
+            <span data-role="observation">Dung dịch không màu vì còn dư axit.</span>
+          </div>
+          <div class="indicator-pill">
+            <div class="swatch" data-role="swatch"></div>
+            <strong data-role="indicatorText">Phenolphthalein: không màu</strong>
+            <p class="status" data-role="stageStatus">Auto-run bắt đầu ở 0.00 mL NaOH.</p>
+          </div>
+          <div class="fallback" data-role="fallback">
+            <div>
+              <strong>Không thể hiển thị WebGL/Three.js.</strong>
+              <p>Vẫn có thể dùng thanh thể tích và đồ thị pH để quan sát vùng nhảy pH quanh 25.0 mL.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="right-column">
+          <section class="chart-card" aria-label="Đường cong pH">
+            <div class="chart-head">
+              <div>
+                <h2>Đường cong pH theo thể tích NaOH</h2>
+                <p class="status" data-role="chartStatus">Mô hình bán định lượng cho HCl 0,100 M và NaOH 0,100 M.</p>
+              </div>
+              <div class="chips">
+                <span class="chip" data-role="volumeChip">NaOH: 0.00 mL</span>
+                <span class="chip pink" data-role="phChip">pH: 1.00</span>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas data-role="chart"></canvas>
+            </div>
+          </section>
+
+          <section class="control-card" aria-label="Điều khiển chuẩn độ">
+            <div>
+              <h2>Điều khiển thí nghiệm</h2>
+              <div class="field">
+                <label for="volumeSlider">Thể tích NaOH đã thêm <span data-role="volumeValue">0.00 mL</span></label>
+                <input id="volumeSlider" data-role="volume" type="range" min="0" max="35" value="0" step="0.05">
+              </div>
+              <div class="field">
+                <label for="speedSlider">Tốc độ nhỏ tự động <span data-role="speedValue">1.0x</span></label>
+                <input id="speedSlider" data-role="speed" type="range" min="0.4" max="2.4" value="1" step="0.1">
+              </div>
+              <div class="button-row">
+                <button type="button" class="secondary" data-role="drop">Thêm 1 giọt</button>
+                <button type="button" class="secondary" data-role="endpoint">Đến gần endpoint</button>
+              </div>
+            </div>
+            <div>
+              <div class="equation">
+                HCl + NaOH → NaCl + H<sub>2</sub>O
+              </div>
+              <details>
+                <summary>Giới hạn mô hình</summary>
+                <p>Đây là mô hình bán định lượng theo axit mạnh - bazơ mạnh lý tưởng, bỏ qua hoạt độ ion, sai số thao tác, nhiệt độ và độ trễ màu thật của chỉ thị.</p>
+              </details>
+            </div>
+          </section>
+        </div>
+      </main>
+    </section>
+
+    <script>
+      (function initTitrationLab(rootId) {
+        "use strict";
+
+        const root = document.getElementById(rootId);
+        if (!root) {
+          return;
+        }
+
+        const EXPERIMENT = {
+          title: "Chuẩn độ HCl bằng NaOH",
+          grade: "Hóa 11",
+          mode: "semi-quantitative",
+          learningGoal: "Nhận ra vùng nhảy pH và màu phenolphthalein khi chuẩn độ axit mạnh bằng bazơ mạnh.",
+          reaction: {
+            equation: "HCl + NaOH -> NaCl + H2O",
+            note: "Mô hình lớp học dùng HCl 25.00 mL 0.100 M và NaOH 0.100 M."
+          },
+          variables: [{ id: "naohVolume", min: 0, max: 35, unit: "mL" }]
+        };
+
+        const config = {
+          acidVolumeMl: 25,
+          acidMolarity: 0.1,
+          baseMolarity: 0.1,
+          maxVolumeMl: 35
+        };
+
+        const el = {
+          scene: root.querySelector("[data-role='scene']"),
+          chart: root.querySelector("[data-role='chart']"),
+          fallback: root.querySelector("[data-role='fallback']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          reset: root.querySelector("[data-role='reset']"),
+          volume: root.querySelector("[data-role='volume']"),
+          speed: root.querySelector("[data-role='speed']"),
+          drop: root.querySelector("[data-role='drop']"),
+          endpoint: root.querySelector("[data-role='endpoint']"),
+          volumeValue: root.querySelector("[data-role='volumeValue']"),
+          speedValue: root.querySelector("[data-role='speedValue']"),
+          volumeChip: root.querySelector("[data-role='volumeChip']"),
+          phChip: root.querySelector("[data-role='phChip']"),
+          chartStatus: root.querySelector("[data-role='chartStatus']"),
+          stageStatus: root.querySelector("[data-role='stageStatus']"),
+          indicatorText: root.querySelector("[data-role='indicatorText']"),
+          swatch: root.querySelector("[data-role='swatch']"),
+          phase: root.querySelector("[data-role='phase']"),
+          observation: root.querySelector("[data-role='observation']")
+        };
+
+        const state = {
+          volumeMl: 0,
+          speed: 1,
+          running: true,
+          lastFrame: 0,
+          chart: null,
+          chartReady: false,
+          sceneReady: false,
+          three: null,
+          droplets: [],
+          ions: []
+        };
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function equivalenceVolumeMl() {
+          return config.acidVolumeMl * config.acidMolarity / config.baseMolarity;
+        }
+
+        function phAt(volumeMl) {
+          const acidMol = config.acidVolumeMl / 1000 * config.acidMolarity;
+          const baseMol = volumeMl / 1000 * config.baseMolarity;
+          const totalL = (config.acidVolumeMl + volumeMl) / 1000;
+          const diff = acidMol - baseMol;
+          if (Math.abs(diff) < 1e-8) {
+            return 7;
+          }
+          if (diff > 0) {
+            return clamp(-Math.log10(diff / totalL), 0, 14);
+          }
+          const oh = Math.abs(diff) / totalL;
+          return clamp(14 + Math.log10(oh), 0, 14);
+        }
+
+        function pinkAlphaFromPh(ph) {
+          if (ph < 8.2) {
+            return 0;
+          }
+          return clamp((ph - 8.2) / 2.1, 0.08, 0.82);
+        }
+
+        function loadScript(urls, globalName) {
+          return new Promise(function(resolve, reject) {
+            if (window[globalName]) {
+              resolve(window[globalName]);
+              return;
+            }
+            let index = 0;
+            function tryUrl() {
+              if (index >= urls.length) {
+                reject(new Error("Không tải được " + globalName));
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = urls[index];
+              script.async = true;
+              index += 1;
+              script.onload = function() {
+                if (window[globalName]) {
+                  resolve(window[globalName]);
+                } else {
+                  tryUrl();
+                }
+              };
+              script.onerror = tryUrl;
+              document.head.appendChild(script);
+            }
+            tryUrl();
+          });
+        }
+
+        function hasWebGL() {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function showFallback(message) {
+          if (el.fallback) {
+            el.fallback.classList.add("show");
+            const strong = el.fallback.querySelector("strong");
+            if (strong) {
+              strong.textContent = message;
+            }
+          }
+        }
+
+        function setupScene(THREE) {
+          if (!hasWebGL()) {
+            showFallback("Trình duyệt không hỗ trợ WebGL.");
+            return;
+          }
+
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0xfff7e9);
+          const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+          camera.position.set(4.7, 4.8, 8.2);
+          camera.lookAt(0, 1.55, 0);
+
+          const renderer = new THREE.WebGLRenderer({ canvas: el.scene, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+
+          scene.add(new THREE.HemisphereLight(0xffffff, 0x8c7862, 1.04));
+          const light = new THREE.DirectionalLight(0xffffff, 1.2);
+          light.position.set(4, 7, 5);
+          light.castShadow = true;
+          scene.add(light);
+
+          const table = new THREE.Mesh(
+            new THREE.BoxGeometry(5.8, 0.18, 4.6),
+            new THREE.MeshStandardMaterial({ color: 0xe4d0a9, roughness: 0.7 })
+          );
+          table.position.set(0, -0.11, 0);
+          table.receiveShadow = true;
+          scene.add(table);
+
+          const standMat = new THREE.MeshStandardMaterial({ color: 0x473a31, roughness: 0.38, metalness: 0.28 });
+          const stand = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 4.6, 20), standMat);
+          stand.position.set(-1.35, 2.25, -0.35);
+          scene.add(stand);
+          const clamp = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.08, 0.14), standMat);
+          clamp.position.set(-0.86, 3.45, -0.35);
+          scene.add(clamp);
+
+          const buretteGlass = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.13, 0.13, 3.1, 32, 1, true),
+            new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.34, roughness: 0.05, transmission: 0.45 })
+          );
+          buretteGlass.position.set(-0.45, 2.8, -0.35);
+          scene.add(buretteGlass);
+
+          const buretteLiquid = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.105, 0.105, 2.75, 32),
+            new THREE.MeshStandardMaterial({ color: 0x18a379, transparent: true, opacity: 0.58, roughness: 0.2 })
+          );
+          buretteLiquid.position.set(-0.45, 2.66, -0.35);
+          scene.add(buretteLiquid);
+
+          const stopcock = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.08, 0.08), standMat);
+          stopcock.position.set(-0.45, 1.18, -0.35);
+          scene.add(stopcock);
+
+          const flaskGlass = new THREE.Mesh(
+            new THREE.ConeGeometry(1.25, 1.7, 72, 1, true),
+            new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.28, roughness: 0.08, transmission: 0.5 })
+          );
+          flaskGlass.position.set(0.45, 0.9, 0.05);
+          scene.add(flaskGlass);
+
+          const neck = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.28, 0.28, 1.35, 48, 1, true),
+            new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, roughness: 0.08, transmission: 0.5 })
+          );
+          neck.position.set(0.45, 1.95, 0.05);
+          scene.add(neck);
+
+          const flaskLiquid = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.96, 0.72, 0.54, 72),
+            new THREE.MeshPhysicalMaterial({ color: 0xf7fbff, transparent: true, opacity: 0.68, roughness: 0.18, transmission: 0.14 })
+          );
+          flaskLiquid.position.set(0.45, 0.52, 0.05);
+          scene.add(flaskLiquid);
+
+          const swirlRing = new THREE.Mesh(
+            new THREE.TorusGeometry(0.74, 0.025, 10, 72),
+            new THREE.MeshStandardMaterial({ color: 0xdf4f8d, transparent: true, opacity: 0 })
+          );
+          swirlRing.position.set(0.45, 0.82, 0.05);
+          swirlRing.rotation.x = Math.PI / 2;
+          scene.add(swirlRing);
+
+          const dropMat = new THREE.MeshStandardMaterial({ color: 0x18a379, transparent: true, opacity: 0.72, roughness: 0.2 });
+          for (let i = 0; i < 9; i += 1) {
+            const drop = new THREE.Mesh(new THREE.SphereGeometry(0.045, 14, 10), dropMat.clone());
+            drop.userData.phase = i / 9;
+            scene.add(drop);
+            state.droplets.push(drop);
+          }
+
+          const ionMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.28, roughness: 0.3 });
+          for (let i = 0; i < 30; i += 1) {
+            const ion = new THREE.Mesh(new THREE.SphereGeometry(0.025 + (i % 3) * 0.006, 10, 8), ionMat.clone());
+            ion.userData.angle = i * 2.399;
+            ion.userData.radius = 0.12 + ((i * 17) % 100) / 100 * 0.62;
+            ion.userData.phase = i * 0.21;
+            scene.add(ion);
+            state.ions.push(ion);
+          }
+
+          function resize() {
+            const rect = el.scene.getBoundingClientRect();
+            const width = Math.max(1, rect.width);
+            const height = Math.max(1, rect.height);
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+
+          if (window.ResizeObserver) {
+            const observer = new ResizeObserver(resize);
+            observer.observe(el.scene);
+          } else {
+            window.addEventListener("resize", resize);
+          }
+          resize();
+
+          state.three = { THREE, scene, camera, renderer, buretteLiquid, flaskLiquid, swirlRing };
+          state.sceneReady = true;
+        }
+
+        function curvePoints() {
+          const labels = [];
+          const values = [];
+          for (let v = 0; v <= config.maxVolumeMl; v += 0.25) {
+            labels.push(v.toFixed(2));
+            values.push(phAt(v));
+          }
+          return { labels, values };
+        }
+
+        function setupChart(Chart) {
+          const curve = curvePoints();
+          state.chart = new Chart(el.chart, {
+            type: "line",
+            data: {
+              labels: curve.labels,
+              datasets: [{
+                label: "pH",
+                data: curve.values,
+                borderColor: "#3479c9",
+                backgroundColor: "rgba(52,121,201,0.12)",
+                pointRadius: 0,
+                borderWidth: 3,
+                tension: 0.18,
+                fill: true
+              }, {
+                label: "Khoảng đổi màu phenolphthalein",
+                data: curve.labels.map(function(label) {
+                  const ph = phAt(Number(label));
+                  return ph >= 8.2 && ph <= 10 ? ph : null;
+                }),
+                borderColor: "#df4f8d",
+                backgroundColor: "#df4f8d",
+                pointRadius: 0,
+                borderWidth: 5,
+                tension: 0.18
+              }, {
+                label: "Thể tích hiện tại",
+                data: curve.labels.map(function(label) {
+                  return Math.abs(Number(label) - state.volumeMl) < 0.13 ? phAt(state.volumeMl) : null;
+                }),
+                borderColor: "#f1b23d",
+                backgroundColor: "#f1b23d",
+                pointRadius: 6,
+                showLine: false
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              interaction: { intersect: false, mode: "index" },
+              plugins: {
+                legend: { labels: { color: "#3d3025", boxWidth: 10 } },
+                tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ": " + ctx.parsed.y.toFixed(2); } } }
+              },
+              scales: {
+                x: { title: { display: true, text: "V NaOH (mL)", color: "#706358" }, ticks: { color: "#706358", maxTicksLimit: 8 }, grid: { color: "rgba(54,40,24,0.08)" } },
+                y: { min: 0, max: 14, title: { display: true, text: "pH", color: "#706358" }, ticks: { color: "#706358" }, grid: { color: "rgba(54,40,24,0.08)" } }
+              }
+            }
+          });
+          state.chartReady = true;
+        }
+
+        function drawFallbackChart() {
+          const canvas = el.chart;
+          const ctx = canvas.getContext("2d");
+          const rect = canvas.getBoundingClientRect();
+          const scale = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.max(360, Math.floor(rect.width * scale));
+          canvas.height = Math.max(300, Math.floor(rect.height * scale));
+          ctx.setTransform(scale, 0, 0, scale, 0, 0);
+          const w = canvas.width / scale;
+          const h = canvas.height / scale;
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = "#fffdf7";
+          ctx.fillRect(0, 0, w, h);
+          ctx.strokeStyle = "rgba(54,40,24,0.22)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(44, 16);
+          ctx.lineTo(44, h - 36);
+          ctx.lineTo(w - 16, h - 36);
+          ctx.stroke();
+          ctx.strokeStyle = "#3479c9";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (let i = 0; i <= 140; i += 1) {
+            const volume = config.maxVolumeMl * i / 140;
+            const x = 44 + (w - 64) * (volume / config.maxVolumeMl);
+            const y = h - 36 - (h - 58) * (phAt(volume) / 14);
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+          const markerX = 44 + (w - 64) * (state.volumeMl / config.maxVolumeMl);
+          ctx.strokeStyle = "#f1b23d";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(markerX, 16);
+          ctx.lineTo(markerX, h - 36);
+          ctx.stroke();
+          ctx.fillStyle = "#3d3025";
+          ctx.font = "12px sans-serif";
+          ctx.fillText("pH", 16, 24);
+          ctx.fillText("V NaOH", w - 68, h - 12);
+          ctx.fillStyle = "#df4f8d";
+          ctx.fillText("vùng hồng phenolphthalein", 58, 42);
+        }
+
+        function updateChart() {
+          if (state.chartReady && state.chart) {
+            const labels = state.chart.data.labels;
+            state.chart.data.datasets[2].data = labels.map(function(label) {
+              return Math.abs(Number(label) - state.volumeMl) < 0.13 ? phAt(state.volumeMl) : null;
+            });
+            state.chart.update();
+          } else {
+            drawFallbackChart();
+          }
+        }
+
+        function updateReadouts() {
+          const ph = phAt(state.volumeMl);
+          const eq = equivalenceVolumeMl();
+          const pinkAlpha = pinkAlphaFromPh(ph);
+          el.volumeValue.textContent = state.volumeMl.toFixed(2) + " mL";
+          el.speedValue.textContent = state.speed.toFixed(1) + "x";
+          el.volumeChip.textContent = "NaOH: " + state.volumeMl.toFixed(2) + " mL";
+          el.phChip.textContent = "pH: " + ph.toFixed(2);
+          el.swatch.style.setProperty("--pink-alpha", pinkAlpha.toFixed(2));
+
+          if (state.volumeMl < eq - 0.35) {
+            el.phase.textContent = "Trước điểm tương đương";
+            el.observation.textContent = "HCl còn dư; phenolphthalein không màu.";
+            el.indicatorText.textContent = "Phenolphthalein: không màu";
+          } else if (state.volumeMl <= eq + 0.22) {
+            el.phase.textContent = "Vùng nhảy pH";
+            el.observation.textContent = "Một lượng rất nhỏ NaOH làm pH tăng mạnh; cần nhỏ chậm và lắc đều.";
+            el.indicatorText.textContent = ph >= 8.2 ? "Hồng rất nhạt: gần endpoint" : "Không màu: rất gần tương đương";
+          } else {
+            el.phase.textContent = "Sau endpoint";
+            el.observation.textContent = "NaOH dư; màu hồng bền hơn vì dung dịch đã bazơ.";
+            el.indicatorText.textContent = "Phenolphthalein: hồng";
+          }
+          el.stageStatus.textContent = "V = " + state.volumeMl.toFixed(2) + " mL, pH mô phỏng " + ph.toFixed(2) + ", V tương đương lý tưởng = " + eq.toFixed(2) + " mL.";
+        }
+
+        function updateScene(frameTime) {
+          if (!state.sceneReady || !state.three) {
+            return;
+          }
+          const kit = state.three;
+          const ph = phAt(state.volumeMl);
+          const pinkAlpha = pinkAlphaFromPh(ph);
+          const leftFraction = clamp((config.maxVolumeMl - state.volumeMl) / config.maxVolumeMl, 0.08, 1);
+          kit.buretteLiquid.scale.y = leftFraction;
+          kit.buretteLiquid.position.y = 1.285 + 1.375 * leftFraction;
+          const color = new kit.THREE.Color(0xf8fbff).lerp(new kit.THREE.Color(0xdf4f8d), pinkAlpha);
+          kit.flaskLiquid.material.color.copy(color);
+          kit.flaskLiquid.material.opacity = 0.58 + pinkAlpha * 0.26;
+          kit.swirlRing.material.opacity = pinkAlpha * (0.32 + 0.22 * Math.sin(frameTime * 0.006));
+          kit.swirlRing.rotation.z = frameTime * 0.0018;
+
+          state.droplets.forEach(function(drop, index) {
+            const active = state.running || index < 2;
+            const phase = (frameTime * 0.00065 * state.speed + drop.userData.phase) % 1;
+            drop.visible = active;
+            drop.position.set(-0.45 + Math.sin(index) * 0.015, 1.15 - phase * 1.15, -0.35 + phase * 0.38);
+            drop.scale.setScalar(0.7 + phase * 0.8);
+            drop.material.opacity = active ? 0.24 + (1 - phase) * 0.5 : 0.08;
+          });
+
+          state.ions.forEach(function(ion, index) {
+            const angle = ion.userData.angle + frameTime * 0.0015 + state.volumeMl * 0.045;
+            const radius = ion.userData.radius * (0.8 + Math.sin(frameTime * 0.002 + index) * 0.08);
+            ion.position.set(0.45 + Math.cos(angle) * radius, 0.52 + Math.sin(frameTime * 0.002 + ion.userData.phase) * 0.12, 0.05 + Math.sin(angle) * radius * 0.68);
+            ion.material.opacity = 0.1 + clamp(Math.abs(state.volumeMl - equivalenceVolumeMl()) / 12, 0, 0.18) + pinkAlpha * 0.16;
+          });
+
+          kit.renderer.render(kit.scene, kit.camera);
+        }
+
+        function setVolume(value, stopAuto) {
+          state.volumeMl = clamp(Number(value), 0, config.maxVolumeMl);
+          el.volume.value = state.volumeMl.toFixed(2);
+          if (stopAuto) {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+          }
+          updateReadouts();
+          updateChart();
+        }
+
+        function reset() {
+          state.volumeMl = 0;
+          state.running = true;
+          el.volume.value = "0";
+          el.toggle.textContent = "Tạm dừng";
+          updateReadouts();
+          updateChart();
+        }
+
+        function bindControls() {
+          el.toggle.addEventListener("click", function() {
+            state.running = !state.running;
+            el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+          });
+          el.reset.addEventListener("click", reset);
+          el.volume.addEventListener("input", function(event) {
+            setVolume(event.target.value, true);
+          });
+          el.speed.addEventListener("input", function(event) {
+            state.speed = Number(event.target.value);
+            el.speedValue.textContent = state.speed.toFixed(1) + "x";
+          });
+          el.drop.addEventListener("click", function() {
+            setVolume(state.volumeMl + 0.05, true);
+          });
+          el.endpoint.addEventListener("click", function() {
+            setVolume(equivalenceVolumeMl() - 0.18, true);
+          });
+        }
+
+        function animate(frameTime) {
+          if (!state.lastFrame) {
+            state.lastFrame = frameTime;
+          }
+          const delta = Math.min(0.08, (frameTime - state.lastFrame) / 1000);
+          state.lastFrame = frameTime;
+          if (state.running) {
+            state.volumeMl += delta * state.speed * 1.35;
+            if (state.volumeMl >= config.maxVolumeMl) {
+              state.volumeMl = config.maxVolumeMl;
+              state.running = false;
+              el.toggle.textContent = "Tiếp tục";
+            }
+            el.volume.value = state.volumeMl.toFixed(2);
+            updateReadouts();
+            if (Math.floor(frameTime / 220) !== Math.floor((frameTime - delta * 1000) / 220)) {
+              updateChart();
+            }
+          }
+          updateScene(frameTime);
+          window.requestAnimationFrame(animate);
+        }
+
+        bindControls();
+        updateReadouts();
+        drawFallbackChart();
+
+        loadScript([
+          "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+          "https://unpkg.com/three@0.137.0/build/three.min.js"
+        ], "THREE").then(setupScene).catch(function(error) {
+          showFallback(error.message);
+        });
+
+        loadScript([
+          "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+          "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+        ], "Chart").then(function(Chart) {
+          setupChart(Chart);
+          updateChart();
+        }).catch(function() {
+          el.chartStatus.textContent = "Chart.js không tải được; đang dùng đồ thị canvas 2D dự phòng.";
+          drawFallbackChart();
+        });
+
+        window.requestAnimationFrame(animate);
+      })("chem-exp-chuan-do-hcl-naoh");
+    </script>
+  </div>
+</body>
+</html>

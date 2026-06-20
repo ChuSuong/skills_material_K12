@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Evaluation Record",
+  "type": "object",
+  "required": [
+    "slug",
+    "output_file",
+    "experiment",
+    "interaction_pattern",
+    "libraries",
+    "model_fidelity",
+    "validation_results",
+    "scores",
+    "final_status",
+    "created_at"
+  ],
+  "properties": {
+    "slug": { "type": "string" },
+    "output_file": { "type": "string" },
+    "prompt": { "type": "string" },
+    "experiment": {
+      "type": "object",
+      "required": ["title", "grade", "learning_goal"],
+      "properties": {
+        "title": { "type": "string" },
+        "grade": { "type": "string" },
+        "learning_goal": { "type": "string" },
+        "learning_loop": {
+          "type": "object",
+          "properties": {
+            "predict": { "type": "string" },
+            "observe": { "type": "string" },
+            "compare": { "type": "string" },
+            "explain": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "reaction": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "interaction_pattern": { "type": "string" },
+    "libraries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "role"],
+        "properties": {
+          "name": { "type": "string" },
+          "version": { "type": "string" },
+          "role": { "type": "string" },
+          "rationale": { "type": "string" },
+          "cdn_urls": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "model_fidelity": {
+      "type": "string",
+      "enum": ["qualitative", "semi-quantitative", "quantitative"]
+    },
+    "validation_results": {
+      "type": "object",
+      "properties": {
+        "js_syntax": { "type": "string" },
+        "risky_globals": { "type": "string" },
+        "cdn_version_pin": { "type": "string" },
+        "fallbacks": { "type": "string" },
+        "autoplay_or_demo": { "type": "string" },
+        "layout": { "type": "string" },
+        "browser_smoke": { "type": "string" },
+        "mobile_check": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "scores": {
+      "type": "object",
+      "required": ["total"],
+      "properties": {
+        "chemistry_pedagogy": { "type": "number", "minimum": 0, "maximum": 20 },
+        "visual_dynamism": { "type": "number", "minimum": 0, "maximum": 15 },
+        "interaction_autoplay": { "type": "number", "minimum": 0, "maximum": 15 },
+        "lab_first_layout": { "type": "number", "minimum": 0, "maximum": 15 },
+        "technical_html": { "type": "number", "minimum": 0, "maximum": 15 },
+        "performance_mobile": { "type": "number", "minimum": 0, "maximum": 10 },
+        "learning_record": { "type": "number", "minimum": 0, "maximum": 10 },
+        "total": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "chemistry_review": { "type": "string" },
+    "browser_checks": { "type": "string" },
+    "mobile_checks": { "type": "string" },
+    "design_family": { "type": "string" },
+    "design_fingerprint": { "type": "string" },
+    "promoted_as_baseline": { "type": "boolean" },
+    "baseline_ref": { "type": "string" },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "environment": {
+          "type": "object",
+          "properties": {
+            "browser": { "type": "string" },
+            "headless": { "type": "boolean" },
+            "os": { "type": "string" },
+            "viewport": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "webgl": {
+          "type": "object",
+          "properties": {
+            "supported": { "type": "boolean" },
+            "renderer_type": { "type": "string" },
+            "fallback_used": { "type": "boolean" }
+          },
+          "additionalProperties": true
+        },
+        "invariants": {
+          "type": "object",
+          "properties": {
+            "stage_present": { "type": "boolean" },
+            "stage_dominance_pass": { "type": "boolean" },
+            "autoplay_or_primary_run_pass": { "type": "boolean" },
+            "mobile_fit_pass": { "type": "boolean" },
+            "fallback_present": { "type": "boolean" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "artifacts": {
+      "type": "object",
+      "properties": {
+        "desktop_screenshot": { "type": "string" },
+        "mobile_screenshot": { "type": "string" },
+        "trace": { "type": "string" },
+        "video": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "improvement_plan": { "type": "array", "items": { "type": "string" } },
+    "changes_applied": { "type": "array", "items": { "type": "string" } },
+    "final_status": {
+      "type": "string",
+      "enum": ["pass", "pass-with-warnings", "needs-revision", "fail"]
+    },
+    "created_at": { "type": "string" },
+    "tool_model": { "type": "string" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "promoted_as_baseline": { "const": true }
+        },
+        "required": ["promoted_as_baseline"]
+      },
+      "then": {
+        "required": ["baseline_ref"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "final_status": { "const": "fail" }
+        }
+      },
+      "then": {
+        "required": ["blockers"],
+        "properties": {
+          "blockers": { "minItems": 1 }
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

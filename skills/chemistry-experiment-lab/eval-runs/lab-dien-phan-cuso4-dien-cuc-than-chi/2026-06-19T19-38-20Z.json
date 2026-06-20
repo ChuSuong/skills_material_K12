@@ -1,0 +1,107 @@
+{
+  "slug": "lab-dien-phan-cuso4-dien-cuc-than-chi",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-dien-phan-cuso4-dien-cuc-than-chi.html",
+  "prompt": "Generate one new chemistry lesson with the updated chemistry-experiment-lab skill; prefer a meaningful educational layout and ignore prior outputs.",
+  "experiment": {
+    "title": "Điện phân dung dịch CuSO4 với điện cực than chì",
+    "grade": "Hóa 12",
+    "learning_goal": "Xác định sản phẩm ở catot và anot khi điện phân dung dịch CuSO4 với điện cực trơ.",
+    "learning_loop": {
+      "predict": "Dự đoán sản phẩm ở catot và anot.",
+      "observe": "Quan sát lớp đồng bám, bọt khí và màu dung dịch.",
+      "compare": "So sánh hiện tượng với dự đoán đã chọn.",
+      "explain": "Liên hệ với quá trình khử Cu2+ và oxi hóa nước."
+    },
+    "reaction": "Catot: Cu2+ + 2e -> Cu; Anot: 2H2O -> O2 + 4H+ + 4e",
+    "notes": "Stage 3D lớn kết hợp panel dự đoán, readout trực tiếp và phần giải thích để buộc người học đi qua vòng predict-observe-compare-explain."
+  },
+  "interaction_pattern": "electrolysis-electrode-products",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "r128 / 0.137.0 fallback",
+      "role": "render",
+      "rationale": "observable chemistry: becher, điện cực, lớp đồng, bọt khí và màu dung dịch là hiện tượng chính",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://unpkg.com/three@0.137.0/build/three.min.js"
+      ]
+    },
+    {
+      "name": "GSAP",
+      "version": "3.12.5",
+      "role": "timeline",
+      "rationale": "timeline: autoplay, pause/resume/reset và đồng bộ các mốc dự đoán, quan sát, so sánh, kết luận",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+        "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: inline script extracted and checked with node --check",
+    "risky_globals": "pass: no matches for GK/gkStart/gkLoadThree/unscoped document.querySelector/latest/next in output",
+    "cdn_version_pin": "pass: all library URLs are version pinned",
+    "fallbacks": "pass: load failures are routed to a visible fallback message",
+    "autoplay_or_demo": "pass: autoplay timeline plus pause/reset controls",
+    "layout": "pass: stage remains dominant while prediction/readout/explanation panels support reasoning",
+    "browser_smoke": "pass: verify-widget.sh produced desktop/mobile screenshots and trace artifacts",
+    "mobile_check": "pass: mobile screenshot shows no horizontal overflow and primary controls remain visible"
+  },
+  "scores": {
+    "chemistry_pedagogy": 20,
+    "visual_dynamism": 15,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 13,
+    "technical_html": 15,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 97
+  },
+  "blockers": [],
+  "warnings": [],
+  "chemistry_review": "Sản phẩm điện cực và diễn giải khớp mức SGK: catot bám Cu, anot thoát O2 khi dùng điện cực than chì trơ.",
+  "browser_checks": "Playwright-based verifier passed on desktop and mobile. WebGL ran through SwiftShader fallback in headless Chromium.",
+  "mobile_checks": "Mobile verification passed with no overflow and visible primary controls.",
+  "design_family": "electrolysis",
+  "design_fingerprint": "three-gsap-stage-plus-learning-panels-predict-observe-compare-explain",
+  "promoted_as_baseline": false,
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "fallback_used": true
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T19-38-20Z/desktop.png",
+    "mobile_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T19-38-20Z/mobile.png",
+    "trace": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dien-phan-cuso4-dien-cuc-than-chi/2026-06-19T19-38-20Z"
+  },
+  "improvement_plan": [
+    "If this pattern is reused, add a second comparison mode showing inert versus copper electrodes for stronger conceptual contrast.",
+    "Promote to baseline only after checking visual quality on a real GPU browser in addition to headless SwiftShader."
+  ],
+  "changes_applied": [
+    "Generated a new lesson from scratch for electrolysis of CuSO4 with graphite electrodes.",
+    "Used a stage-plus-learning-panel layout instead of a pure cinematic stage.",
+    "Verified with the Playwright-based verifier and recorded desktop/mobile artifacts."
+  ],
+  "final_status": "pass",
+  "created_at": "2026-06-19T19:38:20Z",
+  "tool_model": "gpt-5 codex"
+}

@@ -1,0 +1,65 @@
+{
+  "slug": "lab-anh-huong-nong-do-toc-do",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-anh-huong-nong-do-toc-do.html",
+  "prompt": "Sửa output vì layout cũ xấu, giống dashboard, chỉ số quá to; thí nghiệm phải là chủ đạo và không theo template cứng.",
+  "experiment": {
+    "title": "Ảnh hưởng của nồng độ đến tốc độ phản ứng",
+    "grade": "Hóa 10",
+    "learning_goal": "Liên hệ nồng độ chất phản ứng với tốc độ xuất hiện độ đục.",
+    "reaction": "Na2S2O3 + H2SO4 -> Na2SO4 + SO2 + S + H2O",
+    "notes": "Bản mới dùng ba cốc 3D chạy song song để so sánh tốc độ mờ dấu X."
+  },
+  "interaction_pattern": "variable-comparison-lab",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "r128 / 0.137.0 fallback",
+      "role": "render three beakers, liquid turbidity, sulfur particles and X markers",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://unpkg.com/three@0.137.0/build/three.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: inline script extracted and checked with node --check",
+    "risky_globals": "pass: no legacy GK/gkStart/gkLoadThree and no unscoped document.querySelector in output",
+    "cdn_version_pin": "pass: CDN URLs are version-pinned; no latest/next pattern in output",
+    "fallbacks": "pass: Three.js load failure and WebGL unsupported states show visible messages",
+    "autoplay_or_demo": "pass: three beakers animate automatically in a looping demo with pause/reset",
+    "layout": "pass: three large beakers dominate the viewport; progress bars are compact bottom overlays",
+    "browser_smoke": "pass: Google Chrome headless produced /tmp/chem-concentration-v2.png; WebGL ran through software fallback",
+    "mobile_check": "pass: 390x844 Chrome headless screenshot produced /tmp/chem-concentration-mobile-v4.png; three-beaker comparison remains visible"
+  },
+  "scores": {
+    "chemistry_pedagogy": 18,
+    "visual_dynamism": 14,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 15,
+    "technical_html": 15,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 96
+  },
+  "blockers": [],
+  "warnings": [
+    "Headless Chrome used software WebGL fallback; real GPU browser should be checked for final visual QA."
+  ],
+  "chemistry_review": "The sulfur turbidity proxy is appropriate for teaching relative concentration effects; wording avoids claiming a full rate law.",
+  "browser_checks": "Static JS parse passed; desktop Chrome headless screenshot confirmed nonblank WebGL scene and compact overlays.",
+  "mobile_checks": "390x844 screenshot keeps all three beakers visible enough for comparison and retains bottom progress strip.",
+  "improvement_plan": [
+    "If the skill generates more outputs, add screenshot-based regression checks after the visual direction stabilizes.",
+    "Consider adding a manual concentration slider only for variants where student control is required."
+  ],
+  "changes_applied": [
+    "Replaced dashboard layout with three large side-by-side beakers.",
+    "Moved metrics into a compact bottom progress strip.",
+    "Kept autoplay loop with pause/reset.",
+    "Updated skill guidance to require stage-first proportions."
+  ],
+  "final_status": "pass-with-warnings",
+  "created_at": "2026-06-19T11:29:08Z",
+  "tool_model": "gpt-5 codex"
+}
