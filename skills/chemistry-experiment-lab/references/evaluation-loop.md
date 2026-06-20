@@ -23,6 +23,22 @@ Không bắt buộc ghi record cho mọi output nhỏ nếu user chỉ cần s�
 6. Record: ghi JSON record vào `eval-runs/{slug}/{timestamp}.json`; nếu cần báo cáo người đọc, thêm Markdown trong `evaluations/`.
 7. Improve: nếu score thấp hoặc lỗi lặp lại, sửa output trước; nếu lỗi là pattern chung, cập nhật `SKILL.md`, checklist, reference hoặc template.
 
+## Feedback Triage Trước Khi Nâng Thành Rule
+
+Khi user góp ý, không thêm ngay vào skill như một luật mới. Đi theo thứ tự:
+
+1. Xác nhận feedback có đúng trên output hiện tại không.
+2. Phân loại nó là `local defect`, `family defect`, hay `global invariant`.
+3. Kiểm tra xem nó có tái xuất hiện ở ít nhất một output khác hoặc có nguy cơ lặp lại rõ ràng không.
+4. Chỉ cập nhật `SKILL.md`, checklist, template khi feedback là `family defect` hoặc `global invariant`.
+5. Nếu feedback chỉ phản ánh gu thẩm mỹ cá nhân mà không chạm mục tiêu học tập, verifier, hay usability, giữ ở mức note thay vì rule.
+
+Ví dụ:
+
+- `Đáp án bị lộ trước khi học sinh quan sát`: thường là `global invariant`, nên thêm vào skill/checklist.
+- `Màu nền này chưa đẹp`: thường là `local defect`, sửa file hoặc note, không biến thành luật chung.
+- `Stage cao nhưng trống`: nếu đã lặp lại nhiều lần, nâng thành invariant verify.
+
 ## Rubric 100 Điểm
 
 | Tiêu chí | Điểm | Cách chấm |
@@ -59,6 +75,7 @@ Mốc quyết định:
 - Trừ điểm nếu có card/process diagram chỉ lặp lại learning loop bằng text mà không thêm thao tác, dữ kiện hoặc quan sát mới.
 - Kiểm tra `hero/stage` hiện diện, canvas hoặc fallback không trắng, và control chính còn dùng được.
 - Với bài 3D, kiểm tra hiện tượng chính có đọc ra được nhanh không: bọt khí, lớp bám, đổi màu, kết tủa phải đủ nổi bật ngay cả trước khi đọc text dài.
+- Kiểm tra `spoiler`: trước khi hoàn thành bước dự đoán/quan sát chính, UI không được lộ mapping đáp án đầy đủ qua legend, hint, focus card, status hoặc result panel.
 - Nếu dùng `GSAP`, kiểm tra có `pause/resume/restart` hoặc control tương đương.
 - Nếu dùng `Matter.js`/`Planck.js`, kiểm tra reset world sạch và wording không overclaim “mô phỏng hóa học thật”.
 - Nếu dùng `PixiJS`, kiểm tra không chồng vô lý với `Three.js`.
@@ -79,6 +96,7 @@ Tối thiểu:
 - Mở HTML trong trình duyệt thật hoặc headless browser.
 - Chụp ít nhất 1 screenshot desktop và 1 screenshot mobile.
 - Xác nhận scene không trắng và control chính còn đọc được.
+- Nếu muốn agent tự test nhanh bằng một lệnh thay vì đọc file thủ công, chạy `scripts/check-widget.sh <html-hoặc-attempt-dir>`. Lệnh này gộp runtime verify với static audit cho spoiler UI và một số guardrail cấu trúc.
 
 Khi output quan trọng hoặc đang forward-test skill:
 
@@ -98,6 +116,7 @@ Blocker làm output chưa đạt dù tổng điểm cao:
 - Global/CSS leak rõ ràng khi ghép nhiều widget.
 - Không có cách quan sát tiến trình chính: không autoplay/demo và manual quá vụn.
 - Learning loop rỗng: chỉ có animation hoặc chỉ có dashboard mà không có dự đoán/quan sát/kết luận.
+- Lộ đáp án sớm làm vô hiệu bước dự đoán hoặc quan sát chính.
 
 Warning cần ghi nhưng có thể chấp nhận tạm:
 
@@ -133,6 +152,8 @@ Có thể dùng `templates/evaluation-record.md` để sinh report cho người 
 - Cùng lỗi lặp lại 3 lần: cập nhật `SKILL.md` hoặc template blueprint.
 - Nếu một thư viện gây lỗi/khó dùng lặp lại, hạ khuyến nghị trong `library-recommendations.md`.
 - Nếu cùng một loại dependency bị lạm dụng 2 lần, thêm guardrail vào skill/checklist.
+- Nếu cùng một loại feedback người dùng lặp lại 2 lần và verify được là lỗi tổng quát, thêm guardrail vào checklist hoặc evaluation loop trước.
+- Nếu cùng một loại feedback lặp lại 3 lần ở nhiều family, mới nâng vào `SKILL.md` hoặc template nền.
 - Khi sửa output dựa trên record, dùng `templates/improvement-prompt.md` để giữ scope sửa hẹp và tránh rewrite toàn bộ khi không cần.
 
 ## Không Làm Template Cứng Nhắc

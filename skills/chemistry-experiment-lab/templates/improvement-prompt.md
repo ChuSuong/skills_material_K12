@@ -15,6 +15,7 @@ Yêu cầu:
 - Giữ root id, scoped CSS/JS và các fallback hiện có.
 - Không thêm thư viện mới nếu evaluation không yêu cầu.
 - Sau khi sửa, chạy lại validation và cập nhật evaluation record.
+- Nếu user feedback gợi ý một rule mới cho cả skill, trước hết phân loại đó là lỗi cục bộ hay invariant tổng quát; chỉ đề xuất cập nhật skill/checklist khi feedback đã được verify và đủ tổng quát.
 
 Ưu tiên sửa theo thứ tự:
 
