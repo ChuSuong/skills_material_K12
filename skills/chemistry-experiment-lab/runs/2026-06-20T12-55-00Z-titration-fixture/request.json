@@ -1,0 +1,11 @@
+{
+  "prompt": "Tạo widget chuẩn độ HCl bằng NaOH với bước dự đoán điểm đổi màu.",
+  "slug": "titration-fixture",
+  "created_at": "2026-06-20T12:55:00Z",
+  "grade": "Hóa 11",
+  "constraints": {
+    "output_format": "html",
+    "needs_3d": false,
+    "max_dependencies": 0
+  }
+}

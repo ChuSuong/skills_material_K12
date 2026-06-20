@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Interaction Spec",
+  "type": "object",
+  "required": [
+    "layout_family",
+    "primary_stage_type",
+    "control_mode",
+    "dependencies",
+    "dependency_rationale",
+    "autoplay_policy",
+    "fallback_policy",
+    "verification_targets"
+  ],
+  "properties": {
+    "layout_family": {
+      "type": "string",
+      "enum": ["stage-first", "stage-plus-side-panel", "stage-plus-chart-panel", "manual-game-board"]
+    },
+    "primary_stage_type": {
+      "type": "string",
+      "enum": ["threejs", "svg", "canvas2d", "dom"]
+    },
+    "control_mode": {
+      "type": "string",
+      "enum": ["autoplay", "manual-first", "hybrid"]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["name", "role"],
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" },
+              "role": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "dependency_rationale": { "type": "array", "items": { "type": "string" } },
+    "autoplay_policy": {
+      "type": "string",
+      "enum": ["required", "optional", "manual-only"]
+    },
+    "fallback_policy": {
+      "type": "string",
+      "enum": ["visible-error", "2d-fallback", "static-message"]
+    },
+    "verification_targets": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "stage_present",
+          "stage_dominance_pass",
+          "autoplay_or_primary_run_pass",
+          "mobile_fit_pass",
+          "fallback_present"
+        ]
+      }
+    }
+  },
+  "additionalProperties": true
+}

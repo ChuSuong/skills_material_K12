@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Request",
+  "type": "object",
+  "required": ["prompt", "slug", "created_at"],
+  "properties": {
+    "prompt": { "type": "string", "minLength": 1 },
+    "slug": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "audience": { "type": "string" },
+    "grade": { "type": "string" },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "output_format": { "type": "string", "enum": ["html", "jsx"] },
+        "needs_3d": { "type": "boolean" },
+        "max_dependencies": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

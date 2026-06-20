@@ -1,0 +1,25 @@
+{
+  "goal": "Nhận ra thời điểm dung dịch bắt đầu hồng bền gần điểm tương đương.",
+  "grade": "Hóa 11",
+  "design_family": "titration",
+  "model_fidelity": "qualitative",
+  "learning_loop": {
+    "predict": "Dự đoán khi nào phenolphthalein bắt đầu hồng bền.",
+    "observe": "Quan sát từng giọt NaOH làm pH tăng và màu thay đổi.",
+    "compare": "So sánh trước, gần và sau điểm tương đương.",
+    "explain": "Bazơ dư nhẹ làm chỉ thị phenolphthalein chuyển hồng bền."
+  },
+  "must_show": [
+    "pH",
+    "hồng bền",
+    "điểm tương đương"
+  ],
+  "must_control": [
+    "Chạy demo",
+    "Làm lại"
+  ],
+  "must_explain": [
+    "phenolphthalein"
+  ],
+  "forbidden_shortcuts": []
+}

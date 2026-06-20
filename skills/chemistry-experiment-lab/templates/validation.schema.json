@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Validation Result",
+  "type": "object",
+  "required": ["status", "created_at"],
+  "properties": {
+    "status": { "type": "string", "enum": ["pass", "fail"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "checks": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "type": "boolean" },
+          {
+            "type": "object",
+            "properties": {
+              "status": { "type": "string" },
+              "details": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        ]
+      }
+    },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,27 @@
+{
+  "goal": "Giải thích pin điện hóa Zn-Cu: Zn bị oxi hóa, Cu2+ bị khử, electron đi qua dây dẫn.",
+  "grade": "Hóa 12",
+  "design_family": "electrolysis",
+  "model_fidelity": "qualitative",
+  "learning_loop": {
+    "predict": "Dự đoán điện cực nào bị mòn dần khi pin hoạt động.",
+    "observe": "Quan sát mũi tên electron, thanh Zn nhỏ dần và lớp Cu bám tăng.",
+    "compare": "So sánh thay đổi ở điện cực Zn với điện cực Cu.",
+    "explain": "Zn nhường electron nên tan dần; Cu2+ nhận electron nên bám thành Cu."
+  },
+  "must_show": [
+    "Zn tan dần",
+    "Cu bám dần",
+    "electron"
+  ],
+  "must_control": [
+    "Chạy pin",
+    "Làm lại"
+  ],
+  "must_explain": [
+    "cầu muối",
+    "anot",
+    "catot"
+  ],
+  "forbidden_shortcuts": []
+}
