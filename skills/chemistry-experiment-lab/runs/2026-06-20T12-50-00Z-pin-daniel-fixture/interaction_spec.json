@@ -1,0 +1,14 @@
+{
+  "layout_family": "stage-plus-side-panel",
+  "primary_stage_type": "dom",
+  "control_mode": "hybrid",
+  "dependencies": [],
+  "dependency_rationale": [],
+  "autoplay_policy": "required",
+  "fallback_policy": "visible-error",
+  "verification_targets": [
+    "stage_present",
+    "autoplay_or_primary_run_pass",
+    "mobile_fit_pass"
+  ]
+}

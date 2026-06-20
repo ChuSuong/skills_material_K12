@@ -1,0 +1,11 @@
+{
+  "status": "pass",
+  "created_at": "2026-06-20T12:50:01Z",
+  "checks": {
+    "html_self_contained": "pass",
+    "learning_loop": "pass",
+    "controls_present": "pass"
+  },
+  "blockers": [],
+  "warnings": []
+}

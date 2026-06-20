@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Verification Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "artifact_type",
+    "slug",
+    "html_file",
+    "final_status",
+    "blockers",
+    "warnings",
+    "verification",
+    "artifacts",
+    "checks",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "artifact_type": { "type": "string", "const": "verification_result" },
+    "run_id": { "type": "string" },
+    "attempt_id": { "type": "string" },
+    "slug": { "type": "string" },
+    "html_file": { "type": "string" },
+    "final_status": { "type": "string", "enum": ["pass", "pass-with-warnings", "fail"] },
+    "mode": { "type": "string", "enum": ["legacy", "contract-aware"] },
+    "blockers": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "contract_checks": { "type": "object", "additionalProperties": true },
+    "runtime_checks": { "type": "object", "additionalProperties": true },
+    "probe_results": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "human_review_required": { "type": "boolean" },
+    "human_review_reason": { "type": "string" },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "environment": { "type": "object", "additionalProperties": true },
+        "webgl": { "type": "object", "additionalProperties": true },
+        "invariants": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["desktop_screenshot", "mobile_screenshot", "trace"],
+      "properties": {
+        "desktop_screenshot": { "type": "string" },
+        "mobile_screenshot": { "type": "string" },
+        "trace": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "checks": { "type": "object", "additionalProperties": true },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": true
+}

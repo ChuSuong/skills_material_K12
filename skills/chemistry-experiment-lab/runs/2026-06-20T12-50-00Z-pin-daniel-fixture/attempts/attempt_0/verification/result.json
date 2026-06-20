@@ -1,0 +1,49 @@
+{
+  "schema_version": "chem-lab.verification-result.v2",
+  "artifact_type": "verification_result",
+  "run_id": "2026-06-20T12-50-00Z-pin-daniel-fixture",
+  "attempt_id": "attempt_0",
+  "slug": "pin-daniel-fixture",
+  "html_file": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/runs/2026-06-20T12-50-00Z-pin-daniel-fixture/attempts/attempt_0/widget.html",
+  "final_status": "pass",
+  "blockers": [],
+  "warnings": [],
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "webgl",
+      "fallback_used": false
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "artifacts/desktop.png",
+    "mobile_screenshot": "artifacts/mobile.png",
+    "trace": "artifacts/trace.zip"
+  },
+  "checks": {
+    "desktop": {
+      "title": "Pin điện hóa Zn-Cu",
+      "stagePresent": true,
+      "primaryRunControlPresent": true
+    },
+    "mobile": {
+      "title": "Pin điện hóa Zn-Cu",
+      "stagePresent": true,
+      "primaryRunControlPresent": true
+    }
+  },
+  "created_at": "2026-06-20T12:50:02Z"
+}
