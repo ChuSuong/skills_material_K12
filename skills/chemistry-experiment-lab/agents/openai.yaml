@@ -1,0 +1,4 @@
+interface:
+  display_name: "Chemistry Experiment Lab"
+  short_description: "Tạo widget thí nghiệm Hóa học K12 tương tác."
+  default_prompt: "Tạo một widget thí nghiệm Hóa học tương tác, mở được bằng trình duyệt cho chủ đề này; ưu tiên lab-first, title gọn, có auto-run/demo khi phù hợp; validate, chấm điểm theo rubric và ghi evaluation record nếu đây là output quan trọng."

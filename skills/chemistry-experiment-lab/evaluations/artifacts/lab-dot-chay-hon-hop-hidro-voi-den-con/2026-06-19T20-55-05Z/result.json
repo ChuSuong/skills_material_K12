@@ -1,0 +1,80 @@
+{
+  "slug": "lab-dot-chay-hon-hop-hidro-voi-den-con",
+  "html_file": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-dot-chay-hon-hop-hidro-voi-den-con.html",
+  "final_status": "pass",
+  "blockers": [],
+  "warnings": [],
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "fallback_used": true
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dot-chay-hon-hop-hidro-voi-den-con/2026-06-19T20-55-05Z/desktop.png",
+    "mobile_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dot-chay-hon-hop-hidro-voi-den-con/2026-06-19T20-55-05Z/mobile.png",
+    "trace": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-dot-chay-hon-hop-hidro-voi-den-con/2026-06-19T20-55-05Z"
+  },
+  "checks": {
+    "desktop": {
+      "title": "Đốt cháy hỗn hợp hiđro bằng đèn cồn",
+      "stagePresent": true,
+      "stageAreaRatio": 0.743375,
+      "scrollWidth": 1280,
+      "innerWidth": 1280,
+      "fallbackPresent": false,
+      "primaryRunControlPresent": true,
+      "buttonTexts": [
+        "Tạm dừng demo",
+        "Chạy demo",
+        "Chạy lại",
+        "Bình A · Thiếu O2Cháy yếu, ít giãn nở đột ngột",
+        "Bình B · Gần tỉ lệ 2H2 : 1O2Dễ tạo “bụp” rõ nhất",
+        "Bình C · Dư H2Cháy kéo dài hơn nhưng không tối ưu va chạm với O2",
+        "A · Thiếu O2",
+        "B · Tỉ lệ gần tối ưu",
+        "C · Dư H2",
+        "Châm lửa ngay",
+        "Đèn cồn sang trái",
+        "Đèn cồn sang phải"
+      ]
+    },
+    "mobile": {
+      "title": "Đốt cháy hỗn hợp hiđro bằng đèn cồn",
+      "stagePresent": true,
+      "stageAreaRatio": 1.6002471424158171,
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "fallbackPresent": false,
+      "primaryRunControlPresent": true,
+      "buttonTexts": [
+        "Tạm dừng demo",
+        "Chạy demo",
+        "Chạy lại",
+        "Bình A · Thiếu O2Cháy yếu, ít giãn nở đột ngột",
+        "Bình B · Gần tỉ lệ 2H2 : 1O2Dễ tạo “bụp” rõ nhất",
+        "Bình C · Dư H2Cháy kéo dài hơn nhưng không tối ưu va chạm với O2",
+        "A · Thiếu O2",
+        "B · Tỉ lệ gần tối ưu",
+        "C · Dư H2",
+        "Châm lửa ngay",
+        "Đèn cồn sang trái",
+        "Đèn cồn sang phải"
+      ]
+    }
+  }
+}

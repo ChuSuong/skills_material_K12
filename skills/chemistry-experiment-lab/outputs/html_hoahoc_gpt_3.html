@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ảnh hưởng của nồng độ đến tốc độ phản ứng</title>
+</head>
+<body>
+  <div id="chem-exp-nong-do-toc-do" class="chem-exp">
+    <style>
+      #chem-exp-nong-do-toc-do {
+        --ink: #16201b;
+        --muted: #5a6c61;
+        --paper: #f4fbf3;
+        --panel: rgba(255, 255, 255, 0.82);
+        --green: #0c8d68;
+        --sulfur: #e7b83c;
+        --acid: #3c8bd8;
+        --line: rgba(22, 32, 27, 0.14);
+        --shadow: 0 24px 80px rgba(20, 45, 34, 0.18);
+        box-sizing: border-box;
+        min-height: 100vh;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 18px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(680px 360px at 8% -8%, rgba(12, 141, 104, 0.35), transparent 62%),
+          radial-gradient(620px 420px at 96% 6%, rgba(231, 184, 60, 0.34), transparent 60%),
+          linear-gradient(140deg, #edf8ec 0%, #dfeee5 46%, #b2cfc1 100%);
+      }
+
+      #chem-exp-nong-do-toc-do .shell {
+        width: min(1280px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      #chem-exp-nong-do-toc-do .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 12px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.66);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+      }
+
+      #chem-exp-nong-do-toc-do h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.35vw, 30px);
+        line-height: 1.06;
+        letter-spacing: -0.035em;
+        overflow-wrap: anywhere;
+      }
+
+      #chem-exp-nong-do-toc-do .microcopy {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      #chem-exp-nong-do-toc-do .top-actions,
+      #chem-exp-nong-do-toc-do .button-row,
+      #chem-exp-nong-do-toc-do .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+
+      #chem-exp-nong-do-toc-do button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        color: #fff;
+        background: #183128;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 12px 24px rgba(24, 49, 40, 0.16);
+      }
+
+      #chem-exp-nong-do-toc-do button.secondary {
+        color: #173228;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid var(--line);
+      }
+
+      #chem-exp-nong-do-toc-do .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.44fr) minmax(300px, 0.56fr);
+        gap: 12px;
+        align-items: stretch;
+        min-width: 0;
+      }
+
+      #chem-exp-nong-do-toc-do .stage-card,
+      #chem-exp-nong-do-toc-do .control-card,
+      #chem-exp-nong-do-toc-do .chart-card {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 26px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+
+      #chem-exp-nong-do-toc-do .stage-card {
+        position: relative;
+        min-height: 610px;
+        overflow: hidden;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.68)),
+          radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.9), transparent 35%);
+      }
+
+      #chem-exp-nong-do-toc-do .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 610px;
+      }
+
+      #chem-exp-nong-do-toc-do .stage-label {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        z-index: 3;
+        max-width: min(470px, calc(100% - 32px));
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.78);
+        border-radius: 18px;
+        background: rgba(13, 30, 24, 0.78);
+        color: #edfff4;
+        backdrop-filter: blur(10px);
+      }
+
+      #chem-exp-nong-do-toc-do .stage-label strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 13px;
+      }
+
+      #chem-exp-nong-do-toc-do .stage-label span {
+        display: block;
+        color: rgba(237, 255, 244, 0.8);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      #chem-exp-nong-do-toc-do .x-readout {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        z-index: 3;
+        width: min(250px, calc(100% - 36px));
+        padding: 12px;
+        border-radius: 22px;
+        background: rgba(255, 253, 238, 0.88);
+        box-shadow: 0 18px 50px rgba(44, 51, 32, 0.16);
+      }
+
+      #chem-exp-nong-do-toc-do .x-icon {
+        position: relative;
+        height: 74px;
+        margin-bottom: 8px;
+        border-radius: 18px;
+        background:
+          linear-gradient(45deg, transparent 45%, rgba(24, 26, 22, var(--x-alpha, 1)) 46%, rgba(24, 26, 22, var(--x-alpha, 1)) 54%, transparent 55%),
+          linear-gradient(-45deg, transparent 45%, rgba(24, 26, 22, var(--x-alpha, 1)) 46%, rgba(24, 26, 22, var(--x-alpha, 1)) 54%, transparent 55%),
+          rgba(255, 255, 255, 0.72);
+      }
+
+      #chem-exp-nong-do-toc-do .x-haze {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: rgba(236, 209, 91, var(--haze-alpha, 0));
+      }
+
+      #chem-exp-nong-do-toc-do .side-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      #chem-exp-nong-do-toc-do .control-card,
+      #chem-exp-nong-do-toc-do .chart-card {
+        padding: 14px;
+      }
+
+      #chem-exp-nong-do-toc-do .control-card h2,
+      #chem-exp-nong-do-toc-do .chart-card h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+
+      #chem-exp-nong-do-toc-do .field {
+        display: grid;
+        gap: 6px;
+        margin: 12px 0;
+      }
+
+      #chem-exp-nong-do-toc-do label {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        color: #263e34;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      #chem-exp-nong-do-toc-do input[type="range"] {
+        width: 100%;
+        accent-color: var(--green);
+      }
+
+      #chem-exp-nong-do-toc-do .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 31px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(12, 141, 104, 0.1);
+        color: #154235;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      #chem-exp-nong-do-toc-do .chip.gold {
+        background: rgba(231, 184, 60, 0.2);
+        color: #67480a;
+      }
+
+      #chem-exp-nong-do-toc-do .equation {
+        margin-top: 12px;
+        padding: 10px;
+        border-radius: 16px;
+        background: rgba(12, 141, 104, 0.08);
+        color: #16392f;
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      #chem-exp-nong-do-toc-do sub {
+        font-size: 0.68em;
+      }
+
+      #chem-exp-nong-do-toc-do details {
+        margin-top: 10px;
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+
+      #chem-exp-nong-do-toc-do summary {
+        color: #244439;
+        cursor: pointer;
+        font-weight: 850;
+      }
+
+      #chem-exp-nong-do-toc-do details p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      #chem-exp-nong-do-toc-do .chart-wrap {
+        position: relative;
+        height: 230px;
+        min-width: 0;
+      }
+
+      #chem-exp-nong-do-toc-do .chart-wrap canvas {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+      }
+
+      #chem-exp-nong-do-toc-do .fallback {
+        position: absolute;
+        inset: 16px;
+        display: none;
+        place-items: center;
+        z-index: 4;
+        padding: 24px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.94);
+        color: #27352f;
+        text-align: center;
+      }
+
+      #chem-exp-nong-do-toc-do .fallback.show {
+        display: grid;
+      }
+
+      #chem-exp-nong-do-toc-do .status {
+        min-height: 38px;
+        margin-top: 10px;
+        color: #46574f;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 920px) {
+        #chem-exp-nong-do-toc-do {
+          padding: 10px;
+        }
+
+        #chem-exp-nong-do-toc-do .topbar,
+        #chem-exp-nong-do-toc-do .lab-grid {
+          grid-template-columns: 1fr;
+        }
+
+        #chem-exp-nong-do-toc-do .stage-card,
+        #chem-exp-nong-do-toc-do .stage-canvas {
+          min-height: 520px;
+        }
+
+        #chem-exp-nong-do-toc-do .top-actions {
+          justify-content: flex-start;
+        }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng ảnh hưởng của nồng độ đến tốc độ phản ứng">
+      <header class="topbar">
+        <div>
+          <h1>Ảnh hưởng của nồng độ đến tốc độ phản ứng</h1>
+          <p class="microcopy">Mô phỏng lab-first: Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub> gặp H<sub>2</sub>SO<sub>4</sub>, lưu huỳnh keo làm đục dung dịch và che dần dấu X.</p>
+        </div>
+        <div class="top-actions">
+          <button type="button" data-role="toggle">Tạm dừng</button>
+          <button type="button" class="secondary" data-role="reset">Chạy lại</button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <section class="stage-card" aria-label="Cốc phản ứng 3D">
+          <canvas class="stage-canvas" data-role="scene"></canvas>
+          <div class="stage-label">
+            <strong>Quan sát chính</strong>
+            <span data-role="observation">Dung dịch bắt đầu trong, dấu X dưới cốc còn thấy rõ.</span>
+          </div>
+          <div class="x-readout" aria-live="polite">
+            <div class="x-icon" data-role="xIcon"><div class="x-haze"></div></div>
+            <strong data-role="xText">Dấu X còn thấy rõ</strong>
+            <div class="status" data-role="status">Auto-run đang chạy với nồng độ mặc định 70%.</div>
+          </div>
+          <div class="fallback" data-role="fallback">
+            <div>
+              <strong>Không thể hiển thị WebGL/Three.js.</strong>
+              <p>Vẫn có thể dùng thanh thời gian và đồ thị để thấy: nồng độ cao làm độ đục tăng nhanh hơn, dấu X biến mất sớm hơn.</p>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-stack">
+          <section class="control-card" aria-label="Điều khiển mô phỏng">
+            <h2>Điều khiển nhanh</h2>
+            <div class="chips">
+              <span class="chip" data-role="concChip">Na₂S₂O₃: 70%</span>
+              <span class="chip gold" data-role="rateChip">Tốc độ tương đối: 1.00x</span>
+            </div>
+
+            <div class="field">
+              <label for="concSlider">Nồng độ Na₂S₂O₃ <span data-role="concValue">70%</span></label>
+              <input id="concSlider" data-role="concentration" type="range" min="30" max="100" value="70">
+            </div>
+
+            <div class="field">
+              <label for="timeSlider">Thời gian quan sát <span data-role="timeValue">0.0 s</span></label>
+              <input id="timeSlider" data-role="time" type="range" min="0" max="60" value="0" step="0.1">
+            </div>
+
+            <div class="button-row">
+              <button type="button" class="secondary" data-role="slow">Mẫu loãng</button>
+              <button type="button" class="secondary" data-role="fast">Mẫu đặc</button>
+            </div>
+
+            <div class="equation">
+              Na<sub>2</sub>S<sub>2</sub>O<sub>3</sub> + H<sub>2</sub>SO<sub>4</sub> → Na<sub>2</sub>SO<sub>4</sub> + SO<sub>2</sub> + S↓ + H<sub>2</sub>O
+            </div>
+
+            <details>
+              <summary>Mô hình đang dùng</summary>
+              <p>Đây là mô hình bán định lượng cho lớp học. Độ đục và thời gian mất dấu X là proxy quan sát được, không phải dữ liệu động học thật hay hằng số tốc độ.</p>
+            </details>
+          </section>
+
+          <section class="chart-card" aria-label="Đồ thị tiến trình">
+            <h2>Tiến trình mất dấu X</h2>
+            <div class="chart-wrap">
+              <canvas data-role="chart"></canvas>
+            </div>
+            <p class="status" data-role="chartStatus">Nếu Chart.js không tải được, canvas sẽ tự vẽ đồ thị đơn giản.</p>
+          </section>
+        </aside>
+      </main>
+    </section>
+
+    <script>
+      (function initConcentrationRateLab(rootId) {
+        "use strict";
+
+        const root = document.getElementById(rootId);
+        if (!root) {
+          return;
+        }
+
+        const EXPERIMENT = {
+          title: "Ảnh hưởng của nồng độ đến tốc độ phản ứng",
+          grade: "Hóa 10",
+          mode: "semi-quantitative",
+          learningGoal: "Liên hệ nồng độ chất phản ứng với tốc độ tạo lưu huỳnh keo làm mất dấu X.",
+          reaction: {
+            equation: "Na2S2O3 + H2SO4 -> Na2SO4 + SO2 + S + H2O",
+            note: "Độ đục là proxy bán định lượng; không suy ra hằng số tốc độ thật."
+          },
+          variables: [{ id: "concentration", min: 30, max: 100, unit: "%", defaultValue: 70 }]
+        };
+
+        const el = {
+          scene: root.querySelector("[data-role='scene']"),
+          chart: root.querySelector("[data-role='chart']"),
+          fallback: root.querySelector("[data-role='fallback']"),
+          observation: root.querySelector("[data-role='observation']"),
+          status: root.querySelector("[data-role='status']"),
+          chartStatus: root.querySelector("[data-role='chartStatus']"),
+          xIcon: root.querySelector("[data-role='xIcon']"),
+          xText: root.querySelector("[data-role='xText']"),
+          conc: root.querySelector("[data-role='concentration']"),
+          time: root.querySelector("[data-role='time']"),
+          concValue: root.querySelector("[data-role='concValue']"),
+          timeValue: root.querySelector("[data-role='timeValue']"),
+          concChip: root.querySelector("[data-role='concChip']"),
+          rateChip: root.querySelector("[data-role='rateChip']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          reset: root.querySelector("[data-role='reset']"),
+          slow: root.querySelector("[data-role='slow']"),
+          fast: root.querySelector("[data-role='fast']")
+        };
+
+        const state = {
+          concentration: EXPERIMENT.variables[0].defaultValue,
+          time: 0,
+          running: true,
+          lastFrame: 0,
+          chart: null,
+          chartReady: false,
+          sceneReady: false,
+          three: null,
+          particles: [],
+          bubbles: []
+        };
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function progressAt(time, concentration) {
+          const strength = concentration / 70;
+          return clamp(1 - Math.exp(-0.052 * strength * time), 0, 0.98);
+        }
+
+        function xVisibility(time, concentration) {
+          const haze = progressAt(time, concentration);
+          return clamp(1 - haze * 1.24, 0, 1);
+        }
+
+        function relativeRate(concentration) {
+          return Math.pow(concentration / 70, 1.18);
+        }
+
+        function loadScript(urls, globalName) {
+          return new Promise(function(resolve, reject) {
+            if (window[globalName]) {
+              resolve(window[globalName]);
+              return;
+            }
+            let index = 0;
+            function tryUrl() {
+              if (index >= urls.length) {
+                reject(new Error("Không tải được " + globalName));
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = urls[index];
+              script.async = true;
+              index += 1;
+              script.onload = function() {
+                if (window[globalName]) {
+                  resolve(window[globalName]);
+                } else {
+                  tryUrl();
+                }
+              };
+              script.onerror = tryUrl;
+              document.head.appendChild(script);
+            }
+            tryUrl();
+          });
+        }
+
+        function hasWebGL() {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function showFallback(message) {
+          if (el.fallback) {
+            el.fallback.classList.add("show");
+            const strong = el.fallback.querySelector("strong");
+            if (strong) {
+              strong.textContent = message;
+            }
+          }
+        }
+
+        function setupScene(THREE) {
+          if (!hasWebGL()) {
+            showFallback("Trình duyệt không hỗ trợ WebGL.");
+            return;
+          }
+
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0xf5fbf1);
+          const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+          camera.position.set(4.2, 5.2, 7.4);
+          camera.lookAt(0, 1.1, 0);
+
+          const renderer = new THREE.WebGLRenderer({ canvas: el.scene, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+
+          scene.add(new THREE.HemisphereLight(0xffffff, 0x6e8879, 1.08));
+          const key = new THREE.DirectionalLight(0xffffff, 1.1);
+          key.position.set(3.5, 6, 4);
+          key.castShadow = true;
+          scene.add(key);
+
+          const table = new THREE.Mesh(
+            new THREE.CylinderGeometry(3.4, 3.8, 0.18, 80),
+            new THREE.MeshStandardMaterial({ color: 0xe7e0c8, roughness: 0.72 })
+          );
+          table.position.y = -0.12;
+          table.receiveShadow = true;
+          scene.add(table);
+
+          const beaker = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.55, 1.38, 2.65, 96, 1, true),
+            new THREE.MeshPhysicalMaterial({
+              color: 0xffffff,
+              transparent: true,
+              opacity: 0.25,
+              roughness: 0.08,
+              metalness: 0,
+              transmission: 0.55
+            })
+          );
+          beaker.position.y = 1.32;
+          scene.add(beaker);
+
+          const rim = new THREE.Mesh(
+            new THREE.TorusGeometry(1.55, 0.028, 12, 96),
+            new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.68 })
+          );
+          rim.position.y = 2.66;
+          rim.rotation.x = Math.PI / 2;
+          scene.add(rim);
+
+          const liquid = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.36, 1.22, 1.56, 96),
+            new THREE.MeshPhysicalMaterial({
+              color: 0x82d7c4,
+              transparent: true,
+              opacity: 0.52,
+              roughness: 0.2,
+              metalness: 0,
+              transmission: 0.18
+            })
+          );
+          liquid.position.y = 0.83;
+          scene.add(liquid);
+
+          const sulfurCloud = new THREE.Group();
+          const sulfurMat = new THREE.MeshStandardMaterial({ color: 0xe7c542, transparent: true, opacity: 0.2, roughness: 0.85 });
+          for (let i = 0; i < 86; i += 1) {
+            const radius = Math.sqrt((i * 37) % 100 / 100) * 1.15;
+            const angle = i * 2.399;
+            const dot = new THREE.Mesh(new THREE.SphereGeometry(0.025 + (i % 5) * 0.004, 10, 8), sulfurMat.clone());
+            dot.position.set(Math.cos(angle) * radius, 0.25 + ((i * 19) % 100) / 100 * 1.15, Math.sin(angle) * radius);
+            sulfurCloud.add(dot);
+            state.particles.push(dot);
+          }
+          scene.add(sulfurCloud);
+
+          const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.42, roughness: 0.25 });
+          for (let i = 0; i < 34; i += 1) {
+            const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.035 + (i % 4) * 0.008, 12, 8), bubbleMat.clone());
+            bubble.userData.baseX = Math.cos(i * 1.8) * (0.25 + (i % 7) * 0.13);
+            bubble.userData.baseZ = Math.sin(i * 1.8) * (0.25 + (i % 7) * 0.13);
+            bubble.userData.phase = i * 0.37;
+            scene.add(bubble);
+            state.bubbles.push(bubble);
+          }
+
+          const xGroup = new THREE.Group();
+          const xMat = new THREE.MeshStandardMaterial({ color: 0x171717, roughness: 0.62 });
+          const barOne = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.035, 0.16), xMat);
+          const barTwo = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.035, 0.16), xMat);
+          barOne.rotation.y = Math.PI / 4;
+          barTwo.rotation.y = -Math.PI / 4;
+          xGroup.add(barOne, barTwo);
+          xGroup.position.y = 0.012;
+          scene.add(xGroup);
+
+          const acidDrop = new THREE.Mesh(
+            new THREE.ConeGeometry(0.18, 0.42, 32),
+            new THREE.MeshStandardMaterial({ color: 0x3c8bd8, transparent: true, opacity: 0.78 })
+          );
+          acidDrop.position.set(-1.15, 3.05, 0.15);
+          acidDrop.rotation.x = Math.PI;
+          scene.add(acidDrop);
+
+          function resize() {
+            const rect = el.scene.getBoundingClientRect();
+            const width = Math.max(1, rect.width);
+            const height = Math.max(1, rect.height);
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+
+          if (window.ResizeObserver) {
+            const observer = new ResizeObserver(resize);
+            observer.observe(el.scene);
+          } else {
+            window.addEventListener("resize", resize);
+          }
+          resize();
+
+          state.three = { THREE, scene, camera, renderer, liquid, xGroup, acidDrop };
+          state.sceneReady = true;
+        }
+
+        function setupChart(Chart) {
+          const labels = [];
+          const values = [];
+          for (let t = 0; t <= 60; t += 2) {
+            labels.push(t.toString());
+            values.push(Math.round((1 - xVisibility(t, state.concentration)) * 100));
+          }
+
+          state.chart = new Chart(el.chart, {
+            type: "line",
+            data: {
+              labels,
+              datasets: [{
+                label: "Độ đục tương đối (%)",
+                data: values,
+                borderColor: "#0c8d68",
+                backgroundColor: "rgba(12,141,104,0.16)",
+                pointRadius: 0,
+                borderWidth: 3,
+                tension: 0.34,
+                fill: true
+              }, {
+                label: "Mốc hiện tại",
+                data: labels.map(function(label) {
+                  return Number(label) === Math.round(state.time / 2) * 2 ? Math.round((1 - xVisibility(state.time, state.concentration)) * 100) : null;
+                }),
+                borderColor: "#e7b83c",
+                backgroundColor: "#e7b83c",
+                pointRadius: 5,
+                showLine: false
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              plugins: {
+                legend: { labels: { color: "#33473d", boxWidth: 10 } },
+                tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ": " + ctx.parsed.y + "%"; } } }
+              },
+              scales: {
+                x: { title: { display: true, text: "Thời gian (s)", color: "#587166" }, ticks: { color: "#587166", maxTicksLimit: 7 }, grid: { color: "rgba(22,32,27,0.08)" } },
+                y: { min: 0, max: 100, title: { display: true, text: "Độ đục", color: "#587166" }, ticks: { color: "#587166" }, grid: { color: "rgba(22,32,27,0.08)" } }
+              }
+            }
+          });
+          state.chartReady = true;
+          el.chartStatus.textContent = "Đường cong dùng mô hình bán định lượng: nồng độ cao làm độ đục tăng nhanh hơn.";
+        }
+
+        function drawFallbackChart() {
+          const canvas = el.chart;
+          const ctx = canvas.getContext("2d");
+          const rect = canvas.getBoundingClientRect();
+          const scale = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.max(320, Math.floor(rect.width * scale));
+          canvas.height = Math.max(220, Math.floor(rect.height * scale));
+          ctx.setTransform(scale, 0, 0, scale, 0, 0);
+          const w = canvas.width / scale;
+          const h = canvas.height / scale;
+          ctx.clearRect(0, 0, w, h);
+          ctx.fillStyle = "#fffdf3";
+          ctx.fillRect(0, 0, w, h);
+          ctx.strokeStyle = "rgba(22,32,27,0.22)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(42, 16);
+          ctx.lineTo(42, h - 34);
+          ctx.lineTo(w - 14, h - 34);
+          ctx.stroke();
+          ctx.strokeStyle = "#0c8d68";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          for (let i = 0; i <= 60; i += 1) {
+            const x = 42 + (w - 60) * (i / 60);
+            const y = h - 34 - (h - 56) * (1 - xVisibility(i, state.concentration));
+            if (i === 0) {
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+          const markerX = 42 + (w - 60) * (state.time / 60);
+          ctx.strokeStyle = "#e7b83c";
+          ctx.beginPath();
+          ctx.moveTo(markerX, 16);
+          ctx.lineTo(markerX, h - 34);
+          ctx.stroke();
+          ctx.fillStyle = "#33473d";
+          ctx.font = "12px sans-serif";
+          ctx.fillText("Độ đục tăng dần", 50, 28);
+          ctx.fillText("thời gian", w - 72, h - 12);
+        }
+
+        function updateChart() {
+          if (state.chartReady && state.chart) {
+            const labels = state.chart.data.labels;
+            state.chart.data.datasets[0].data = labels.map(function(label) {
+              return Math.round((1 - xVisibility(Number(label), state.concentration)) * 100);
+            });
+            const nearest = Math.round(state.time / 2) * 2;
+            state.chart.data.datasets[1].data = labels.map(function(label) {
+              return Number(label) === nearest ? Math.round((1 - xVisibility(state.time, state.concentration)) * 100) : null;
+            });
+            state.chart.update();
+          } else {
+            drawFallbackChart();
+          }
+        }
+
+        function updateReadouts() {
+          const haze = progressAt(state.time, state.concentration);
+          const visible = xVisibility(state.time, state.concentration);
+          const rate = relativeRate(state.concentration);
+          el.concValue.textContent = Math.round(state.concentration) + "%";
+          el.timeValue.textContent = state.time.toFixed(1) + " s";
+          el.concChip.textContent = "Na₂S₂O₃: " + Math.round(state.concentration) + "%";
+          el.rateChip.textContent = "Tốc độ tương đối: " + rate.toFixed(2) + "x";
+          el.xIcon.style.setProperty("--x-alpha", visible.toFixed(2));
+          el.xIcon.style.setProperty("--haze-alpha", (haze * 0.82).toFixed(2));
+
+          if (visible > 0.58) {
+            el.xText.textContent = "Dấu X còn thấy rõ";
+            el.observation.textContent = "Dung dịch đang đục dần nhưng dấu X vẫn còn nhận ra.";
+          } else if (visible > 0.16) {
+            el.xText.textContent = "Dấu X mờ nhanh";
+            el.observation.textContent = "Hạt lưu huỳnh keo làm tán xạ ánh sáng, dấu X dưới cốc gần biến mất.";
+          } else {
+            el.xText.textContent = "Dấu X gần như biến mất";
+            el.observation.textContent = "Độ đục đủ lớn để che dấu X. Mẫu nồng độ cao đạt trạng thái này sớm hơn.";
+          }
+
+          el.status.textContent = "t = " + state.time.toFixed(1) + " s, độ đục mô phỏng " + Math.round(haze * 100) + "%, dấu X còn " + Math.round(visible * 100) + "%.";
+        }
+
+        function updateScene(frameTime) {
+          if (!state.sceneReady || !state.three) {
+            return;
+          }
+          const kit = state.three;
+          const haze = progressAt(state.time, state.concentration);
+          const visible = xVisibility(state.time, state.concentration);
+          kit.liquid.material.color.setHSL(0.45 - haze * 0.25, 0.48, 0.66 + haze * 0.08);
+          kit.liquid.material.opacity = 0.44 + haze * 0.38;
+          kit.xGroup.children.forEach(function(part) {
+            part.material.opacity = visible;
+            part.material.transparent = visible < 1;
+          });
+          kit.xGroup.rotation.y = Math.sin(frameTime * 0.0004) * 0.05;
+          kit.acidDrop.position.y = 2.92 + Math.sin(frameTime * 0.004) * 0.12;
+          state.particles.forEach(function(dot, index) {
+            dot.material.opacity = 0.04 + haze * (0.24 + (index % 4) * 0.04);
+            dot.position.y += Math.sin(frameTime * 0.0012 + index) * 0.0009;
+          });
+          const bubblePower = 0.15 + haze * relativeRate(state.concentration);
+          state.bubbles.forEach(function(bubble, index) {
+            const cycle = ((frameTime * 0.00018 * bubblePower + bubble.userData.phase) % 1);
+            bubble.position.set(
+              bubble.userData.baseX + Math.sin(frameTime * 0.001 + index) * 0.035,
+              0.22 + cycle * 1.42,
+              bubble.userData.baseZ
+            );
+            bubble.material.opacity = 0.12 + haze * 0.38;
+            bubble.scale.setScalar(0.8 + cycle * 0.8);
+          });
+          kit.renderer.render(kit.scene, kit.camera);
+        }
+
+        function reset(timeOnly) {
+          state.time = 0;
+          if (!timeOnly) {
+            state.running = true;
+          }
+          el.time.value = "0";
+          el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+          updateReadouts();
+          updateChart();
+        }
+
+        function setConcentration(value) {
+          state.concentration = clamp(Number(value), 30, 100);
+          el.conc.value = String(Math.round(state.concentration));
+          updateReadouts();
+          updateChart();
+        }
+
+        function bindControls() {
+          el.toggle.addEventListener("click", function() {
+            state.running = !state.running;
+            el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+          });
+          el.reset.addEventListener("click", function() {
+            reset(false);
+          });
+          el.slow.addEventListener("click", function() {
+            setConcentration(40);
+            reset(false);
+          });
+          el.fast.addEventListener("click", function() {
+            setConcentration(95);
+            reset(false);
+          });
+          el.conc.addEventListener("input", function(event) {
+            setConcentration(event.target.value);
+          });
+          el.time.addEventListener("input", function(event) {
+            state.time = Number(event.target.value);
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            updateReadouts();
+            updateChart();
+          });
+        }
+
+        function animate(frameTime) {
+          if (!state.lastFrame) {
+            state.lastFrame = frameTime;
+          }
+          const delta = Math.min(0.08, (frameTime - state.lastFrame) / 1000);
+          state.lastFrame = frameTime;
+          if (state.running) {
+            state.time += delta * 4.4;
+            if (state.time >= 60) {
+              state.time = 60;
+              state.running = false;
+              el.toggle.textContent = "Tiếp tục";
+            }
+            el.time.value = state.time.toFixed(1);
+            updateReadouts();
+            if (Math.floor(frameTime / 240) !== Math.floor((frameTime - delta * 1000) / 240)) {
+              updateChart();
+            }
+          }
+          updateScene(frameTime);
+          window.requestAnimationFrame(animate);
+        }
+
+        bindControls();
+        updateReadouts();
+        drawFallbackChart();
+
+        loadScript([
+          "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+          "https://unpkg.com/three@0.137.0/build/three.min.js"
+        ], "THREE").then(setupScene).catch(function(error) {
+          showFallback(error.message);
+        });
+
+        loadScript([
+          "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+          "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+        ], "Chart").then(function(Chart) {
+          setupChart(Chart);
+          updateChart();
+        }).catch(function() {
+          el.chartStatus.textContent = "Chart.js không tải được; đang dùng đồ thị canvas 2D dự phòng.";
+          drawFallbackChart();
+        });
+
+        window.requestAnimationFrame(animate);
+      })("chem-exp-nong-do-toc-do");
+    </script>
+  </div>
+</body>
+</html>
