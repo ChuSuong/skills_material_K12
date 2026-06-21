@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "FileChanged": [
+      {
+        "matcher": "skills/chemistry-experiment-lab/scripts/check_widget.py|skills/chemistry-experiment-lab/scripts/eval_suite.py|skills/chemistry-experiment-lab/scripts/run_bundle.py|skills/chemistry-experiment-lab/scripts/verify-widget.mjs|skills/chemistry-experiment-lab/scripts/verify-widget.sh|skills/chemistry-experiment-lab/evals/eval-suite.yaml",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/chem_lab_file_changed.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(*skills/chemistry-experiment-lab/scripts/verify-widget.sh*) || Bash(*skills/chemistry-experiment-lab/scripts/check-widget.sh*) || Bash(*skills/chemistry-experiment-lab/scripts/eval_suite.py*) || Bash(*skills/chemistry-experiment-lab/scripts/run_bundle.py*)",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/chem_lab_capture_feedback.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/chem_lab_summarize_feedback.sh",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

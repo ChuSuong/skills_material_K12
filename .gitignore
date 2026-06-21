@@ -237,3 +237,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local Claude hook/runtime state
+.claude/.chem-lab/
+
+# Chemistry experiment lab local artifacts
+skills/chemistry-experiment-lab/evaluations/artifacts/
+skills/chemistry-experiment-lab/evaluations/agent-feedback/
+skills/chemistry-experiment-lab/outputs/*.html
+src/brainstorm/
