@@ -1,9 +1,10 @@
 # gen_material demo_3d app
 
-Thư mục này chứa 2 phần của app demo 3D:
+Thư mục này chứa 3 phần liên quan tới app demo 3D:
 
 - `demo_3d_viewer`: frontend React
 - `backend`: backend FastAPI
+- `../gen_img`: module RealESRGAN phục vụ enhance ảnh trước khi generate 3D
 
 ## Cấu trúc
 
@@ -34,6 +35,8 @@ uv pip install -r requirements.txt
 Nếu máy chưa có `uv`, cài theo hướng dẫn của team trước.
 
 `requirements.txt` chỉ là bộ dependency nền để backend FastAPI lên được. Nếu muốn chạy TRELLIS thật với GPU/CUDA, tham khảo thêm `backend/requirements-gpu.txt` và phần thiết lập TRELLIS/CUDA bên dưới.
+
+Backend cũng dùng `src/modules/gen_img` để RealESRGAN enhance ảnh khi `enhance_mode` là `auto` hoặc `on`. Model weight của RealESRGAN không được commit kèm; module sẽ tự tạo thư mục `src/modules/gen_img/weights/` và tải weight mặc định khi cần.
 
 ### 2. Thiết lập TRELLIS / CUDA nếu chạy bản GPU
 
