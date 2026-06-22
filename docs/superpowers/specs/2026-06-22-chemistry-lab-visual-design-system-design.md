@@ -33,6 +33,7 @@ File reference mới, đọc khi cần nâng type/color/elevation/motion cho m�
 - Caption/label/section-label: 11-13px, weight 500-700, có thể dùng letter-spacing nhẹ cho label uppercase.
 - Số liệu/readout (nồng độ, thời gian, pH, tốc độ...): 16-22px, weight 700-800, ưu tiên font có **tabular figures** (`font-variant-numeric: tabular-nums;`) để số không làm layout nhảy khi giá trị đổi.
 - Optional: nếu muốn vượt khỏi "look mặc định hệ thống", có thể nạp 1 webfont (`Inter`, `Manrope`, hoặc `Sora`) qua CDN có version pin, luôn có fallback về system font stack hiện tại nếu tải lỗi. Không bắt buộc — chỉ dùng khi widget cần nâng cấp rõ rệt.
+- Optional fluid scale: với widget cần co giãn mượt theo viewport mà không muốn rải nhiều media query, có thể dùng `clamp()` thay px cố định, ví dụ `--font-size-base: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);`. Không bắt buộc — chỉ dùng khi widget có nhiều breakpoint hoặc layout co giãn phức tạp.
 
 ### 2. Color system có chiều sâu
 
@@ -51,32 +52,44 @@ Thay bộ biến phẳng kiểu `--ink/--muted/--accent/--accent-2/--bad` bằng
 
 Quy tắc:
 - Chọn `accent`/`accent-2` theo cặp màu hài hòa (analogous hoặc complementary trên color wheel), không chọn ngẫu nhiên hai màu bất kỳ.
-- Text trên mọi surface phải đạt contrast tối thiểu đọc được (tương đương WCAG AA cho text thường, có thể nới cho caption rất nhỏ/phụ).
+- Text trên mọi surface phải đạt contrast tối thiểu rõ ràng — mục tiêu cụ thể `7:1` (tương đương WCAG AAA) cho text thường/readout chính; có thể nới xuống mức AA cho caption rất nhỏ/phụ.
 - `surface-0/1/2` dùng để phân tầng nền↔panel↔card, không cần đúng tên biến này nhưng phải có khái niệm tương đương.
+- Optional: với widget muốn màu chuyển sắc đều hơn khi nội suy (ví dụ dung dịch đổi màu dần), có thể khai báo màu bằng `oklch()` thay hex/rgb — nội suy trong không gian OKLCH giữ độ sáng/độ bão hòa cảm nhận đều hơn khi blend giữa hai màu xa nhau trên color wheel.
 
 ### 3. Elevation/độ sâu
 
-2-3 cấp rõ ràng, ánh xạ theo vai trò UI:
+4 cấp rõ ràng, ánh xạ theo vai trò UI:
 
 ```css
---elev-1: 0 1px 2px rgba(0,0,0,.25); /* chip, button */
---elev-2: 0 8px 24px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.06); /* panel nổi */
---elev-3: 0 16px 48px rgba(0,0,0,.45); /* overlay/modal hiếm dùng */
+--elev-1: 0 1px 3px rgba(0,0,0,.12); /* chip, button ở trạng thái nghỉ */
+--elev-2: 0 4px 8px rgba(0,0,0,.15); /* card nhỏ, chip hover */
+--elev-3: 0 8px 16px rgba(0,0,0,.18); /* panel nổi trên stage */
+--elev-4: 0 16px 32px rgba(0,0,0,.2); /* overlay/modal hiếm dùng */
 ```
 
-- Nền tối: ưu tiên glow nhẹ (box-shadow màu accent mờ) kết hợp shadow đen.
+- Nền tối: ưu tiên glow nhẹ (box-shadow màu accent mờ) kết hợp shadow đen ở trên.
 - Nền sáng: ưu tiên soft shadow xám, tránh glow màu sặc.
+- Glassmorphism (nếu dùng panel kính như overlay hiện có): chuẩn hoá recipe `backdrop-filter: blur(8-12px) saturate(150-180%); border: 1px solid rgba(255,255,255,.18-.2);` thay vì mỗi widget tự chế giá trị riêng.
 - Không dùng elevation để phá rule lab-first hiện có (stage vẫn phải là trọng tâm chiếm 70-85% viewport).
 
 ### 4. Motion easing
 
 - **Cấm `linear`** cho transition mà học sinh "cảm" được trực tiếp: hover, tap, state change, reveal kết quả, chip chọn/bỏ chọn.
 - **Ngoại lệ hợp lệ**: progress bar/timeline đo thời gian thực (ví dụ thanh tiến trình phản ứng chạy đúng theo `state.time`) — `linear` ở đây là đúng vì biểu diễn thời gian, không phải cảm giác chuyển động.
-- Preset duration/easing gợi ý:
-  - Hover/tap: ~120-180ms, `cubic-bezier(0.16, 1, 0.3, 1)` (ease-out nhanh).
-  - State change (chuyển phase, hiện/ẩn panel): ~250-450ms, `cubic-bezier(0.4, 0, 0.2, 1)` (ease-in-out chuẩn Material-like).
-  - Hiện tượng chính (đổi màu dung dịch, kết tủa lắng...): ~600-900ms, easing "spring-like" — nếu dùng GSAP/Anime.js/Motion, dùng preset `back`/`elastic` nhẹ của thư viện đó.
+- Token duration/easing chuẩn (đặt trong root widget, dùng lại cho mọi transition):
+  ```css
+  --duration-fast: 150ms;   /* hover, tap, chip chọn/bỏ chọn */
+  --duration-normal: 250ms; /* state change, hiện/ẩn panel */
+  --duration-slow: 400ms;   /* reveal kết quả, chuyển phase */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);     /* hover/tap — nhanh, dứt khoát */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);   /* state change — chuẩn, trung tính */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* hiện tượng chính — overshoot nhẹ, có "sự sống" */
+  ```
+- Hiện tượng chính (đổi màu dung dịch, kết tủa lắng, reveal kết quả...): dùng `--ease-spring` ở duration dài hơn (~600-900ms), hoặc nếu dùng GSAP/Anime.js/Motion thì dùng preset `back`/`elastic` nhẹ của thư viện đó.
+- Micro-interaction scale cho phần tử bấm được (button, chip): hover `transform: scale(1.03-1.08)`, active/tap `transform: scale(0.95-0.97)` — giữ nhẹ, tránh giật mạnh gây mất tập trung khỏi stage chính.
 - Nếu widget đã dùng `D3` hoặc `Chart.js` cho đồ thị, ưu tiên preset có sẵn trong module `d3-ease` (ví dụ `d3.easeCubicOut`, `d3.easeElasticOut`) thay vì tự đoán cubic-bezier riêng — nguồn: https://d3js.org/d3-ease
+
+Token type/color/elevation/motion ở trên tổng hợp và rút gọn từ skill `modern-web-design` (repo `claudedesignskills` do user cung cấp), chỉ giữ phần áp dụng được cho widget học liệu tự chứa 1 trang; các phần khác của repo đó (3D engine, scroll-trigger, cursor UX, Lottie/Rive, AI personalization, atomic design component system) không liên quan và không đưa vào.
 
 ## Thay đổi 2 — `SKILL.md`, mục "Chính Sách UI/UX"
 
