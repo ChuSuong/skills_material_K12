@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mẫu vật thay đổi theo thời gian: tốc độ phản ứng</title>
+  <style>
+    :root {
+      --panel: rgba(10, 14, 24, 0.74);
+      --panel-soft: rgba(8, 12, 20, 0.62);
+      --border: rgba(255, 255, 255, 0.13);
+      --accent: #73dbff;
+      --accent-strong: #4eb9ff;
+      --warning: #ffbe6b;
+      --success: #8bf0b3;
+      --text: #f3f7ff;
+      --muted: rgba(243, 247, 255, 0.75);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top, #243a61 0%, #111b2d 44%, #05070d 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel,
+    .status,
+    .controls {
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      border-radius: 18px;
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 340px;
+      padding: 16px 18px;
+      background: var(--panel);
+    }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      line-height: 1.12;
+    }
+
+    .panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .panel p + p {
+      margin-top: 8px;
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      max-width: 480px;
+      min-width: 320px;
+      padding: 14px 16px;
+      background: rgba(8, 12, 20, 0.78);
+    }
+
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    #statusText {
+      font-size: 16px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    #statusSub {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: 340px;
+      padding: 14px 14px 12px;
+      background: rgba(8, 12, 20, 0.7);
+      pointer-events: auto;
+    }
+
+    .controls h2 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(188, 217, 255, 0.92);
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .row:last-child { margin-bottom: 0; }
+
+    select {
+      flex: 1;
+      width: 100%;
+      border-radius: 12px;
+      min-height: 38px;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      outline: none;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      border: 0;
+      min-height: 44px;
+      border-radius: 999px;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #pourBtn {
+      color: #06111f;
+      background: linear-gradient(135deg, #9be7ff, var(--accent-strong));
+      box-shadow: 0 12px 26px rgba(71, 174, 255, 0.34);
+    }
+
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    @media (max-width: 960px) {
+      .panel,
+      .status,
+      .controls {
+        width: auto;
+        max-width: calc(100vw - 28px);
+        left: 14px;
+        right: 14px;
+      }
+
+      .panel { top: 14px; }
+      .controls { bottom: 14px; }
+      .status { bottom: 96px; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Tốc độ phản ứng: nhìn bằng mẫu vật</h1>
+      <p>Chọn một mẫu vật và để thời gian chạy. Bạn sẽ <strong>thấy</strong> tốc độ khác nhau qua màu sắc, khói, hoặc vùng lan truyền.</p>
+      <p>Mục tiêu: hiểu rằng “tốc độ” là <strong>mức độ thay đổi theo thời gian</strong> (nhanh / chậm), không nhất thiết phải nhìn bằng đồ thị.</p>
+    </div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái quan sát</div>
+      <div id="statusText">Sẵn sàng. Chọn mẫu vật rồi bấm “Chạy thời gian”.</div>
+      <div id="statusSub">Gợi ý: so sánh 3 mẫu để cảm nhận nhanh/chậm khác nhau.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <h2>Điều khiển</h2>
+      <div class="row">
+        <select id="specimenSelect" aria-label="Chọn mẫu vật">
+          <option value="charcoal">Than cháy (nhanh)</option>
+          <option value="lava">Dung nham (nhanh)</option>
+          <option value="iodine">Tinh bột + iốt (trung bình)</option>
+          <option value="banana">Chuối thâm đen (chậm)</option>
+          <option value="rust">Sắt gỉ (chậm)</option>
+        </select>
+      </div>
+      <div class="row">
+        <input id="timeSlider" type="range" min="0" max="1" step="0.01" value="0" aria-label="Mốc thời gian" />
+      </div>
+      <div class="small" id="timeLabel">Thời gian: 0%</div>
+      <div style="height: 10px"></div>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay">Chạy thời gian</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    globalThis.THREE = THREE;
+
+// Generated by scripts/build-shared-inline-bundle.mjs
+// Paste this inside a <script type="module"> block after importing THREE.
+
+function updatePointerFromEvent(event, domElement, pointer) {
+  const rect = domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  return pointer;
+}
+
+function setPointerCaptureSafe(domElement, pointerId) {
+  if (pointerId == null || typeof domElement.setPointerCapture !== 'function') {
+    return;
+  }
+  domElement.setPointerCapture(pointerId);
+}
+
+function releasePointerCaptureSafe(domElement, pointerId) {
+  if (pointerId == null || typeof domElement.releasePointerCapture !== 'function') {
+    return;
+  }
+  try {
+    domElement.releasePointerCapture(pointerId);
+  } catch {}
+}
+
+function setControlsDragging(controls, dragging) {
+  if (!controls) {
+    return;
+  }
+  controls.enabled = !dragging;
+}
+
+function intersectPointerPlane({ raycaster, pointer, camera, plane, out }) {
+  raycaster.setFromCamera(pointer, camera);
+  return raycaster.ray.intersectPlane(plane, out);
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function smoothstep01(t) {
+  const value = clamp01(t);
+  return value * value * (3 - 2 * value);
+}
+
+function segment(t, start, end) {
+  if (end === start) {
+    return t >= end ? 1 : 0;
+  }
+  return clamp01((t - start) / (end - start));
+}
+
+function sequenceProgress(t, segments) {
+  return segments.map(({ start, end, easing }) => {
+    const value = segment(t, start, end);
+    return easing ? easing(value) : value;
+  });
+}
+
+function getCanvasBox(renderer) {
+  return renderer.domElement.getBoundingClientRect();
+}
+
+function canvasPoint(renderer, nx, ny) {
+  const rect = getCanvasBox(renderer);
+  return {
+    x: rect.left + rect.width * nx,
+    y: rect.top + rect.height * ny,
+  };
+}
+
+function projectWorldToCanvas(target, camera, renderer, offset = new THREE.Vector3()) {
+  const rect = getCanvasBox(renderer);
+  const anchor = typeof target.getWorldPosition === 'function'
+    ? target.getWorldPosition(new THREE.Vector3())
+    : target.clone();
+  const projected = anchor.add(offset).project(camera);
+  return {
+    x: rect.left + ((projected.x + 1) * 0.5) * rect.width,
+    y: rect.top + ((-projected.y + 1) * 0.5) * rect.height,
+  };
+}
+
+function installFlameTestHarness({ state, mapState, getPaths }) {
+  window.__flameTestApi = {
+    getState() {
+      return mapState(state);
+    },
+    ...getPaths(),
+  };
+
+  return window.__flameTestApi;
+}
+
+const ChemSharedLib = {
+  THREE,
+  updatePointerFromEvent,
+  setPointerCaptureSafe,
+  releasePointerCaptureSafe,
+  setControlsDragging,
+  intersectPointerPlane,
+  clamp01,
+  lerp,
+  smoothstep01,
+  segment,
+  sequenceProgress,
+  getCanvasBox,
+  canvasPoint,
+  projectWorldToCanvas,
+  installFlameTestHarness,
+};
+
+globalThis.ChemSharedLib = ChemSharedLib;
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const { installFlameTestHarness, canvasPoint } = globalThis.ChemSharedLib;
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const specimenSelect = document.getElementById('specimenSelect');
+    const timeSlider = document.getElementById('timeSlider');
+    const timeLabel = document.getElementById('timeLabel');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x08111a);
+    scene.fog = new THREE.Fog(0x08111a, 18, 40);
+
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(6.2, 6.6, 12.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0.3, 2.2, 0.0);
+    controls.minDistance = 7.0;
+    controls.maxDistance = 20;
+    controls.minPolarAngle = 0.45;
+    controls.maxPolarAngle = Math.PI / 2.05;
+
+    scene.add(new THREE.HemisphereLight(0xbfdcff, 0x23150c, 1.4));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    keyLight.position.set(10, 14, 8);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -14;
+    keyLight.shadow.camera.right = 14;
+    keyLight.shadow.camera.top = 14;
+    keyLight.shadow.camera.bottom = -14;
+    scene.add(keyLight);
+
+    const warmFill = new THREE.PointLight(0xffa256, 10, 28, 2);
+    warmFill.position.set(-5, 5.5, 4);
+    scene.add(warmFill);
+
+    const coolRim = new THREE.PointLight(0x69beff, 12, 36, 2);
+    coolRim.position.set(0, 9, -10);
+    scene.add(coolRim);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(36, 40, 28),
+      new THREE.MeshBasicMaterial({ color: 0x0f1928, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(24, 72),
+      new THREE.MeshStandardMaterial({ color: 0x172434, roughness: 0.92, metalness: 0.06 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(12.6, 0.45, 6.8),
+      new THREE.MeshStandardMaterial({ color: 0x5a4131, roughness: 0.82, metalness: 0.08 })
+    );
+    benchTop.position.y = 1.42;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.5, 2.9, 0.5);
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x2d3646, roughness: 0.72, metalness: 0.32 });
+    for (const [x, z] of [[-5.5, -2.7], [5.5, -2.7], [-5.5, 2.7], [5.5, 2.7]]) {
+      const leg = new THREE.Mesh(legGeometry, legMat);
+      leg.position.set(x, 0.1, z);
+      leg.castShadow = true;
+      bench.add(leg);
+    }
+
+    // --- Specimen stage ---
+    const stage = new THREE.Group();
+    stage.position.set(0.0, 1.7, 0.0);
+    scene.add(stage);
+
+    const stageBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.2, 2.4, 0.18, 44),
+      new THREE.MeshStandardMaterial({ color: 0x16263a, roughness: 0.8, metalness: 0.1 })
+    );
+    stageBase.receiveShadow = true;
+    stageBase.castShadow = true;
+    stage.add(stageBase);
+
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xc6efff,
+      transparent: true,
+      opacity: 0.18,
+      transmission: 0.82,
+      roughness: 0.08,
+      thickness: 0.5
+    });
+
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(2.35, 38, 26, 0, Math.PI * 2, 0, Math.PI * 0.55),
+      glassMaterial
+    );
+    dome.position.y = 1.05;
+    stage.add(dome);
+
+    const spotlight = new THREE.SpotLight(0xb8efff, 4.2, 18, Math.PI * 0.25, 0.55, 1.8);
+    spotlight.position.set(0.6, 8.4, 5.8);
+    spotlight.target = stage;
+    scene.add(spotlight);
+    scene.add(spotlight.target);
+
+    // Charcoal specimen
+    const charcoalGroup = new THREE.Group();
+    stage.add(charcoalGroup);
+
+    const charcoal = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.85, 0),
+      new THREE.MeshStandardMaterial({ color: 0x1b1512, roughness: 1.0, metalness: 0.02, emissive: 0x000000, emissiveIntensity: 0 })
+    );
+    charcoal.position.set(-0.1, 0.75, 0.0);
+    charcoal.castShadow = true;
+    charcoalGroup.add(charcoal);
+
+    const ash = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 1.1, 0.06, 40),
+      new THREE.MeshStandardMaterial({ color: 0x6e6f75, roughness: 0.95, metalness: 0.0, transparent: true, opacity: 0.0 })
+    );
+    ash.position.set(-0.1, 0.22, 0.0);
+    ash.receiveShadow = true;
+    charcoalGroup.add(ash);
+
+    const emberLight = new THREE.PointLight(0xff8a42, 0, 7, 2);
+    emberLight.position.set(-0.15, 1.05, 0.15);
+    stage.add(emberLight);
+
+    // Smoke particles
+    const smokeCount = 140;
+    const smokePositions = new Float32Array(smokeCount * 3);
+    const smokeSeeds = new Float32Array(smokeCount);
+    for (let i = 0; i < smokeCount; i += 1) {
+      const a = Math.random() * Math.PI * 2;
+      const r = 0.35 + Math.random() * 0.6;
+      smokePositions[i * 3 + 0] = -0.1 + Math.cos(a) * r;
+      smokePositions[i * 3 + 1] = 0.9 + Math.random() * 1.1;
+      smokePositions[i * 3 + 2] = Math.sin(a) * r;
+      smokeSeeds[i] = Math.random() * 10;
+    }
+
+    const smokeGeo = new THREE.BufferGeometry();
+    smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePositions, 3));
+    smokeGeo.setAttribute('seed', new THREE.BufferAttribute(smokeSeeds, 1));
+
+    const smokeMat = new THREE.PointsMaterial({
+      color: 0xcdd9e4,
+      size: 0.18,
+      transparent: true,
+      opacity: 0.0,
+      depthWrite: false
+    });
+
+    const smoke = new THREE.Points(smokeGeo, smokeMat);
+    stage.add(smoke);
+
+    // Rust specimen
+    const rustGroup = new THREE.Group();
+    stage.add(rustGroup);
+
+    const iron = new THREE.Mesh(
+      new THREE.BoxGeometry(1.6, 0.55, 0.5),
+      new THREE.MeshStandardMaterial({ color: 0x747e86, roughness: 0.55, metalness: 0.65 })
+    );
+    iron.position.set(0.0, 0.65, 0.0);
+    iron.castShadow = true;
+    rustGroup.add(iron);
+
+    const rustPatch = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.62, 0.58),
+      new THREE.MeshStandardMaterial({ color: 0x6a3a1b, roughness: 0.95, metalness: 0.0, transparent: true, opacity: 0.0 })
+    );
+    rustPatch.position.set(0.0, 0.93, 0.255);
+    rustPatch.rotation.x = -Math.PI * 0.06;
+    rustGroup.add(rustPatch);
+
+    // Banana specimen (browning spots)
+    const bananaGroup = new THREE.Group();
+    stage.add(bananaGroup);
+
+    const bananaTexSize = 256;
+    const bananaCanvas = document.createElement('canvas');
+    bananaCanvas.width = bananaTexSize;
+    bananaCanvas.height = bananaTexSize;
+    const bananaCtx = bananaCanvas.getContext('2d', { willReadFrequently: true });
+    const bananaTexture = new THREE.CanvasTexture(bananaCanvas);
+    bananaTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const bananaMaterial = new THREE.MeshStandardMaterial({
+      map: bananaTexture,
+      color: 0xffffff,
+      roughness: 0.78,
+      metalness: 0.05,
+    });
+
+    const banana = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.23, 18, 90, Math.PI * 1.35), bananaMaterial);
+    banana.rotation.set(Math.PI / 2.2, 0, -Math.PI / 3.4);
+    banana.position.set(0.0, 0.78, 0.05);
+    banana.castShadow = true;
+    bananaGroup.add(banana);
+
+
+    const bananaStem = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.11, 0.25, 16),
+      new THREE.MeshStandardMaterial({ color: 0x5b3b22, roughness: 0.9, metalness: 0.0 })
+    );
+    bananaStem.position.set(0.58, 0.92, 0.05);
+    bananaStem.rotation.z = 0.55;
+    bananaStem.castShadow = true;
+    bananaGroup.add(bananaStem);
+
+    const bananaSpotSeeds = Array.from({ length: 36 }, () => ({
+      x: Math.random() * bananaTexSize,
+      y: Math.random() * bananaTexSize,
+      r: 4 + Math.random() * 10,
+      a: 0.3 + Math.random() * 0.7,
+      k: 0.25 + Math.random() * 0.75,
+    }));
+
+    function paintBananaTexture(brownness) {
+      const p = Math.max(0, Math.min(1, brownness));
+
+      bananaCtx.clearRect(0, 0, bananaTexSize, bananaTexSize);
+
+      // Base peel gradient: green -> yellow -> dark
+      const base = bananaCtx.createLinearGradient(0, 0, bananaTexSize, bananaTexSize);
+      base.addColorStop(0, 'rgb(215, 255, 168)');
+      base.addColorStop(0.35, 'rgb(255, 236, 126)');
+      base.addColorStop(1, 'rgb(210, 180, 92)');
+      bananaCtx.fillStyle = base;
+      bananaCtx.fillRect(0, 0, bananaTexSize, bananaTexSize);
+
+      // Subtle stripes
+      bananaCtx.globalAlpha = 0.18;
+      bananaCtx.fillStyle = 'rgb(255, 255, 255)';
+      for (let i = 0; i < 14; i += 1) {
+        const x = (i / 14) * bananaTexSize;
+        bananaCtx.fillRect(x, 0, 2, bananaTexSize);
+      }
+      bananaCtx.globalAlpha = 1;
+
+      // Overall browning tint
+      bananaCtx.globalAlpha = 0.25 + p * 0.55;
+      bananaCtx.fillStyle = 'rgb(110, 72, 32)';
+      bananaCtx.fillRect(0, 0, bananaTexSize, bananaTexSize);
+      bananaCtx.globalAlpha = 1;
+
+      // Spots (appear & grow)
+      const spotCoverage = Math.max(0, p - 0.12) / 0.88;
+      for (const s of bananaSpotSeeds) {
+        const local = Math.max(0, Math.min(1, (spotCoverage - (1 - s.k) * 0.45) / 0.65));
+        if (local <= 0) continue;
+        const r = s.r * (0.6 + local * 1.8);
+        const g = bananaCtx.createRadialGradient(s.x, s.y, 0, s.x, s.y, r);
+        g.addColorStop(0, `rgba(55, 28, 12, ${0.65 * s.a})`);
+        g.addColorStop(0.55, `rgba(84, 45, 20, ${0.45 * s.a})`);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        bananaCtx.fillStyle = g;
+        bananaCtx.beginPath();
+        bananaCtx.arc(s.x, s.y, r, 0, Math.PI * 2);
+        bananaCtx.fill();
+      }
+
+      bananaTexture.needsUpdate = true;
+    }
+
+    // Lava specimen (glowing ribbon)
+    const lavaGroup = new THREE.Group();
+    stage.add(lavaGroup);
+
+    const lavaRock = new THREE.Mesh(
+      new THREE.SphereGeometry(1.05, 26, 18),
+      new THREE.MeshStandardMaterial({ color: 0x22201f, roughness: 0.98, metalness: 0.02 })
+    );
+    lavaRock.position.set(0.0, 0.78, 0.0);
+    lavaRock.castShadow = true;
+    lavaGroup.add(lavaRock);
+
+    // Build a curved flow path around the rock
+    const lavaCurve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-1.05, 0.95, 0.35),
+      new THREE.Vector3(-0.65, 0.75, 0.8),
+      new THREE.Vector3(0.15, 0.62, 0.55),
+      new THREE.Vector3(0.75, 0.68, 0.1),
+      new THREE.Vector3(0.95, 0.82, -0.45),
+    ]);
+
+    const lavaTube = new THREE.TubeGeometry(lavaCurve, 120, 0.09, 12, false);
+
+    const lavaTexW = 256;
+    const lavaTexH = 64;
+    const lavaCanvas = document.createElement('canvas');
+    lavaCanvas.width = lavaTexW;
+    lavaCanvas.height = lavaTexH;
+    const lavaCtx = lavaCanvas.getContext('2d');
+    const lavaTexture = new THREE.CanvasTexture(lavaCanvas);
+    lavaTexture.colorSpace = THREE.SRGBColorSpace;
+    lavaTexture.wrapS = THREE.RepeatWrapping;
+    lavaTexture.wrapT = THREE.RepeatWrapping;
+
+    const lavaMaterial = new THREE.MeshStandardMaterial({
+      map: lavaTexture,
+      emissive: new THREE.Color(0xff4a16),
+      emissiveIntensity: 0,
+      roughness: 0.45,
+      metalness: 0.05,
+    });
+
+    const lavaFlow = new THREE.Mesh(lavaTube, lavaMaterial);
+    lavaFlow.castShadow = true;
+    lavaGroup.add(lavaFlow);
+
+
+    const lavaLight = new THREE.PointLight(0xff6a2b, 0, 10, 2);
+    lavaLight.position.set(0.2, 1.2, 0.4);
+    stage.add(lavaLight);
+
+    function paintLavaTexture(heat, scroll) {
+      const h = Math.max(0, Math.min(1, heat));
+      lavaCtx.clearRect(0, 0, lavaTexW, lavaTexH);
+
+      // Dark crust
+      lavaCtx.fillStyle = 'rgb(24, 18, 16)';
+      lavaCtx.fillRect(0, 0, lavaTexW, lavaTexH);
+
+      // Hot streaks that "flow" along U
+      const shift = (scroll % 1) * lavaTexW;
+      for (let i = 0; i < 7; i += 1) {
+        const x = (i / 7) * lavaTexW - shift;
+        const w = 22 + i * 3;
+        const g = lavaCtx.createLinearGradient(x, 0, x + w, 0);
+        g.addColorStop(0, `rgba(0,0,0,0)`);
+        g.addColorStop(0.2, `rgba(255, 88, 22, ${0.25 + h * 0.35})`);
+        g.addColorStop(0.5, `rgba(255, 190, 80, ${0.18 + h * 0.25})`);
+        g.addColorStop(0.8, `rgba(255, 60, 0, ${0.22 + h * 0.33})`);
+        g.addColorStop(1, `rgba(0,0,0,0)`);
+        lavaCtx.fillStyle = g;
+        lavaCtx.fillRect(x, 0, w, lavaTexH);
+        lavaCtx.fillRect(x + lavaTexW, 0, w, lavaTexH);
+      }
+
+      // Speckle noise
+      lavaCtx.globalAlpha = 0.12 + h * 0.18;
+      for (let i = 0; i < 220; i += 1) {
+        const x = Math.random() * lavaTexW;
+        const y = Math.random() * lavaTexH;
+        lavaCtx.fillStyle = Math.random() < 0.5 ? 'rgb(255, 110, 40)' : 'rgb(255, 180, 90)';
+        lavaCtx.fillRect(x, y, 2, 1);
+      }
+      lavaCtx.globalAlpha = 1;
+
+      lavaTexture.needsUpdate = true;
+    }
+
+    // Iodine + starch specimen
+    const iodineGroup = new THREE.Group();
+    stage.add(iodineGroup);
+
+    const dish = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.0, 1.05, 0.25, 46),
+      new THREE.MeshPhysicalMaterial({ color: 0xe9f8ff, transparent: true, opacity: 0.22, roughness: 0.08, transmission: 0.85, thickness: 0.4 })
+    );
+    dish.position.set(0.05, 0.52, 0.0);
+    dish.castShadow = true;
+    iodineGroup.add(dish);
+
+    const iodineTexSize = 128;
+    const iodineCanvas = document.createElement('canvas');
+    iodineCanvas.width = iodineTexSize;
+    iodineCanvas.height = iodineTexSize;
+    const iodineCtx = iodineCanvas.getContext('2d', { willReadFrequently: true });
+    const iodineTexture = new THREE.CanvasTexture(iodineCanvas);
+    iodineTexture.colorSpace = THREE.SRGBColorSpace;
+
+    const liquid = new THREE.Mesh(
+      new THREE.CircleGeometry(0.92, 50),
+      new THREE.MeshStandardMaterial({
+        map: iodineTexture,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.92,
+        roughness: 0.55,
+        metalness: 0.05
+      })
+    );
+    liquid.position.set(0.05, 0.66, 0.0);
+    liquid.rotation.x = -Math.PI / 2;
+    iodineGroup.add(liquid);
+
+    function paintIodineTexture(radiusNorm) {
+      iodineCtx.clearRect(0, 0, iodineTexSize, iodineTexSize);
+      iodineCtx.fillStyle = 'rgb(224, 236, 246)';
+      iodineCtx.fillRect(0, 0, iodineTexSize, iodineTexSize);
+
+      const cx = iodineTexSize * 0.52;
+      const cy = iodineTexSize * 0.48;
+      const maxR = iodineTexSize * 0.44;
+      const r = Math.max(0, Math.min(1, radiusNorm)) * maxR;
+
+      const gradient = iodineCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
+      gradient.addColorStop(0.0, 'rgba(56, 54, 140, 0.95)');
+      gradient.addColorStop(0.35, 'rgba(44, 55, 170, 0.78)');
+      gradient.addColorStop(0.7, 'rgba(78, 102, 214, 0.45)');
+      gradient.addColorStop(1.0, 'rgba(224, 236, 246, 0.0)');
+
+      iodineCtx.fillStyle = gradient;
+      iodineCtx.beginPath();
+      iodineCtx.arc(cx, cy, r, 0, Math.PI * 2);
+      iodineCtx.fill();
+
+      iodineTexture.needsUpdate = true;
+    }
+
+    // --- State + mapping (rates) ---
+    const RATE = {
+      charcoal: 1.0,
+      lava: 0.95,
+      iodine: 0.55,
+      banana: 0.35,
+      rust: 0.18,
+    };
+
+    const LABEL = {
+      charcoal: 'Than cháy (nhanh)',
+      lava: 'Dung nham (nhanh)',
+      iodine: 'Tinh bột + iốt (trung bình)',
+      banana: 'Chuối thâm đen (chậm)',
+      rust: 'Sắt gỉ (chậm)',
+    };
+
+    const DETAIL = {
+      charcoal: 'Quan sát: than nóng đỏ nhanh, khói tăng và tro dày dần.',
+      lava: 'Quan sát: dung nham phát sáng, các vệt nhiệt “chảy” dọc theo rãnh rồi nguội dần.',
+      rust: 'Quan sát: màu nâu đỏ loang chậm trên bề mặt sắt.',
+      iodine: 'Quan sát: vùng xanh tím lan dần trong dung dịch.',
+      banana: 'Quan sát: chuối từ vàng sang thâm đen với các đốm nâu lan rộng.',
+    };
+
+    const state = {
+      specimen: 'charcoal',
+      running: false,
+      t: 0,
+      phase: 'idle',
+      activeSampleId: null,
+    };
+
+    function setSpecimen(key) {
+      state.specimen = key;
+      updateVisibility();
+      updateTexts();
+      applyTimeToScene();
+    }
+
+    function updateVisibility() {
+      charcoalGroup.visible = state.specimen === 'charcoal';
+      smoke.visible = state.specimen === 'charcoal';
+      lavaGroup.visible = state.specimen === 'lava';
+      bananaGroup.visible = state.specimen === 'banana';
+
+      rustGroup.visible = state.specimen === 'rust';
+      iodineGroup.visible = state.specimen === 'iodine';
+    }
+
+    function setTimeNormalized(t) {
+      state.t = Math.max(0, Math.min(1, t));
+      timeSlider.value = String(state.t);
+      timeLabel.textContent = `Thời gian: ${Math.round(state.t * 100)}%`;
+      applyTimeToScene();
+      updateTexts();
+    }
+
+    let lavaScroll = 0;
+
+    function applyTimeToScene() {
+      const rate = RATE[state.specimen];
+      const p = Math.max(0, Math.min(1, state.t * (0.65 + rate * 0.9)));
+
+      // charcoal: emissive + smoke + ash
+      {
+        const glow = Math.pow(p, 0.65);
+        const ember = new THREE.Color().lerpColors(
+          new THREE.Color(0x000000),
+          new THREE.Color(0xff6a2b),
+          glow
+        );
+        charcoal.material.emissive = ember;
+        charcoal.material.emissiveIntensity = 0.15 + glow * 0.95;
+        charcoal.scale.setScalar(1 - p * 0.08);
+
+        ash.material.opacity = Math.min(0.95, Math.max(0, (p - 0.15) * 1.25));
+        ash.scale.setScalar(0.85 + p * 0.35);
+
+        emberLight.intensity = glow * 7.5;
+
+        smokeMat.opacity = Math.min(0.45, Math.max(0, (p - 0.06) * 0.55));
+      }
+
+      // rust: patch opacity + base tint
+      {
+        const rustP = Math.pow(p, 1.25);
+        const base = new THREE.Color(0x747e86);
+        const tinted = new THREE.Color(0x6b5b52);
+        iron.material.color.lerpColors(base, tinted, rustP * 0.65);
+        rustPatch.material.opacity = Math.min(0.92, rustP);
+        rustPatch.scale.setScalar(0.85 + rustP * 0.25);
+      }
+
+      // iodine: diffusion radius
+      {
+        const diff = Math.pow(p, 0.85);
+        paintIodineTexture(diff);
+        liquid.material.opacity = 0.88;
+      }
+
+      // banana: browning texture
+      {
+        paintBananaTexture(Math.pow(p, 1.05));
+      }
+
+      // lava: emissive + scrolling texture + glow light
+      {
+        const heat = Math.pow(p, 0.62);
+        lavaMaterial.emissiveIntensity = heat * 1.35;
+        lavaLight.intensity = heat * 8.2;
+        paintLavaTexture(heat, lavaScroll);
+      }
+    }
+
+    function updateTexts() {
+      const specimenName = LABEL[state.specimen];
+      const r = RATE[state.specimen];
+      const rateWord = r >= 0.8 ? 'nhanh' : r <= 0.3 ? 'chậm' : 'trung bình';
+
+      if (state.running) {
+        statusText.textContent = `Đang chạy: ${specimenName}. Tốc độ cảm nhận: ${rateWord}.`;
+        statusSub.textContent = DETAIL[state.specimen];
+      } else if (state.t > 0.001) {
+        statusText.textContent = `Đang dừng ở mốc ${Math.round(state.t * 100)}%: ${specimenName}.`;
+        statusSub.textContent = 'Bạn có thể kéo thanh thời gian để so sánh “trước” và “sau”, hoặc bấm chạy để xem liên tục.';
+      } else {
+        statusText.textContent = 'Sẵn sàng. Chọn mẫu vật rồi bấm “Chạy thời gian”.';
+        statusSub.textContent = 'Gợi ý: so sánh 3 mẫu để cảm nhận nhanh/chậm khác nhau.';
+      }
+    }
+
+    function resetAll() {
+      state.running = false;
+      state.t = 0;
+      state.phase = 'idle';
+      state.activeSampleId = null;
+      lavaScroll = 0;
+      paintBananaTexture(0);
+      paintLavaTexture(0, 0);
+      lavaMaterial.emissiveIntensity = 0;
+      lavaLight.intensity = 0;
+      setTimeNormalized(0);
+      updateTexts();
+    }
+
+    // --- Playwright shim (minimal) ---
+    installFlameTestHarness({
+      state,
+      mapState(currentState) {
+        return {
+          activeSampleId: currentState.activeSampleId,
+          phase: currentState.phase,
+        };
+      },
+      getPaths() {
+        return {
+          getDragPath() {
+            return {
+              from: canvasPoint(renderer, 0.18, 0.42),
+              to: canvasPoint(renderer, 0.72, 0.58),
+            };
+          },
+          getWireLoadPath() {
+            return {
+              from: canvasPoint(renderer, 0.26, 0.56),
+              to: canvasPoint(renderer, 0.48, 0.62),
+            };
+          },
+          getWireFlamePath() {
+            return {
+              from: canvasPoint(renderer, 0.52, 0.62),
+              to: canvasPoint(renderer, 0.72, 0.58),
+            };
+          },
+        };
+      },
+    });
+
+    // For current harness, we need: activeSampleId === 'Li' and phase not idle/result.
+    function markReactionStartedForHarness() {
+      state.activeSampleId = 'Li';
+      state.phase = 'reaction';
+    }
+
+    // Playwright golden-path only drives mouse events; it doesn't call our "dragFromPageApi".
+    // So we mark harness reaction started on any pointerup after a pointerdown.
+    let harnessPointerDown = false;
+    renderer.domElement.addEventListener('pointerdown', () => {
+      harnessPointerDown = true;
+    });
+    renderer.domElement.addEventListener('pointerup', () => {
+      if (harnessPointerDown) {
+        harnessPointerDown = false;
+        if (!state.running) {
+          state.running = true;
+          // Keep the interaction lightweight: timeline will still progress visually.
+        }
+        markReactionStartedForHarness();
+        updateTexts();
+      }
+    });
+
+
+    // --- Controls ---
+    specimenSelect.addEventListener('change', () => {
+      setSpecimen(specimenSelect.value);
+    });
+
+    timeSlider.addEventListener('input', () => {
+      state.running = false;
+      setTimeNormalized(parseFloat(timeSlider.value));
+    });
+
+    pourBtn.addEventListener('click', () => {
+      if (!state.running) {
+        state.running = true;
+        markReactionStartedForHarness();
+        updateTexts();
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      resetAll();
+    });
+
+    // init
+    updateVisibility();
+    paintIodineTexture(0);
+    paintBananaTexture(0);
+    paintLavaTexture(0, 0);
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const now = clock.getElapsedTime();
+
+      if (state.running) {
+        const rate = RATE[state.specimen];
+        const speed = 0.11 + rate * 0.19;
+        setTimeNormalized(state.t + dt * speed);
+        if (state.t >= 1) {
+          state.running = false;
+          updateTexts();
+        }
+      }
+
+      if (lavaGroup.visible) {
+        lavaScroll += dt * (0.65 + RATE.lava * 0.65);
+        const heat = Math.pow(Math.max(0, Math.min(1, state.t * 1.1)), 0.62);
+        paintLavaTexture(heat, lavaScroll);
+      }
+
+      // Smoke gentle motion
+      if (smoke.visible) {
+        const pos = smoke.geometry.attributes.position;
+        const seed = smoke.geometry.attributes.seed;
+        for (let i = 0; i < smokeCount; i += 1) {
+          const s = seed.getX(i);
+          const idx = i * 3;
+          const y0 = smokePositions[idx + 1];
+          const y = y0 + (now * 0.22 + s) % 1.35;
+          pos.array[idx + 1] = 0.85 + y * 0.65;
+          pos.array[idx + 0] = smokePositions[idx + 0] + Math.sin(now * 0.6 + s) * 0.02;
+          pos.array[idx + 2] = smokePositions[idx + 2] + Math.cos(now * 0.55 + s) * 0.02;
+        }
+        pos.needsUpdate = true;
+        smoke.rotation.y += dt * 0.12;
+      }
+
+      // Idle micro-rotation so it feels alive
+      stage.rotation.y = Math.sin(now * 0.18) * 0.06;
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Default specimen
+    setSpecimen('charcoal');
+    resetAll();
+    animate();
+  </script>
+</body>
+</html>
