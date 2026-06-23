@@ -1,0 +1,9 @@
+{
+  "id": 1,
+  "kind": "experiment",
+  "slug": "sugar-h2so4-carbon-column",
+  "title": "Thí nghiệm mô phỏng đường và H2SO4 đặc",
+  "language": "vi",
+  "source": "chem-courseware-orchestrator -> chem-3d-experiment",
+  "entry": "generated/experiment/sugar-h2so4-carbon-column/index.html"
+}

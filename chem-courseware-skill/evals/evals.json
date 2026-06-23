@@ -1,0 +1,17 @@
+{
+  "skill_name": "chem-courseware-orchestrator",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tạo một học liệu thí nghiệm 3D tương tác mô phỏng phản ứng đường với H2SO4 đặc, cho phép người học kéo chai axit vào cốc và quan sát sủi bọt, bốc hơi nhẹ, than hóa phồng lên.",
+      "expected_output": "Một file HTML self-contained cho chemistry experiment, full-screen, có kéo-thả hoặc auto-pour, có trạng thái trước-trong-sau phản ứng.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Tạo một học liệu 3D để giải thích hình học phân tử CH4, NH3 và H2O, cho phép xoay quan sát và highlight góc liên kết.",
+      "expected_output": "Một file HTML self-contained cho chemistry visualization, làm rõ khác biệt hình học và có tương tác quan sát.",
+      "files": []
+    }
+  ]
+}

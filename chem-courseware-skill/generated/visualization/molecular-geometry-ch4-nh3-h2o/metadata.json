@@ -1,0 +1,9 @@
+{
+  "id": 2,
+  "kind": "visualization",
+  "slug": "molecular-geometry-ch4-nh3-h2o",
+  "title": "Hình học phân tử CH4, NH3 và H2O",
+  "language": "vi",
+  "source": "chem-courseware-orchestrator -> chem-3d-visualization",
+  "entry": "generated/visualization/molecular-geometry-ch4-nh3-h2o/index.html"
+}

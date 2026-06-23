@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Một số ứng dụng của việc thay đổi tốc độ phản ứng</title>
+  <style>
+    :root {
+      --panel: rgba(15, 18, 31, 0.78);
+      --panel-soft: rgba(15, 18, 31, 0.64);
+      --border: rgba(255,255,255,0.14);
+      --text: #f6f8ff;
+      --muted: rgba(246,248,255,0.75);
+      --accent: #ffca7c;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #f5f2ea 0%, #dbd6c9 34%, #b8ad96 100%);
+      color: var(--text);
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    .hud { position: fixed; inset: 0; pointer-events: none; }
+    .card, .status, .controls {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+    }
+    .card {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: min(500px, calc(100vw - 48px));
+      padding: 18px 20px;
+      background: var(--panel);
+    }
+    .card h1 { margin: 0 0 10px; font-size: 24px; line-height: 1.08; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .card p + p { margin-top: 8px; }
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: min(440px, calc(100vw - 48px));
+      padding: 16px 18px;
+      background: rgba(12, 14, 24, 0.82);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    #statusText { font-size: 17px; line-height: 1.45; }
+    #statusSub { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: min(320px, calc(100vw - 48px));
+      padding: 16px;
+      background: var(--panel-soft);
+      pointer-events: auto;
+    }
+    .controls p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .buttonRow { display: flex; gap: 10px; }
+    button {
+      flex: 1;
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #pourBtn {
+      color: #1e1104;
+      background: linear-gradient(135deg, #ffd999, #ffad5e);
+    }
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    @media (max-width: 900px) {
+      .card, .status, .controls {
+        left: 14px;
+        right: 14px;
+        width: auto;
+      }
+      .card { top: 14px; }
+      .controls { bottom: 14px; }
+      .status { bottom: 94px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="card">
+      <h1>Hình 19.7. Một số ứng dụng của việc thay đổi tốc độ phản ứng</h1>
+      <p>Ảnh gốc minh họa ba ví dụ quen thuộc bằng tiếng Việt: <strong>đèn xì oxygen – acetylene</strong>, <strong>tủ lạnh bảo quản thức ăn</strong>, <strong>bình dưa muối</strong>.</p>
+      <p>Mô phỏng này cho người học thấy con người có thể làm phản ứng nhanh hơn hoặc chậm hơn tùy mục đích: tăng nhiệt/nồng độ để cháy mạnh, hạ nhiệt để làm chậm phân hủy, điều khiển lên men để bảo quản thực phẩm.</p>
+    </div>
+    <div class="status">
+      <div class="label">Trạng thái học tập</div>
+      <div id="statusText">Sẵn sàng. Bấm “Chạy tình huống” để xem ba ứng dụng thay đổi tốc độ phản ứng trong đời sống và sản xuất.</div>
+      <div id="statusSub">Ảnh gốc mở đầu bằng câu: con người áp dụng nhiều biện pháp kĩ thuật để thay đổi tốc độ phản ứng như nồng độ, nhiệt độ, chất xúc tác...</div>
+    </div>
+    <div class="controls">
+      <p>Trang này lần lượt chuyển cảnh qua ba tình huống thay vì chỉ dừng ở ảnh tĩnh, giúp người học thấy “làm nhanh” và “làm chậm” đều có giá trị.</p>
+      <div class="buttonRow">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" type="button">Chạy tình huống</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const state = { progress: 0, playing: false };
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawTorchPanel(x, y, w, h, energy) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(22, 25, 38, 0.58)';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, h, 18);
+      ctx.fill();
+      ctx.fillStyle = '#cf4444';
+      ctx.fillRect(30, 58, 50, 126);
+      ctx.fillStyle = '#47aee6';
+      ctx.fillRect(92, 58, 50, 126);
+      ctx.fillStyle = '#d8dee8';
+      ctx.fillRect(48, 34, 14, 28);
+      ctx.fillRect(110, 34, 14, 28);
+      ctx.strokeStyle = '#d8a769';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(140, 118);
+      ctx.lineTo(195, 98);
+      ctx.lineTo(228, 112);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(255,177,76,' + (0.15 + energy * 0.45).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.moveTo(230, 112);
+      ctx.quadraticCurveTo(250 + energy * 18, 98, 264 + energy * 26, 112);
+      ctx.quadraticCurveTo(248 + energy * 20, 128 + energy * 18, 230, 112);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(126,217,255,' + (0.12 + energy * 0.28).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.moveTo(230, 112);
+      ctx.quadraticCurveTo(244 + energy * 12, 106, 252 + energy * 14, 112);
+      ctx.quadraticCurveTo(242 + energy * 14, 122 + energy * 12, 230, 112);
+      ctx.fill();
+      ctx.fillStyle = '#f7f8ff';
+      ctx.font = '700 17px Segoe UI';
+      ctx.fillText('a) Đèn xì oxygen – acetylene', 22, 28);
+      ctx.restore();
+    }
+
+    function drawFridgePanel(x, y, w, h, chill) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(22, 25, 38, 0.58)';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, h, 18);
+      ctx.fill();
+      ctx.fillStyle = '#edf5ff';
+      ctx.fillRect(82, 24, 118, 168);
+      ctx.strokeStyle = '#aebbd1';
+      ctx.strokeRect(82, 24, 118, 168);
+      for (let r = 0; r < 4; r += 1) {
+        ctx.strokeStyle = '#cfd9e6';
+        ctx.beginPath();
+        ctx.moveTo(90, 54 + r * 34);
+        ctx.lineTo(192, 54 + r * 34);
+        ctx.stroke();
+      }
+      for (let i = 0; i < 12; i += 1) {
+        const px = 98 + (i % 4) * 24;
+        const py = 66 + Math.floor(i / 4) * 34;
+        ctx.fillStyle = ['#ffb45c', '#7fd1ff', '#8bd98e'][i % 3];
+        ctx.fillRect(px, py, 14, 14);
+      }
+      for (let i = 0; i < 10; i += 1) {
+        const sx = 62 + i * 18;
+        ctx.strokeStyle = 'rgba(198,232,255,' + (0.2 + chill * 0.3).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.moveTo(sx, 30 + (i % 3) * 10);
+        ctx.lineTo(sx + 6, 18 + (i % 3) * 10);
+        ctx.lineTo(sx + 12, 30 + (i % 3) * 10);
+        ctx.stroke();
+      }
+      ctx.fillStyle = '#f7f8ff';
+      ctx.font = '700 17px Segoe UI';
+      ctx.fillText('b) Tủ lạnh bảo quản thức ăn', 20, 28);
+      ctx.restore();
+    }
+
+    function drawJarPanel(x, y, w, h, ferment) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = 'rgba(22, 25, 38, 0.58)';
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, h, 18);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.72)';
+      ctx.lineWidth = 3;
+      ctx.fillStyle = 'rgba(240,247,255,0.12)';
+      ctx.beginPath();
+      ctx.ellipse(144, 30, 68, 12, 0, 0, Math.PI * 2);
+      ctx.ellipse(144, 128, 82, 108, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(210,184,96,0.55)';
+      ctx.beginPath();
+      ctx.ellipse(144, 132, 72, 88, 0, 0, Math.PI * 2);
+      ctx.fill();
+      for (let i = 0; i < 18; i += 1) {
+        const px = 92 + (i % 6) * 18;
+        const py = 72 + Math.floor(i / 6) * 36 + Math.sin(i + ferment * 6) * 4;
+        ctx.fillStyle = '#d6c27a';
+        ctx.beginPath();
+        ctx.ellipse(px, py, 15, 8, 0.6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      for (let i = 0; i < 8; i += 1) {
+        const bx = 96 + i * 16;
+        const by = 100 - ((ferment * 90 + i * 12) % 48);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.08 + ferment * 0.18).toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.arc(bx, by, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = '#465161';
+      ctx.fillRect(76, 18, 136, 14);
+      ctx.fillStyle = '#f7f8ff';
+      ctx.font = '700 17px Segoe UI';
+      ctx.fillText('c) Bình dưa muối', 20, 28);
+      ctx.restore();
+    }
+
+    function draw() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#f6f1e7');
+      bg.addColorStop(1, '#b7ab95');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      const panelW = Math.min(290, (w - 80) / 3);
+      const panelH = Math.min(250, h * 0.34);
+      const gap = 22;
+      const startX = (w - (panelW * 3 + gap * 2)) * 0.5;
+      const y = h * 0.44;
+      drawTorchPanel(startX, y, panelW, panelH, Math.min(1, state.progress * 3));
+      drawFridgePanel(startX + panelW + gap, y, panelW, panelH, Math.max(0, Math.min(1, (state.progress - 0.33) * 3)));
+      drawJarPanel(startX + (panelW + gap) * 2, y, panelW, panelH, Math.max(0, Math.min(1, (state.progress - 0.66) * 3)));
+
+      ctx.fillStyle = 'rgba(37, 34, 24, 0.9)';
+      ctx.font = '600 15px Segoe UI';
+      ctx.fillText('Tăng tốc phản ứng khi cần sinh nhiệt/cháy mạnh; giảm tốc hoặc điều khiển lên men khi cần bảo quản.', 52, h - 42);
+    }
+
+    function syncText() {
+      if (state.progress < 0.02) {
+        statusText.textContent = 'Sẵn sàng. Bấm “Chạy tình huống” để xem ba ứng dụng thay đổi tốc độ phản ứng trong đời sống và sản xuất.';
+        statusSub.textContent = 'Ảnh gốc mở đầu bằng câu: con người áp dụng nhiều biện pháp kĩ thuật để thay đổi tốc độ phản ứng như nồng độ, nhiệt độ, chất xúc tác...';
+      } else if (state.progress < 0.33) {
+        statusText.textContent = 'Tình huống 1: đèn xì oxygen – acetylene tạo ngọn lửa mạnh hơn nhờ làm phản ứng cháy diễn ra nhanh và nóng hơn.';
+        statusSub.textContent = 'Đây là ví dụ “tăng tốc phản ứng” để phục vụ cắt, hàn kim loại.';
+      } else if (state.progress < 0.66) {
+        statusText.textContent = 'Tình huống 2: tủ lạnh hạ nhiệt độ nên làm chậm nhiều phản ứng phân hủy thực phẩm.';
+        statusSub.textContent = 'Không phải lúc nào cũng cần phản ứng nhanh; bảo quản tốt thường cần phản ứng chậm lại.';
+      } else {
+        statusText.textContent = 'Tình huống 3: bình dưa muối cho thấy con người điều khiển quá trình lên men ở tốc độ phù hợp để tạo thực phẩm mong muốn.';
+        statusSub.textContent = 'Kết luận: thay đổi tốc độ phản ứng là một công cụ kĩ thuật rất gần với đời sống hằng ngày.';
+      }
+    }
+
+    function tick() {
+      if (state.playing) {
+        state.progress = Math.min(1, state.progress + 0.0048);
+        if (state.progress >= 1) state.playing = false;
+      }
+      syncText();
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    pourBtn.addEventListener('click', () => {
+      state.playing = true;
+      state.progress = 0;
+      statusText.textContent = 'Đang chuyển qua ba tình huống ứng dụng.';
+      statusSub.textContent = 'Quan sát mỗi khung để phân biệt khi nào con người muốn tăng tốc và khi nào muốn giảm tốc phản ứng.';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.playing = false;
+      state.progress = 0;
+      syncText();
+      draw();
+    });
+
+    window.addEventListener('resize', () => {
+      resize();
+      draw();
+    });
+
+    resize();
+    syncText();
+    tick();
+  </script>
+</body>
+</html>

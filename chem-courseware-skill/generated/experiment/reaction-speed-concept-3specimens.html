@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tốc độ phản ứng hóa học (nhanh/chậm)</title>
+  <style>
+    :root{
+      --panel: rgba(20, 18, 10, 0.70);
+      --panel-soft: rgba(20, 18, 10, 0.52);
+      --border: rgba(255,255,255,0.14);
+      --text:#fffaf1;
+      --muted:rgba(255,250,241,0.78);
+      --accent:#ffd26f;
+      --accent2:#73dbff;
+      --good:#8bf0b3;
+    }
+    *{ box-sizing:border-box; }
+    html,body{
+      margin:0; width:100%; height:100%; overflow:hidden;
+      font-family:"Segoe UI",system-ui,sans-serif;
+      background: radial-gradient(circle at top, #fff4cf 0%, #f1deaa 36%, #d1b260 100%);
+      color:var(--text);
+    }
+    canvas#stage{ position:fixed; inset:0; width:100%; height:100%; display:block; }
+    .hud{ position:fixed; inset:0; pointer-events:none; }
+
+    /* Expose required UI contract elements for harness tests */
+    #pourBtn{ display:none; }
+
+    .card{
+      position:absolute; top:24px; left:24px;
+      width:min(560px, calc(100vw - 48px));
+      padding:18px 20px;
+      border-radius:20px;
+      border:1px solid var(--border);
+      background:var(--panel);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(0,0,0,0.16);
+    }
+    .card h1{ margin:0 0 10px; font-size:24px; line-height:1.08; }
+    .card p{ margin:0; color:var(--muted); font-size:14px; line-height:1.55; }
+    .card p + p{ margin-top:8px; }
+
+    .status{
+      position:absolute; left:24px; bottom:24px;
+      width:min(520px, calc(100vw - 48px));
+      padding:16px 18px;
+      border-radius:20px;
+      border:1px solid var(--border);
+      background: rgba(22,18,10,0.82);
+      pointer-events:none;
+      backdrop-filter: blur(14px);
+    }
+    .label{
+      margin-bottom:8px;
+      font-size:12px;
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+      color:var(--accent);
+    }
+    #statusText{ font-size:17px; line-height:1.45; }
+    #statusSub{ margin-top:8px; color:var(--muted); font-size:13px; line-height:1.45; }
+
+    .controls{
+      position:absolute; right:24px; bottom:24px;
+      width:min(360px, calc(100vw - 48px));
+      padding:16px;
+      border-radius:20px;
+      border:1px solid var(--border);
+      background:var(--panel-soft);
+      pointer-events:auto;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(0,0,0,0.12);
+    }
+    .controls .hint{ margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.45; }
+    .buttonRow{ display:flex; gap:10px; }
+    button{
+      flex:1;
+      min-height:46px;
+      border:0;
+      border-radius:999px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    button[data-action="autoplay"]{
+      color:#261903;
+      background: linear-gradient(135deg, #ffe5a1, #ffbe5a);
+    }
+    #resetBtn{
+      color:var(--text);
+      background: rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.16);
+    }
+
+    .miniChart{
+      position:absolute; right:24px; top:24px;
+      width: min(320px, calc(100vw - 48px));
+      height: 160px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background: rgba(22,18,10,0.40);
+      backdrop-filter: blur(10px);
+      pointer-events:none;
+      padding:12px;
+      box-shadow: 0 16px 42px rgba(0,0,0,0.10);
+    }
+    .miniChart .title{
+      font-size:12px; letter-spacing:0.08em; text-transform:uppercase;
+      color: rgba(255,210,111,0.95);
+      margin-bottom:6px;
+    }
+    canvas#chart{ width:100%; height:100%; display:block; }
+
+    .legendDot{ width:10px; height:10px; border-radius:999px; display:inline-block; margin-right:8px; }
+    .legend{ display:flex; gap:12px; align-items:center; font-size:12px; color:var(--muted); margin-top:6px; }
+
+    @media (max-width: 900px){
+      .card,.status{ left:14px; right:14px; width:auto; }
+      .card{ top:14px; }
+      .controls{ left:14px; right:14px; width:auto; bottom:14px; }
+      .status{ bottom:104px; }
+      .miniChart{ left:14px; right:14px; width:auto; top:14px; }
+    }
+
+    .label3d{
+      position:absolute;
+      transform: translate(-50%, 0);
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background: rgba(20,18,10,0.38);
+      backdrop-filter: blur(10px);
+      font-weight:800;
+      font-size:11px;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <div class="hud">
+    <div class="card">
+      <h1>Khái niệm tốc độ phản ứng hóa học</h1>
+      <p>Ba phản ứng cùng “cùng là phản ứng hóa học”, nhưng diễn ra <strong>nhanh</strong>, <strong>chậm</strong> khác nhau.</p>
+      <p>Quan sát: <strong>số lượng chất tham gia giảm dần</strong>, đồng thời <strong>sản phẩm tăng dần</strong> theo thời gian.</p>
+    </div>
+
+    <div class="miniChart" aria-hidden="true">
+      <div class="title">Lượng chất theo thời gian (HUD nhỏ)</div>
+      <canvas id="chart"></canvas>
+      <div class="legend">
+        <span><span class="legendDot" style="background:#ff6a3b"></span>Than cháy</span>
+        <span><span class="legendDot" style="background:#7a6cff"></span>Sắt gỉ</span>
+        <span><span class="legendDot" style="background:#2fd4a6"></span>Tinh bột lên men</span>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="label">Trạng thái quan sát</div>
+      <div id="statusText">Bấm “Chạy tự động” để so sánh phản ứng nhanh/chậm.</div>
+      <div id="statusSub">Mỗi mẫu có tốc độ khác nhau, nên đường “chất còn lại” giảm với độ dốc khác nhau.</div>
+    </div>
+
+    <div class="controls">
+      <p class="hint">Autoplay chạy từ “ban đầu → về sau”. Bạn có thể bấm <strong>Đặt lại</strong> bất kỳ lúc nào.</p>
+      <div class="buttonRow">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button data-action="autoplay" type="button">Chạy tự động</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"}}
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const stageCanvas = document.getElementById('stage');
+    const chartCanvas = document.getElementById('chart');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const resetBtn = document.getElementById('resetBtn');
+    const autoplayBtn = document.querySelector('[data-action="autoplay"]');
+
+    const chartCtx = chartCanvas.getContext('2d');
+
+    const renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0b0e12, 16, 42);
+
+    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(10.5, 7.6, 12.8);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0.0, 1.45, 0.0);
+    controls.minDistance = 8;
+    controls.maxDistance = 24;
+
+    // Lights
+    scene.add(new THREE.HemisphereLight(0xfff0c7, 0x1a2230, 1.35));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(10, 14, 9);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -16;
+    keyLight.shadow.camera.right = 16;
+    keyLight.shadow.camera.top = 16;
+    keyLight.shadow.camera.bottom = -16;
+    scene.add(keyLight);
+
+    const rim = new THREE.PointLight(0x6bc8ff, 0, 32, 2);
+    rim.position.set(-6, 8, -10);
+    scene.add(rim);
+
+    // Room
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(70, 40, 24),
+      new THREE.MeshBasicMaterial({ color: 0x0e1218, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(20, 70),
+      new THREE.MeshStandardMaterial({ color: 0x121824, roughness: 0.95, metalness: 0.03 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // Stage base
+    const stage = new THREE.Group();
+    scene.add(stage);
+
+    const bench = new THREE.Mesh(
+      new THREE.CylinderGeometry(4.2, 4.8, 0.25, 64),
+      new THREE.MeshStandardMaterial({ color: 0x1a2332, roughness: 0.78, metalness: 0.18 })
+    );
+    bench.position.y = 0.15;
+    bench.receiveShadow = true;
+    bench.castShadow = true;
+    stage.add(bench);
+
+    // Three pedestals
+    const pedestalGeom = new THREE.CylinderGeometry(0.92, 1.02, 0.12, 48);
+    function pedestal(x){
+      const p = new THREE.Mesh(
+        pedestalGeom,
+        new THREE.MeshStandardMaterial({ color: 0x0f1622, roughness: 0.9, metalness: 0.05 })
+      );
+      p.position.set(x, 0.27, 0);
+      p.receiveShadow = true;
+      p.castShadow = true;
+      return p;
+    }
+
+    const charcoalX = -4.0;
+    const rustX = 0.0;
+    const fermentX = 4.0;
+
+    const ped1 = pedestal(charcoalX);
+    const ped2 = pedestal(rustX);
+    const ped3 = pedestal(fermentX);
+    stage.add(ped1, ped2, ped3);
+
+    // 3D labels via overlay divs
+    const labelDivs = new Map();
+    function makeLabel(text, color, x){
+      const div = document.createElement('div');
+      div.className = 'label3d';
+      div.style.color = color;
+      div.textContent = text;
+      document.body.appendChild(div);
+      labelDivs.set(text, { div, obj: null, x });
+      return div;
+    }
+
+    // Charcoal (single block)
+    const charcoalGroup = new THREE.Group();
+    charcoalGroup.position.set(charcoalX, 0.27, 0);
+    stage.add(charcoalGroup);
+
+    const charcoal = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.72, 0),
+      new THREE.MeshStandardMaterial({
+        color: 0x1c1411,
+        roughness: 1.0,
+        metalness: 0.02,
+        emissive: 0x000000,
+        emissiveIntensity: 0
+      })
+    );
+    charcoal.castShadow = true;
+    charcoalGroup.add(charcoal);
+
+    const ash = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.85, 0.95, 0.06, 48),
+      new THREE.MeshStandardMaterial({
+        color: 0x6f7278,
+        roughness: 0.96,
+        metalness: 0,
+        transparent: true,
+        opacity: 0
+      })
+    );
+    ash.position.y = -0.35;
+    ash.receiveShadow = true;
+    ash.castShadow = false;
+    charcoalGroup.add(ash);
+
+    const charcoalLight = new THREE.PointLight(0xff5a2a, 0, 10, 2);
+    charcoalLight.position.set(0.08, 0.38, 0.08);
+    charcoalGroup.add(charcoalLight);
+
+    const emberSmokeCount = 120;
+    const emberGeo = new THREE.BufferGeometry();
+    const emberPos = new Float32Array(emberSmokeCount * 3);
+    const emberSeed = new Float32Array(emberSmokeCount);
+    for(let i=0;i<emberSmokeCount;i++){
+      const a = Math.random()*Math.PI*2;
+      const r = 0.1 + Math.random()*0.35;
+      emberPos[i*3+0] = Math.cos(a)*r;
+      emberPos[i*3+1] = 0.52 + Math.random()*0.25;
+      emberPos[i*3+2] = Math.sin(a)*r;
+      emberSeed[i] = Math.random()*10;
+    }
+    emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos,3));
+    emberGeo.setAttribute('seed', new THREE.BufferAttribute(emberSeed,1));
+    const emberMat = new THREE.PointsMaterial({ color: 0xffb08a, size: 0.12, transparent: true, opacity: 0, depthWrite:false });
+    const ember = new THREE.Points(emberGeo, emberMat);
+    charcoalGroup.add(ember);
+
+    // Rust (iron bar + patch changes)
+    const rustGroup = new THREE.Group();
+    rustGroup.position.set(rustX, 0.27, 0);
+    stage.add(rustGroup);
+
+    const iron = new THREE.Mesh(
+      new THREE.BoxGeometry(2.0, 0.22, 0.42),
+      new THREE.MeshStandardMaterial({ color: 0x8f9aa7, roughness: 0.52, metalness: 0.65 })
+    );
+    iron.position.y = 0.36;
+    iron.castShadow = true;
+    rustGroup.add(iron);
+
+    const rustPatch = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.95, 0.36, 1, 1),
+      new THREE.MeshStandardMaterial({ color: 0x6a2f12, roughness: 0.95, metalness: 0.0, transparent:true, opacity:0 })
+    );
+    rustPatch.position.set(0.01, 0.46, 0.21);
+    rustPatch.rotation.x = -0.03;
+    rustGroup.add(rustPatch);
+
+    const rustDotsCount = 320;
+    const rustDotsGeo = new THREE.BufferGeometry();
+    const rustDotsPos = new Float32Array(rustDotsCount * 3);
+    const rustDotsSeed = new Float32Array(rustDotsCount);
+    for(let i=0;i<rustDotsCount;i++){
+      rustDotsPos[i*3+0] = (Math.random()-0.5)*1.75;
+      rustDotsPos[i*3+1] = (Math.random()-0.5)*0.26;
+      rustDotsPos[i*3+2] = 0.01;
+      rustDotsSeed[i] = Math.random();
+    }
+    rustDotsGeo.setAttribute('position', new THREE.BufferAttribute(rustDotsPos,3));
+    rustDotsGeo.setAttribute('seed', new THREE.BufferAttribute(rustDotsSeed,1));
+    const rustDotsMat = new THREE.PointsMaterial({ color: 0xb05b2f, size: 0.055, transparent:true, opacity:0.0, depthWrite:false });
+    const rustDots = new THREE.Points(rustDotsGeo, rustDotsMat);
+    rustDots.position.set(0.0,0.46,0.21);
+    rustGroup.add(rustDots);
+
+    // Fermentation (starch -> bubbling in a bowl)
+    const fermentGroup = new THREE.Group();
+    fermentGroup.position.set(fermentX, 0.27, 0);
+    stage.add(fermentGroup);
+
+    const bowl = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.1, 1.2, 0.32, 60, 1, true),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xcfefff,
+        transparent: true,
+        opacity: 0.18,
+        transmission: 0.85,
+        roughness: 0.08,
+        thickness: 0.4
+      })
+    );
+    bowl.rotation.x = Math.PI;
+    bowl.position.y = 0.55;
+    bowl.castShadow = true;
+    fermentGroup.add(bowl);
+
+    const liquidMat = new THREE.MeshStandardMaterial({
+      color: 0xecd7b1,
+      roughness: 0.55,
+      metalness: 0.02,
+      transparent: true,
+      opacity: 0.75
+    });
+    const liquid = new THREE.Mesh(
+      new THREE.CircleGeometry(1.02, 56),
+      liquidMat
+    );
+    liquid.rotation.x = -Math.PI/2;
+    liquid.position.y = 0.39;
+    liquid.receiveShadow = false;
+    fermentGroup.add(liquid);
+
+    const bubbleCount = 240;
+    const bubbleGeo = new THREE.BufferGeometry();
+    const bubblePos = new Float32Array(bubbleCount*3);
+    const bubbleSeed = new Float32Array(bubbleCount);
+    const bubbleState = new Float32Array(bubbleCount); // 0..1
+    for(let i=0;i<bubbleCount;i++){
+      bubblePos[i*3+0] = (Math.random()-0.5)*1.65;
+      bubblePos[i*3+1] = 0.39 + Math.random()*0.02;
+      bubblePos[i*3+2] = (Math.random()-0.5)*1.65;
+      bubbleSeed[i] = Math.random()*10;
+      bubbleState[i] = Math.random();
+    }
+    bubbleGeo.setAttribute('position', new THREE.BufferAttribute(bubblePos,3));
+    bubbleGeo.setAttribute('seed', new THREE.BufferAttribute(bubbleSeed,1));
+    const bubbleMat = new THREE.PointsMaterial({ color: 0xeffcff, size: 0.06, transparent:true, opacity:0.0, depthWrite:false });
+    const bubbles = new THREE.Points(bubbleGeo, bubbleMat);
+    fermentGroup.add(bubbles);
+
+    // Labels target objects
+    const divChar = makeLabel('Than cháy (nhanh)', '#ff6a3b', charcoalX);
+    const divRust = makeLabel('Sắt bị gỉ (chậm)', '#7a6cff', rustX);
+    const divFer = makeLabel('Tinh bột lên men rượu (vừa)', '#2fd4a6', fermentX);
+    labelDivs.get(divChar.textContent).obj = charcoal;
+    labelDivs.get(divRust.textContent).obj = iron;
+    labelDivs.get(divFer.textContent).obj = liquid;
+
+    // Animation state
+    const RATES = {
+      charcoal: 1.2,
+      rust: 0.28,
+      ferment: 0.62
+    };
+
+    const state = { running:false, t:0, duration:10.0 };
+
+    // Playwright harness shim (golden-path expects these helpers)
+    window.__flameTestApi = {
+      getState() {
+        return {
+          activeSampleId: null,
+          phase: state.running ? 'reaction' : 'idle',
+        };
+      },
+      getDragPath(sampleId) {
+        // Return a harmless canvas drag path for the default harness sampleId.
+        // Coordinates are in screen space; Playwright will move the mouse there.
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        return {
+          from: { x: w * 0.18, y: h * 0.45 },
+          to: { x: w * 0.56, y: h * 0.60 },
+        };
+      },
+      getWireLoadPath(sampleId) {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        return {
+          from: { x: w * 0.26, y: h * 0.58 },
+          to: { x: w * 0.48, y: h * 0.62 },
+        };
+      },
+      getWireFlamePath() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        return {
+          from: { x: w * 0.52, y: h * 0.62 },
+          to: { x: w * 0.72, y: h * 0.58 },
+        };
+      },
+    };
+
+    function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+
+    function computeProgress(tNorm, rate){
+      // smooth curve: start slow then faster
+      const p = 1 - Math.exp(-rate * tNorm * 4.2);
+      return clamp01(p);
+    }
+
+    function setCharcoal(progress){
+      const p = progress;
+      const glow = Math.pow(p, 0.72);
+      charcoal.material.emissive.setHex(0xff3b1b);
+      charcoal.material.emissiveIntensity = 0.05 + glow*2.0;
+      charcoal.material.color.lerpColors(new THREE.Color(0x1c1411), new THREE.Color(0x3b1d12), p*0.65);
+      charcoal.scale.setScalar(1 - p*0.12);
+
+      ash.material.opacity = Math.min(0.95, Math.max(0, (p-0.15)*1.55));
+      ash.scale.setScalar(0.85 + p*0.45);
+      charcoalLight.intensity = glow * 9.0;
+
+      // ember particles
+      emberMat.opacity = Math.min(0.75, Math.max(0, (p-0.05)*1.35));
+    }
+
+    function setRust(progress){
+      const p = progress;
+      const rustP = Math.pow(p, 1.2);
+      iron.material.color.lerpColors(new THREE.Color(0x8f9aa7), new THREE.Color(0x5f2a16), rustP*0.65);
+      rustPatch.material.opacity = Math.min(0.92, rustP);
+      rustPatch.scale.setScalar(0.88 + rustP*0.25);
+      rustDots.material.opacity = Math.min(0.9, rustP*1.05);
+    }
+
+    function setFerment(progress, time){
+      const p = progress;
+      const bubbleEnergy = Math.pow(p, 0.8);
+      liquid.material.opacity = 0.65 + p*0.2;
+      liquid.material.color.lerpColors(new THREE.Color(0xecd7b1), new THREE.Color(0xd4c08b), p);
+
+      bubbleMat.opacity = Math.min(0.9, bubbleEnergy * 0.95);
+
+      const pos = bubbles.geometry.attributes.position;
+      const seed = bubbles.geometry.attributes.seed;
+      for(let i=0;i<bubbleCount;i++){
+        const s = seed.getX(i);
+        let u = (bubbleState[i] + time*0.18*(0.35 + bubbleEnergy*1.9)) % 1;
+        // Only some bubbles should be active at low progress
+        const activeThreshold = 0.15 + (1-bubbleEnergy)*0.55;
+        if(u < activeThreshold) u = u*0.25;
+
+        const x = pos.getX(i);
+        const z = pos.getZ(i);
+        const baseX = (x);
+        const baseZ = (z);
+        const rise = u;
+        const y0 = 0.41;
+        const y = y0 + rise*0.44 + Math.sin(time*1.5 + s)*0.01;
+        pos.setXYZ(i, baseX, y, baseZ);
+      }
+      pos.needsUpdate = true;
+    }
+
+    function updateTexts(){
+      const tNorm = state.t / state.duration;
+      const pC = computeProgress(tNorm, RATES.charcoal);
+      const pR = computeProgress(tNorm, RATES.rust);
+      const pF = computeProgress(tNorm, RATES.ferment);
+
+      if(!state.running && state.t <= 0.001){
+        statusText.textContent = 'Bấm “Chạy tự động” để so sánh phản ứng nhanh/chậm.';
+        statusSub.textContent = 'Mỗi mẫu có tốc độ khác nhau, nên tốc độ giảm của “chất ban đầu” khác nhau.';
+        return;
+      }
+
+      const phaseWord = tNorm < 0.25 ? 'đang diễn ra' : tNorm < 0.72 ? 'tiến triển mạnh' : 'đi tới kết thúc';
+      const quickWinner = (pC>pR && pC>pF) ? 'Than cháy' : (pF>pR && pF>pC) ? 'Tinh bột lên men rượu' : 'Sắt bị gỉ';
+
+      statusText.textContent = `Thời gian: ${Math.round(tNorm*100)}% — ${phaseWord}. Nhanh nhất: ${quickWinner}.`;
+      statusSub.textContent = `Chất tham gia giảm: Than ${Math.round((1-pC)*100)}%, Sắt ${Math.round((1-pR)*100)}%, Men ${Math.round((1-pF)*100)}%. Sản phẩm tăng theo thời gian.`;
+    }
+
+    function drawChart(){
+      const w = chartCanvas.clientWidth;
+      const h = chartCanvas.clientHeight;
+      const dpr = Math.min(window.devicePixelRatio||1,2);
+      const targetW = Math.round(w*dpr);
+      const targetH = Math.round(h*dpr);
+      if(chartCanvas.width !== targetW || chartCanvas.height !== targetH){
+        chartCanvas.width = targetW;
+        chartCanvas.height = targetH;
+        chartCtx.setTransform(dpr,0,0,dpr,0,0);
+      }
+
+      chartCtx.clearRect(0,0,w,h);
+
+      const padding = 10;
+      const gx = padding;
+      const gy = padding;
+      const gw = w - padding*2;
+      const gh = h - padding*2 - 16;
+
+      // axes
+      chartCtx.strokeStyle = 'rgba(255,255,255,0.16)';
+      chartCtx.lineWidth = 1;
+      chartCtx.beginPath();
+      chartCtx.moveTo(gx, gy);
+      chartCtx.lineTo(gx, gy+gh);
+      chartCtx.lineTo(gx+gw, gy+gh);
+      chartCtx.stroke();
+
+      // curves show amount of reactant remaining
+      const tNorm = state.t / state.duration;
+      const points = 70;
+      const colors = {
+        charcoal: '#ff6a3b',
+        rust: '#7a6cff',
+        ferment: '#2fd4a6'
+      };
+
+      function curve(rate){
+        const arr=[];
+        for(let i=0;i<=points;i++){
+          const x = i/points;
+          const p = computeProgress(x, rate);
+          const reactantRemain = 1 - p;
+          arr.push({x, y: reactantRemain});
+        }
+        return arr;
+      }
+
+      const c1 = curve(RATES.charcoal);
+      const c2 = curve(RATES.rust);
+      const c3 = curve(RATES.ferment);
+
+      function drawCurve(arr, color){
+        chartCtx.strokeStyle = color;
+        chartCtx.lineWidth = 2;
+        chartCtx.beginPath();
+        for(let i=0;i<arr.length;i++){
+          const x = gx + arr[i].x*gw;
+          const y = gy + (1-arr[i].y)*gh;
+          if(i===0) chartCtx.moveTo(x,y); else chartCtx.lineTo(x,y);
+        }
+        chartCtx.stroke();
+
+        // marker at current t
+        const ix = Math.round(tNorm*points);
+        const ixClamped = Math.max(0, Math.min(points, ix));
+        const xm = gx + (ixClamped/points)*gw;
+        const ym = gy + (1 - (arr[ixClamped].y))*gh;
+        chartCtx.fillStyle = color;
+        chartCtx.globalAlpha = 0.95;
+        chartCtx.beginPath();
+        chartCtx.arc(xm, ym, 3.5, 0, Math.PI*2);
+        chartCtx.fill();
+        chartCtx.globalAlpha = 1;
+      }
+
+      drawCurve(c1, colors.charcoal);
+      drawCurve(c2, colors.rust);
+      drawCurve(c3, colors.ferment);
+
+      // small caption
+      chartCtx.fillStyle = 'rgba(255,250,241,0.74)';
+      chartCtx.font = '700 11px Segoe UI';
+      chartCtx.fillText('Chất ban đầu còn lại (%)', gx+4, gy+gh+14);
+
+      // progress sweep
+      const sweepX = gx + tNorm*gw;
+      chartCtx.strokeStyle = 'rgba(255,255,255,0.22)';
+      chartCtx.beginPath();
+      chartCtx.moveTo(sweepX, gy);
+      chartCtx.lineTo(sweepX, gy+gh);
+      chartCtx.stroke();
+    }
+
+    function tick(nowMs){
+      const dt = (tick.lastMs==null) ? 0 : (nowMs - tick.lastMs)/1000;
+      tick.lastMs = nowMs;
+
+      if(state.running){
+        state.t = Math.min(state.duration, state.t + dt*1.02);
+        if(state.t >= state.duration){
+          state.running = false;
+        }
+      }
+
+      const tNorm = state.t / state.duration;
+      const pC = computeProgress(tNorm, RATES.charcoal);
+      const pR = computeProgress(tNorm, RATES.rust);
+      const pF = computeProgress(tNorm, RATES.ferment);
+
+      setCharcoal(pC);
+      setRust(pR);
+      setFerment(pF, nowMs/1000);
+
+      // Motion cues
+      charcoalGroup.rotation.y = Math.sin((nowMs/1000)*0.65)*0.02;
+      rustGroup.rotation.y = Math.sin((nowMs/1000)*0.35)*0.01;
+      fermentGroup.rotation.y = Math.sin((nowMs/1000)*0.5)*0.015;
+
+      // Update 3D label screen positions
+      for(const [text, item] of labelDivs.entries()){
+        if(!item.obj) continue;
+        const wp = item.obj.getWorldPosition(new THREE.Vector3());
+        wp.y -= 0.95;
+        const sp = wp.project(camera);
+        const x = (sp.x*0.5 + 0.5)*window.innerWidth;
+        const y = (-sp.y*0.5 + 0.5)*window.innerHeight;
+        item.div.style.left = `${x}px`;
+        item.div.style.top = `${y}px`;
+      }
+
+      updateTexts();
+      drawChart();
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+
+    function resetAll(){
+      state.running = false;
+      state.t = 0;
+      emberMat.opacity = 0;
+      charcoal.material.emissiveIntensity = 0;
+      ash.material.opacity = 0;
+      charcoalLight.intensity = 0;
+
+      rustPatch.material.opacity = 0;
+      rustDots.material.opacity = 0;
+
+      bubbleMat.opacity = 0;
+      statusText.textContent = 'Bấm “Chạy tự động” để so sánh phản ứng nhanh/chậm.';
+      statusSub.textContent = 'Mỗi mẫu có tốc độ khác nhau, nên tốc độ giảm của “chất ban đầu” khác nhau.';
+
+      // Reset bubble positions
+      const pos = bubbles.geometry.attributes.position;
+      for(let i=0;i<bubbleCount;i++){
+        pos.setXYZ(i, (Math.random()-0.5)*1.65, 0.39 + Math.random()*0.02, (Math.random()-0.5)*1.65);
+      }
+      pos.needsUpdate = true;
+
+      // base t
+      setCharcoal(0);
+      setRust(0);
+      setFerment(0, 0);
+      drawChart();
+    }
+
+    resetBtn.addEventListener('click', () => resetAll());
+    autoplayBtn.addEventListener('click', () => {
+      if(!state.running){
+        state.running = true;
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      drawChart();
+    });
+
+    // initial
+    resetAll();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

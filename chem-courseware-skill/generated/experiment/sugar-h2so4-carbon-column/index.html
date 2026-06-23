@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thí nghiệm 3D: Đường và H₂SO₄ đặc</title>
+  <style>
+    :root {
+      --panel: rgba(12, 18, 30, 0.76);
+      --panel-soft: rgba(10, 14, 24, 0.62);
+      --border: rgba(255, 255, 255, 0.13);
+      --accent: #73dbff;
+      --accent-strong: #4eb9ff;
+      --accent-hot: #9af1ff;
+      --warning: #ffbe6b;
+      --success: #8bf0b3;
+      --text: #f3f7ff;
+      --muted: rgba(243, 247, 255, 0.75);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top, #233556 0%, #111b2d 42%, #05070d 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel,
+    .legend,
+    .status,
+    .controls {
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      border-radius: 20px;
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 320px;
+      padding: 18px 20px 20px;
+      background: var(--panel);
+    }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 25px;
+      line-height: 1.08;
+    }
+
+    .panel p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .panel p + p {
+      margin-top: 10px;
+    }
+
+    .focus-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(115, 219, 255, 0.14);
+      border: 1px solid rgba(115, 219, 255, 0.24);
+      color: #dff7ff;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .focus-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-hot);
+      box-shadow: 0 0 16px rgba(154, 241, 255, 0.8);
+    }
+
+    .legend {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 300px;
+      padding: 16px 18px;
+      background: var(--panel-soft);
+    }
+
+    .legend h2,
+    .controls h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bcd9ff;
+    }
+
+    .legend ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      max-width: 420px;
+      min-width: 320px;
+      padding: 16px 18px;
+      background: rgba(8, 12, 20, 0.78);
+    }
+
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    #statusText {
+      font-size: 17px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+
+    #statusSub {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .scene-hint {
+      position: absolute;
+      left: 50%;
+      top: 84px;
+      transform: translateX(-50%);
+      min-width: min(420px, calc(100vw - 48px));
+      max-width: 520px;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(154, 241, 255, 0.28);
+      background: linear-gradient(180deg, rgba(7, 18, 31, 0.84), rgba(6, 14, 24, 0.62));
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(14px);
+      color: #e9f8ff;
+      font-size: 13px;
+      line-height: 1.45;
+      text-align: center;
+      opacity: 1;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .scene-hint strong {
+      color: var(--accent-hot);
+    }
+
+    .scene-hint.is-dim {
+      opacity: 0.42;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: 300px;
+      padding: 16px;
+      background: rgba(8, 12, 20, 0.7);
+      pointer-events: auto;
+    }
+
+    .mobile-inline-copy {
+      display: none;
+    }
+
+    .control-copy {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      border: 0;
+      min-height: 46px;
+      border-radius: 999px;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #pourBtn {
+      color: #06111f;
+      background: linear-gradient(135deg, #9be7ff, var(--accent-strong));
+      box-shadow: 0 12px 26px rgba(71, 174, 255, 0.34);
+    }
+
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .warn {
+      color: var(--warning);
+    }
+
+    @media (max-width: 960px) {
+      .panel,
+      .status,
+      .controls {
+        width: auto;
+        max-width: calc(100vw - 28px);
+        left: 14px;
+        right: 14px;
+      }
+
+      .panel {
+        top: 14px;
+        max-width: none;
+        padding: 12px 14px;
+      }
+
+      .panel h1 {
+        font-size: 17px;
+        margin-bottom: 6px;
+      }
+
+      .panel p,
+      .legend,
+      .focus-pill {
+        display: none;
+      }
+
+      .scene-hint {
+        top: 18px;
+        min-width: 0;
+        width: calc(100vw - 128px);
+        left: auto;
+        right: 14px;
+        transform: none;
+        border-radius: 18px;
+        padding: 10px 12px;
+        font-size: 12px;
+        text-align: left;
+      }
+
+      .scene-hint.is-dim {
+        transform: translateY(-4px);
+      }
+
+      .mobile-inline-copy {
+        display: block;
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+
+      .controls {
+        bottom: 14px;
+        padding: 12px 14px;
+      }
+
+      .controls h2 {
+        margin-bottom: 8px;
+      }
+
+      .control-copy {
+        margin-bottom: 10px;
+        font-size: 12px;
+      }
+
+      .status {
+        bottom: 92px;
+        min-width: 0;
+        padding: 12px 14px;
+      }
+
+      #statusText {
+        font-size: 15px;
+      }
+
+      #statusSub {
+        margin-top: 6px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Đường + H₂SO₄ đặc: phản ứng khử nước mạnh</h1>
+      <p>Mô phỏng này cho người học kéo chai axit đến vòng sáng phía trên miệng cốc hoặc bấm chạy tự động để xem thao tác chuẩn.</p>
+      <p class="warn">Dấu hiệu cần chú ý: đường ngả nâu rồi đen nhanh, hơi nước và bọt khí xuất hiện, sau đó cột carbon xốp phồng trào khỏi cốc.</p>
+      <div class="focus-pill">Tâm quan sát: miệng cốc và vùng rót sáng</div>
+      <div class="mobile-inline-copy">Kéo chai vào vòng sáng trên cốc để rót đúng vị trí.</div>
+    </div>
+
+    <div class="scene-hint" id="sceneHint">Đưa <strong>miệng chai</strong> vào <strong>vòng sáng trên cốc</strong> để bắt đầu rót đúng vị trí.</div>
+
+    <div class="legend" data-courseware-role="legend">
+      <h2>Quan sát chính</h2>
+      <ul>
+        <li>Di chuyển chai H₂SO₄ bằng cách kéo trực tiếp trên màn hình.</li>
+        <li>Vòng sáng và cột chỉ dẫn phía trên cốc cho biết đúng vùng rót.</li>
+        <li>Dòng axit xuất hiện khi chai vào đúng vị trí và bắt đầu nghiêng xuống.</li>
+        <li>Bọt khí, hơi mờ, ánh nóng và cột than đen tăng dần theo thời gian.</li>
+        <li>Giữ chuột ở nền để xoay góc nhìn toàn bộ bàn thí nghiệm.</li>
+      </ul>
+    </div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div id="statusText">Sẵn sàng. Hãy đưa chai H₂SO₄ vào vòng sáng phía trên miệng cốc.</div>
+      <div id="statusSub">Mục tiêu học tập: nhận ra H₂SO₄ đặc hút nước rất mạnh, làm đường đổi màu, than hóa và trương nở thành cột carbon xốp.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <h2>Thao tác</h2>
+      <div class="control-copy">Kéo chai để tự rót, hoặc chạy thử để xem quỹ đạo chuẩn đi vào đúng vùng rót rồi quan sát hiện tượng mạnh dần.</div>
+      <div class="button-row">
+        <button id="resetBtn" class="secondary" data-action="reset">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay">Rót thử ngay</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const sceneHint = document.getElementById('sceneHint');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x08111a);
+    scene.fog = new THREE.Fog(0x08111a, 18, 38);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(1.25, 5.95, 11.45);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0.04, 2.45, 0.3);
+    controls.minDistance = 6.8;
+    controls.maxDistance = 18;
+    controls.minPolarAngle = 0.45;
+    controls.maxPolarAngle = Math.PI / 2.05;
+
+    scene.add(new THREE.HemisphereLight(0xbfdcff, 0x23150c, 1.5));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(8, 13, 7);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -12;
+    keyLight.shadow.camera.right = 12;
+    keyLight.shadow.camera.top = 12;
+    keyLight.shadow.camera.bottom = -12;
+    scene.add(keyLight);
+
+    const warmFill = new THREE.PointLight(0xffa256, 16, 22, 2);
+    warmFill.position.set(-4, 4.5, 4);
+    scene.add(warmFill);
+
+    const coolRim = new THREE.PointLight(0x69beff, 14, 30, 2);
+    coolRim.position.set(0, 8, -9);
+    scene.add(coolRim);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(32, 40, 28),
+      new THREE.MeshBasicMaterial({ color: 0x0f1928, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(20, 64),
+      new THREE.MeshStandardMaterial({ color: 0x172434, roughness: 0.9, metalness: 0.06 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchMaterial = new THREE.MeshStandardMaterial({ color: 0x5a4131, roughness: 0.82, metalness: 0.08 });
+    const frameMaterial = new THREE.MeshStandardMaterial({ color: 0x2d3646, roughness: 0.72, metalness: 0.32 });
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xc6efff,
+      transparent: true,
+      opacity: 0.24,
+      transmission: 0.82,
+      roughness: 0.08,
+      thickness: 0.45
+    });
+
+    const benchTop = new THREE.Mesh(new THREE.BoxGeometry(12, 0.45, 6.2), benchMaterial);
+    benchTop.position.y = 1.4;
+    benchTop.receiveShadow = true;
+    benchTop.castShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.45, 2.8, 0.45);
+    for (const [x, z] of [[-5.2, -2.5], [5.2, -2.5], [-5.2, 2.5], [5.2, 2.5]]) {
+      const leg = new THREE.Mesh(legGeometry, frameMaterial);
+      leg.position.set(x, 0.15, z);
+      leg.castShadow = true;
+      bench.add(leg);
+    }
+
+    const beaker = new THREE.Group();
+    beaker.position.set(0, 1.63, 0.25);
+    scene.add(beaker);
+
+    const reactionPool = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.15, 2.5, 0.12, 48),
+      new THREE.MeshStandardMaterial({
+        color: 0x163046,
+        emissive: 0x0f4365,
+        emissiveIntensity: 0.42,
+        roughness: 0.46,
+        metalness: 0.12,
+        transparent: true,
+        opacity: 0.92
+      })
+    );
+    reactionPool.position.set(0, 1.66, 0.25);
+    reactionPool.receiveShadow = true;
+    scene.add(reactionPool);
+
+    const beakerWall = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.55, 2.45, 48, 1, true), glassMaterial);
+    beakerWall.castShadow = true;
+    beaker.add(beakerWall);
+
+    const beakerBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.3, 1.3, 0.18, 48),
+      new THREE.MeshPhysicalMaterial({ color: 0xe5f7ff, transparent: true, opacity: 0.26, roughness: 0.18 })
+    );
+    beakerBase.position.y = -1.13;
+    beakerBase.receiveShadow = true;
+    beaker.add(beakerBase);
+
+    const sugar = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.04, 1.12, 1.1, 40),
+      new THREE.MeshStandardMaterial({ color: 0xe5dbc2, roughness: 0.95, metalness: 0.02 })
+    );
+    sugar.position.y = -0.56;
+    sugar.castShadow = true;
+    sugar.receiveShadow = true;
+    beaker.add(sugar);
+
+    const sugarTop = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.92, 1.02, 0.16, 36),
+      new THREE.MeshStandardMaterial({ color: 0xf5eddd, roughness: 0.78, metalness: 0.02 })
+    );
+    sugarTop.position.y = 0.02;
+    sugarTop.castShadow = true;
+    beaker.add(sugarTop);
+
+    const carbon = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.72, 0.1, 34),
+      new THREE.MeshStandardMaterial({ color: 0x161210, roughness: 1.0, metalness: 0.0 })
+    );
+    carbon.position.y = -0.45;
+    carbon.scale.set(1, 0.01, 1);
+    carbon.castShadow = true;
+    carbon.receiveShadow = true;
+    beaker.add(carbon);
+
+    const bottle = new THREE.Group();
+    scene.add(bottle);
+
+    const bottleGlass = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.48, 0.58, 2.6, 32),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x895c32,
+        transparent: true,
+        opacity: 0.55,
+        transmission: 0.18,
+        roughness: 0.18,
+        thickness: 0.52
+      })
+    );
+    bottleGlass.castShadow = true;
+    bottle.add(bottleGlass);
+
+    const bottleNeck = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.2, 0.6, 24),
+      new THREE.MeshStandardMaterial({ color: 0xd9c8a4, roughness: 0.55, metalness: 0.1 })
+    );
+    bottleNeck.position.y = 1.55;
+    bottleNeck.castShadow = true;
+    bottle.add(bottleNeck);
+
+    const bottleCap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.23, 0.23, 0.24, 24),
+      new THREE.MeshStandardMaterial({ color: 0xefe1bc, roughness: 0.6, metalness: 0.04 })
+    );
+    bottleCap.position.y = 1.95;
+    bottleCap.castShadow = true;
+    bottle.add(bottleCap);
+
+    const label = new THREE.Mesh(
+      new THREE.BoxGeometry(1.0, 0.74, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0xf4efe2, roughness: 0.72 })
+    );
+    label.position.set(0, 0.25, 0.55);
+    bottle.add(label);
+
+    const acidCore = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.36, 0.42, 1.8, 28),
+      new THREE.MeshPhysicalMaterial({ color: 0xb3dfff, transparent: true, opacity: 0.35, roughness: 0.06 })
+    );
+    acidCore.position.y = -0.1;
+    bottle.add(acidCore);
+
+    const bottleStart = new THREE.Vector3(-4.55, 2.85, 2.05);
+    bottle.position.copy(bottleStart);
+    bottle.rotation.z = -0.12;
+
+    const stream = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.07, 0.11, 0.1, 14),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x8bd7ff,
+        emissive: 0x1e74b3,
+        emissiveIntensity: 0.45,
+        transparent: true,
+        opacity: 0.62
+      })
+    );
+    stream.visible = false;
+    scene.add(stream);
+
+    const pourGuide = new THREE.Group();
+    pourGuide.position.set(beaker.position.x + 0.08, 4.72, beaker.position.z);
+    scene.add(pourGuide);
+
+    const guideRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.88, 0.05, 18, 64),
+      new THREE.MeshBasicMaterial({ color: 0x98f0ff, transparent: true, opacity: 0.95 })
+    );
+    guideRing.rotation.x = Math.PI / 2;
+    pourGuide.add(guideRing);
+
+    const guideHalo = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.82, 1.2, 0.06, 40, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x5dd9ff, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
+    );
+    guideHalo.position.y = -0.02;
+    pourGuide.add(guideHalo);
+
+    const guideColumn = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.82, 1.9, 24, 1, true),
+      new THREE.MeshBasicMaterial({ color: 0x69dcff, transparent: true, opacity: 0.12, side: THREE.DoubleSide })
+    );
+    guideColumn.position.y = -1.0;
+    pourGuide.add(guideColumn);
+
+    const guideArrow = new THREE.Mesh(
+      new THREE.ConeGeometry(0.24, 0.4, 24),
+      new THREE.MeshBasicMaterial({ color: 0xd5fbff, transparent: true, opacity: 0.8 })
+    );
+    guideArrow.position.y = 0.25;
+    pourGuide.add(guideArrow);
+
+    const bubbleGroup = new THREE.Group();
+    scene.add(bubbleGroup);
+    const bubbles = [];
+    for (let i = 0; i < 22; i += 1) {
+      const bubble = new THREE.Mesh(
+        new THREE.SphereGeometry(0.07 + Math.random() * 0.05, 14, 14),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xf6ffff,
+          transparent: true,
+          opacity: 0.55,
+          roughness: 0.08,
+          transmission: 0.8
+        })
+      );
+      bubble.visible = false;
+      bubbleGroup.add(bubble);
+      bubbles.push({
+        mesh: bubble,
+        offset: Math.random() * Math.PI * 2,
+        speed: 0.55 + Math.random() * 0.7,
+        radius: 0.25 + Math.random() * 0.65
+      });
+    }
+
+    const steamGroup = new THREE.Group();
+    scene.add(steamGroup);
+    const steamClouds = [];
+    for (let i = 0; i < 14; i += 1) {
+      const puff = new THREE.Mesh(
+        new THREE.SphereGeometry(0.28 + Math.random() * 0.18, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xd6e5ea, transparent: true, opacity: 0.14 })
+      );
+      puff.visible = false;
+      steamGroup.add(puff);
+      steamClouds.push({ mesh: puff, drift: Math.random() * Math.PI * 2, speed: 0.2 + Math.random() * 0.28 });
+    }
+
+    const heatGlow = new THREE.PointLight(0xff8f4f, 0, 6, 2);
+    heatGlow.position.set(0, 3.15, 0.25);
+    scene.add(heatGlow);
+
+    const reactionRimLight = new THREE.PointLight(0xffa966, 0.4, 10, 2);
+    reactionRimLight.position.set(0.15, 4.6, 1.7);
+    scene.add(reactionRimLight);
+
+    const pointer = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -1.5);
+    const dragPoint = new THREE.Vector3();
+    const clock = new THREE.Clock();
+
+    const state = {
+      phase: 'ready',
+      reactionProgress: 0,
+      dragging: false,
+      pointerInsideBottle: false,
+      autoMove: false,
+      autoStart: 0,
+      autoDuration: 1.45,
+      draggedOnce: false,
+      primingStart: 0,
+      primingDuration: 0.34,
+      snapProgress: 0,
+      primeSource: 'drag'
+    };
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function setReadyState() {
+      state.phase = 'ready';
+      state.reactionProgress = 0;
+      state.dragging = false;
+      state.autoMove = false;
+      state.snapProgress = 0;
+      state.primingStart = 0;
+      state.primeSource = 'drag';
+      bottle.position.copy(bottleStart);
+      bottle.rotation.set(0, 0, -0.12);
+      sugar.scale.set(1, 1, 1);
+      sugar.position.y = -0.56;
+      sugar.material.color.setHex(0xe5dbc2);
+      sugarTop.scale.set(1, 1, 1);
+      sugarTop.position.y = 0.02;
+      sugarTop.material.color.setHex(0xf5eddd);
+      carbon.scale.set(1, 0.01, 1);
+      carbon.position.y = -0.45;
+      reactionPool.material.emissiveIntensity = 0.42;
+      reactionPool.material.color.setHex(0x163046);
+      guideRing.material.opacity = 0.95;
+      guideHalo.material.opacity = 0.22;
+      guideColumn.material.opacity = 0.12;
+      guideArrow.material.opacity = 0.8;
+      stream.visible = false;
+      heatGlow.intensity = 0;
+      reactionRimLight.intensity = 0.4;
+      sceneHint.classList.remove('is-dim');
+      for (const item of bubbles) {
+        item.mesh.visible = false;
+      }
+      for (const item of steamClouds) {
+        item.mesh.visible = false;
+      }
+      statusText.textContent = 'Sẵn sàng. Hãy đưa chai H₂SO₄ vào vòng sáng phía trên miệng cốc.';
+      statusSub.textContent = 'Mục tiêu học tập: nhận ra H₂SO₄ đặc hút nước rất mạnh, làm đường đổi màu, than hóa và trương nở thành cột carbon xốp.';
+    }
+
+    function getBottleTipWorldPosition() {
+      bottle.updateMatrixWorld(true);
+      return new THREE.Vector3(0.0, 1.88, 0).applyMatrix4(bottle.matrixWorld);
+    }
+
+    function getPourTarget() {
+      return new THREE.Vector3(beaker.position.x + 0.08, 4.72, beaker.position.z);
+    }
+
+    function getPourAlignment() {
+      const tip = getBottleTipWorldPosition();
+      const target = getPourTarget();
+      const dx = tip.x - target.x;
+      const dy = tip.y - target.y;
+      const dz = tip.z - target.z;
+      return {
+        tip,
+        target,
+        distance: Math.sqrt(dx * dx + dy * dy + dz * dz)
+      };
+    }
+
+    function canTriggerPour() {
+      const alignment = getPourAlignment();
+      return alignment.distance < 0.88 && alignment.tip.y > 4.0;
+    }
+
+    function beginPriming(source) {
+      if (state.phase === 'priming' || state.phase === 'reacting' || state.phase === 'done') {
+        return;
+      }
+      state.phase = 'priming';
+      state.primingStart = clock.getElapsedTime();
+      state.snapProgress = 1;
+      state.primeSource = source;
+      sceneHint.classList.remove('is-dim');
+      statusText.textContent = 'Miệng chai đã vào đúng vùng rót. Axit đang chạm bề mặt đường và phản ứng sắp bùng lên.';
+      statusSub.textContent = source === 'auto'
+        ? 'Giữ mắt ở miệng cốc: ngay sau nhịp dừng ngắn này, màu đường sẽ sẫm lại rồi cột than sẽ phồng dâng lên.'
+        : 'Bạn sẽ thấy một nhịp dừng rất ngắn trước khi đường đổi màu, nóng lên và tạo cột carbon đen.';
+    }
+
+    function beginReaction(source) {
+      if (state.phase === 'reacting' || state.phase === 'done') {
+        return;
+      }
+      state.phase = 'reacting';
+      state.reactionProgress = 0.01;
+      stream.visible = true;
+      sceneHint.classList.add('is-dim');
+      statusText.textContent = 'Axit vừa chạm đường. Phản ứng khử nước bắt đầu, cốc nóng lên rất nhanh.';
+      statusSub.textContent = source === 'auto'
+        ? 'Chế độ tự động đang giữ quỹ đạo rót chuẩn để bạn tập trung so sánh trạng thái trước và sau phản ứng.'
+        : 'Bạn đã đưa chai vào đúng vùng rót. Hãy quan sát đường sẫm màu, hơi nước, rồi cột than đen phồng dâng lên.';
+    }
+
+    function updateBottleFromPointer(clientX, clientY) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      if (raycaster.ray.intersectPlane(dragPlane, dragPoint)) {
+        bottle.position.x = clamp(dragPoint.x, -5.0, 2.4);
+        bottle.position.y = clamp(dragPoint.y + 0.75, 2.6, 5.7);
+        const alignment = getPourAlignment();
+        const snap = clamp(1 - alignment.distance / 1.5, 0, 1);
+        state.snapProgress = Math.max(state.snapProgress * 0.75, snap);
+        if (snap > 0.55) {
+          bottle.position.lerp(
+            new THREE.Vector3(
+              clamp(bottle.position.x * 0.45 + 0.18 * 0.55, -5.0, 2.4),
+              clamp(bottle.position.y * 0.42 + 4.82 * 0.58, 2.6, 5.7),
+              bottle.position.z
+            ),
+            snap * 0.1
+          );
+        }
+      }
+    }
+
+    function refreshBottlePose() {
+      const tiltTarget = state.phase === 'priming' || state.phase === 'reacting' || state.phase === 'done' ? -1.14 : -0.12;
+      bottle.rotation.z += (tiltTarget - bottle.rotation.z) * 0.12;
+      bottle.rotation.x += ((state.dragging ? 0.05 : 0) - bottle.rotation.x) * 0.08;
+    }
+
+    function endDrag(event, wasCancelled = false) {
+      if (!state.dragging) {
+        return;
+      }
+      state.dragging = false;
+      controls.enabled = true;
+      if (event?.pointerId !== undefined) {
+        try {
+          renderer.domElement.releasePointerCapture(event.pointerId);
+        } catch (_) {
+        }
+      }
+      if (state.phase === 'ready' && wasCancelled) {
+        statusText.textContent = 'Thao tác kéo đã bị ngắt. Hãy đưa lại miệng chai vào vòng sáng phía trên cốc.';
+        statusSub.textContent = 'Vòng sáng sẽ giữ vai trò mốc định vị để bạn rót đúng vị trí ngay lần tiếp theo.';
+      } else if (state.phase === 'ready') {
+        statusText.textContent = 'Chưa rót trúng vùng phản ứng. Hãy căn theo vòng sáng phía trên miệng cốc rồi thử lại.';
+        statusSub.textContent = 'Mẹo: bấm "Rót thử ngay" để xem quỹ đạo chuẩn và vị trí miệng chai cần đi vào.';
+      }
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(bottle.children, false);
+      if (hits.length > 0 && state.phase !== 'reacting') {
+        if (state.phase === 'done') {
+          setReadyState();
+        }
+        state.dragging = true;
+        state.draggedOnce = true;
+        state.autoMove = false;
+        controls.enabled = false;
+        renderer.domElement.setPointerCapture(event.pointerId);
+        sceneHint.classList.remove('is-dim');
+        statusText.textContent = 'Đang kéo chai H₂SO₄. Đưa miệng chai vào vòng sáng ngay trên miệng cốc.';
+        statusSub.textContent = 'Khi chai vào đúng vùng rót, nó sẽ nghiêng xuống và phản ứng than hóa bắt đầu ngay.';
+      }
+    });
+
+    renderer.domElement.addEventListener('pointermove', (event) => {
+      if (!state.dragging) {
+        return;
+      }
+      updateBottleFromPointer(event.clientX, event.clientY);
+      if (canTriggerPour()) {
+        beginPriming('drag');
+      }
+    });
+
+    renderer.domElement.addEventListener('pointerup', (event) => {
+      endDrag(event, false);
+    });
+
+    renderer.domElement.addEventListener('pointercancel', (event) => {
+      endDrag(event, true);
+    });
+
+    renderer.domElement.addEventListener('lostpointercapture', () => {
+      endDrag(undefined, true);
+    });
+
+    pourBtn.addEventListener('click', () => {
+      if (state.phase === 'reacting') {
+        return;
+      }
+      if (state.phase === 'done' || state.phase === 'priming') {
+        setReadyState();
+      }
+      state.autoMove = true;
+      state.autoStart = clock.getElapsedTime();
+      state.phase = 'moving';
+      state.snapProgress = 0;
+      sceneHint.classList.remove('is-dim');
+      statusText.textContent = 'Đang đưa chai axit vào vị trí rót tự động.';
+      statusSub.textContent = 'Quan sát trạng thái ban đầu: đường còn sáng màu, mặt cốc sạch và chưa có hơi, bọt hay cột than.';
+    });
+
+    resetBtn.addEventListener('click', setReadyState);
+
+    function updateReaction(elapsed) {
+      if (state.phase !== 'reacting' && state.phase !== 'done') {
+        return;
+      }
+
+      state.reactionProgress = clamp(state.reactionProgress + elapsed * 0.21, 0, 1);
+      const p = state.reactionProgress;
+
+      stream.visible = p < 0.3;
+      heatGlow.intensity = 7 + p * 24;
+      reactionRimLight.intensity = 0.5 + p * 2.8;
+      reactionPool.material.emissiveIntensity = 0.42 + p * 0.95;
+      reactionPool.material.color.lerpColors(new THREE.Color(0x163046), new THREE.Color(0x2e160c), p * 0.75);
+
+      sugar.scale.y = THREE.MathUtils.lerp(1, 0.42, p);
+      sugar.position.y = -0.56 - p * 0.15;
+      sugar.material.color.lerpColors(new THREE.Color(0xe5dbc2), new THREE.Color(0x4e2d15), p);
+      sugarTop.scale.setScalar(1 - p * 0.24);
+      sugarTop.position.y = 0.02 - p * 0.08;
+      sugarTop.material.color.lerpColors(new THREE.Color(0xf5eddd), new THREE.Color(0x382014), p);
+
+      carbon.scale.set(1 + p * 0.58, 0.01 + p * 16.2, 1 + p * 0.44);
+      carbon.position.y = -0.45 + p * 1.08;
+
+      bubbles.forEach((item, index) => {
+        const mesh = item.mesh;
+        mesh.visible = p > 0.08;
+        const t = clock.getElapsedTime() * item.speed + item.offset + index * 0.12;
+        mesh.position.set(
+          Math.cos(t) * item.radius * (0.4 + p),
+          1.2 + ((t * 0.9) % 1.8) + p * 2.1,
+          0.25 + Math.sin(t * 1.4) * item.radius * 0.5
+        );
+        mesh.scale.setScalar(0.45 + p * 1.05);
+      });
+
+      steamClouds.forEach((item, index) => {
+        const mesh = item.mesh;
+        mesh.visible = p > 0.16;
+        const t = clock.getElapsedTime() * item.speed + item.drift + index * 0.17;
+        mesh.position.set(
+          Math.sin(t * 1.2) * (0.5 + index * 0.03),
+          2.1 + p * 3.1 + ((t * 0.4) % 1.7),
+          0.15 + Math.cos(t) * 0.55
+        );
+        mesh.material.opacity = 0.08 + p * 0.17;
+      });
+
+      const guideFade = Math.max(0, 1 - p * 3.2);
+      guideRing.material.opacity = 0.95 * guideFade;
+      guideHalo.material.opacity = 0.22 * guideFade;
+      guideColumn.material.opacity = 0.12 * guideFade;
+      guideArrow.material.opacity = 0.8 * guideFade;
+
+      if (p < 0.24) {
+        statusText.textContent = 'Giai đoạn đầu: H₂SO₄ đặc hút nước khỏi đường, lớp đường sáng bắt đầu sẫm lại và nóng lên.';
+        statusSub.textContent = 'So sánh với lúc đầu: màu đáy cốc đổi nhanh từ vàng nhạt sang nâu, hơi nước mờ bắt đầu xuất hiện.';
+      } else if (p < 0.68) {
+        statusText.textContent = 'Giai đoạn giữa: bọt khí và nhiệt đẩy khối carbon đen phồng cao, xốp và trào lên rõ rệt.';
+        statusSub.textContent = 'Đây là dấu hiệu than hóa mạnh: vật chất mất nước, chuyển thành carbon đen và tăng thể tích nhanh.';
+      } else if (state.phase !== 'done') {
+        state.phase = 'done';
+        statusText.textContent = 'Hoàn tất: cột than đen xốp đã trào cao khỏi cốc, tương phản rõ với phần đường sáng ban đầu.';
+        statusSub.textContent = 'Kết luận: H₂SO₄ đặc là chất khử nước rất mạnh, làm đường mất nước nhanh, than hóa và phồng nở dữ dội.';
+      }
+    }
+
+    function updatePriming(now) {
+      if (state.phase !== 'priming') {
+        return;
+      }
+      const progress = clamp((now - state.primingStart) / state.primingDuration, 0, 1);
+      const anticipation = Math.sin(progress * Math.PI);
+      heatGlow.intensity = 1.2 + anticipation * 5.5;
+      reactionRimLight.intensity = 1.2 + anticipation * 2.4;
+      reactionPool.material.emissiveIntensity = 0.58 + anticipation * 0.36;
+      sugarTop.position.y = 0.02 - anticipation * 0.03;
+      sugarTop.scale.setScalar(1 - anticipation * 0.035);
+      if (progress >= 1) {
+        beginReaction(state.primeSource);
+      }
+    }
+
+    function updateAutoMove(now) {
+      if (!state.autoMove) {
+        return;
+      }
+      const target = new THREE.Vector3(0.18, 4.82, 1.52);
+      const progress = clamp((now - state.autoStart) / state.autoDuration, 0, 1);
+      const eased = progress * progress * (3 - 2 * progress);
+      bottle.position.lerpVectors(bottleStart, target, eased);
+      if (progress >= 1) {
+        state.autoMove = false;
+        beginPriming('auto');
+      }
+    }
+
+    function updateStream() {
+      if (!stream.visible) {
+        return;
+      }
+      const origin = new THREE.Vector3(0.52, 1.42, 0).applyMatrix4(bottle.matrixWorld);
+      const target = new THREE.Vector3(beaker.position.x, 2.85, beaker.position.z);
+      const mid = origin.clone().lerp(target, 0.5);
+      const direction = target.clone().sub(origin);
+      const length = Math.max(direction.length(), 0.1);
+      stream.position.copy(mid);
+      stream.scale.set(1, length, 1);
+      stream.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize());
+    }
+
+    function animate() {
+      const elapsed = clock.getDelta();
+      const now = clock.getElapsedTime();
+      const pulse = now * 2.3;
+      const alignment = getPourAlignment();
+
+      updateAutoMove(now);
+      updatePriming(now);
+      updateReaction(elapsed);
+      refreshBottlePose();
+      updateStream();
+
+      state.snapProgress += ((clamp(1 - alignment.distance / 1.6, 0, 1)) - state.snapProgress) * 0.12;
+      const guideBoost = state.phase === 'ready' || state.phase === 'moving' || state.dragging || state.phase === 'priming' ? 1 : 0;
+      const snapBoost = 1 + state.snapProgress * 0.26;
+      pourGuide.position.y = 4.72 + Math.sin(pulse) * 0.06 * guideBoost;
+      guideRing.scale.setScalar((1 + Math.sin(pulse) * 0.035 * guideBoost) * snapBoost);
+      guideHalo.scale.set(1 + Math.sin(pulse + 0.7) * 0.06 * guideBoost + state.snapProgress * 0.16, 1, 1 + Math.sin(pulse + 0.7) * 0.06 * guideBoost + state.snapProgress * 0.16);
+      guideArrow.position.y = 0.25 + Math.sin(pulse + 1.1) * 0.06 * guideBoost + state.snapProgress * 0.08;
+      guideRing.material.opacity = Math.min(1, 0.7 + state.snapProgress * 0.3);
+      guideHalo.material.opacity = Math.max(guideHalo.material.opacity, 0.16 + state.snapProgress * 0.18);
+      guideColumn.material.opacity = Math.max(guideColumn.material.opacity, 0.09 + state.snapProgress * 0.12);
+      beaker.rotation.y += elapsed * 0.05;
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    setReadyState();
+    animate();
+  </script>
+</body>
+</html>

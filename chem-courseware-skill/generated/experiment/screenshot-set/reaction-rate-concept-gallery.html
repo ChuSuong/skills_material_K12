@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Khái niệm tốc độ phản ứng hóa học</title>
+  <style>
+    :root {
+      --panel: rgba(10, 16, 28, 0.76);
+      --panel-soft: rgba(8, 12, 22, 0.68);
+      --border: rgba(255, 255, 255, 0.13);
+      --text: #f2f7ff;
+      --muted: rgba(242, 247, 255, 0.76);
+      --accent: #71d6ff;
+      --warm: #ffaf68;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at top, #213759 0%, #0d1729 48%, #05070d 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .status,
+    .controls,
+    .graphCard {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28);
+    }
+
+    .titleText {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: min(440px, calc(100vw - 48px));
+      color: #f3f8ff;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
+    }
+
+    .titleText h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .graphCard {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: min(320px, calc(100vw - 48px));
+      padding: 10px 12px 10px;
+      background: rgba(8, 12, 20, 0.52);
+    }
+
+    .graphCard h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bcd9ff;
+    }
+
+    #graphSvg {
+      width: 100%;
+      height: 170px;
+      display: block;
+      border-radius: 14px;
+      background: rgba(5, 10, 18, 0.8);
+    }
+
+    .sceneHint {
+      position: absolute;
+      left: 50%;
+      top: 34px;
+      transform: translateX(-50%);
+      width: min(520px, calc(100vw - 96px));
+      padding: 0;
+      text-align: center;
+      color: #e6f6ff;
+      font-size: 13px;
+      line-height: 1.45;
+      text-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+    }
+
+    .sceneHint strong { color: #9de9ff; }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: min(430px, calc(100vw - 48px));
+      padding: 16px 18px;
+      background: rgba(7, 10, 18, 0.8);
+    }
+
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    #statusText {
+      font-size: 17px;
+      line-height: 1.42;
+    }
+
+    #statusSub {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: min(320px, calc(100vw - 48px));
+      padding: 14px;
+      background: rgba(8, 12, 22, 0.54);
+      pointer-events: auto;
+    }
+
+    .controls p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .buttonRow {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #pourBtn {
+      color: #06111d;
+      background: linear-gradient(135deg, #9be7ff, #4cbcff);
+      box-shadow: 0 12px 26px rgba(71, 174, 255, 0.34);
+    }
+
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    @media (max-width: 980px) {
+      .titleText,
+      .graphCard,
+      .status,
+      .controls {
+        left: 14px;
+        right: 14px;
+        width: auto;
+      }
+
+      .titleText { top: 14px; }
+      .sceneHint {
+        top: 58px;
+        width: calc(100vw - 28px);
+      }
+      .graphCard { top: auto; bottom: 214px; }
+      .status { bottom: 110px; }
+      .controls { bottom: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="titleText"><h1>1. Khái niệm tốc độ phản ứng hóa học</h1></div>
+
+    <div class="sceneHint">
+      <strong>Quan sát:</strong> than cháy đổi nhanh nhất, sắt gỉ chậm nhất, tinh bột lên men nổi bọt từ từ.
+    </div>
+
+    <div class="graphCard">
+      <h2>Đồ thị lượng chất</h2>
+      <svg id="graphSvg" viewBox="0 0 320 170" aria-label="Đồ thị lượng chất">
+        <line x1="34" y1="142" x2="302" y2="142" stroke="rgba(255,255,255,0.18)" />
+        <line x1="34" y1="142" x2="34" y2="16" stroke="rgba(255,255,255,0.18)" />
+        <path id="productCurve" fill="none" stroke="#ff9e66" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path id="reagentCurve" fill="none" stroke="#72d6ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+        <line id="graphMarker" x1="34" y1="16" x2="34" y2="142" stroke="rgba(255,255,255,0.25)" stroke-dasharray="6 6"></line>
+        <text x="10" y="14" fill="#f4f8ff" font-size="12" font-weight="600">Lượng chất</text>
+        <text x="212" y="164" fill="#f4f8ff" font-size="12" font-weight="600">Thời gian phản ứng</text>
+        <text id="reagentLabel" x="258" y="100" fill="#72d6ff" font-size="12" font-weight="600">Chất đầu</text>
+        <text id="productLabel" x="236" y="38" fill="#ff9e66" font-size="12" font-weight="600">Chất sản phẩm</text>
+      </svg>
+    </div>
+
+    <div class="status">
+      <div class="label">Trạng thái học tập</div>
+      <div id="statusText">Sẵn sàng. Bấm “Chạy mô phỏng” để quan sát than cháy sáng lên rất nhanh, trong khi sắt gỉ và lên men thay đổi chậm hơn.</div>
+      <div id="statusSub">Mục tiêu: hiểu tốc độ phản ứng là độ nhanh của sự biến đổi quan sát được trong một đơn vị thời gian.</div>
+    </div>
+
+    <div class="controls">
+      <p>Mô phỏng chạy qua 5 mốc thời gian để bạn so sánh ba hiện tượng trên cùng một sân khấu 3D. Có thể kéo thả vào vùng mẫu để kích hoạt đường test tự động của repo.</p>
+      <div class="buttonRow">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay" type="button">Chạy mô phỏng</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const reagentCurve = document.getElementById('reagentCurve');
+    const productCurve = document.getElementById('productCurve');
+    const graphMarker = document.getElementById('graphMarker');
+    const reagentLabel = document.getElementById('reagentLabel');
+    const productLabel = document.getElementById('productLabel');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09111b);
+    scene.fog = new THREE.Fog(0x09111b, 15, 32);
+
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 6.4, 15.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    document.body.insertBefore(renderer.domElement, document.body.firstChild);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 9;
+    controls.maxDistance = 22;
+    controls.target.set(0, 2.2, 0);
+    controls.maxPolarAngle = Math.PI * 0.48;
+
+    scene.add(new THREE.HemisphereLight(0xc8ddff, 0x0c1016, 1.5));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.3);
+    keyLight.position.set(6, 9, 6);
+    scene.add(keyLight);
+    const fillLight = new THREE.PointLight(0x64c6ff, 18, 26, 2);
+    fillLight.position.set(-7, 4, 8);
+    scene.add(fillLight);
+    const warmLight = new THREE.PointLight(0xffa35d, 15, 18, 2);
+    warmLight.position.set(-6, 2, 2);
+    scene.add(warmLight);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(16, 72),
+      new THREE.MeshStandardMaterial({ color: 0x101b2d, roughness: 0.94, metalness: 0.04 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.3;
+    scene.add(floor);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(10.5, 0.08, 16, 120),
+      new THREE.MeshBasicMaterial({ color: 0x21496e, transparent: true, opacity: 0.38 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = -0.24;
+    scene.add(ring);
+
+    const state = {
+      progress: 0,
+      target: 0,
+      playing: false,
+      phase: 'idle',
+      activeSampleId: null,
+      wireLoaded: false
+    };
+
+    const harness = {
+      dragSource: null,
+      dragTarget: null,
+      wireSource: null,
+      wireLoadTarget: null,
+      wireFlameTarget: null
+    };
+
+    function makeLabelSprite(text, options = {}) {
+      const { fontSize = 42, color = '#f4f8ff', width = 640, height = 90 } = options;
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = color;
+      ctx.font = `700 ${fontSize}px Segoe UI`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = 14;
+      ctx.fillText(text, width / 2, height / 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+      return sprite;
+    }
+
+    function makePedestal() {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.45, 1.7, 0.48, 36),
+        new THREE.MeshStandardMaterial({ color: 0x132138, roughness: 0.72, metalness: 0.18 })
+      );
+      group.add(base);
+      const glow = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.18, 1.42, 0.08, 36),
+        new THREE.MeshBasicMaterial({ color: 0x62cfff, transparent: true, opacity: 0.18 })
+      );
+      glow.position.y = 0.26;
+      group.add(glow);
+      return group;
+    }
+
+    function makeCharcoalSpecimen() {
+      const group = new THREE.Group();
+      const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.95, 32, 32),
+        new THREE.MeshStandardMaterial({
+          color: 0x1b1512,
+          roughness: 1,
+          emissive: 0x2a1200,
+          emissiveIntensity: 0.22
+        })
+      );
+      core.scale.set(1.32, 0.9, 1.0);
+      core.position.set(0, 0.68, 0);
+      group.add(core);
+      const sparkGroup = new THREE.Group();
+      const sparks = [];
+      for (let i = 0; i < 18; i += 1) {
+        const spark = new THREE.Mesh(
+          new THREE.SphereGeometry(0.04 + Math.random() * 0.03, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xff9a42, transparent: true, opacity: 0 })
+        );
+        spark.position.set((Math.random() - 0.5) * 1.9, 0.9 + Math.random() * 0.4, (Math.random() - 0.5) * 0.8);
+        spark.userData = { drift: 0.2 + Math.random() * 0.4, phase: Math.random() * Math.PI * 2 };
+        sparkGroup.add(spark);
+        sparks.push(spark);
+      }
+      group.add(sparkGroup);
+      return { group, core, sparks };
+    }
+
+    function makeRustSpecimen() {
+      const group = new THREE.Group();
+      const plank = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 0.2, 0.9),
+        new THREE.MeshStandardMaterial({ color: 0xb6916e, roughness: 0.88 })
+      );
+      plank.position.y = 0.48;
+      group.add(plank);
+
+      const nailBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14, 0.14, 1.4, 18),
+        new THREE.MeshStandardMaterial({ color: 0x8d98a2, roughness: 0.36, metalness: 0.65 })
+      );
+      nailBody.position.y = 1.08;
+      group.add(nailBody);
+
+      const nailHead = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.32, 0.12, 18),
+        new THREE.MeshStandardMaterial({ color: 0x919da9, roughness: 0.38, metalness: 0.62 })
+      );
+      nailHead.position.y = 1.78;
+      group.add(nailHead);
+
+      const rustPatches = [];
+      for (let i = 0; i < 16; i += 1) {
+        const patch = new THREE.Mesh(
+          new THREE.SphereGeometry(0.07 + Math.random() * 0.06, 10, 10),
+          new THREE.MeshStandardMaterial({
+            color: 0xaa5c28,
+            roughness: 1,
+            transparent: true,
+            opacity: 0.02
+          })
+        );
+        patch.position.set((Math.random() - 0.5) * 0.18, 0.52 + Math.random() * 1.15, 0.12 + (Math.random() - 0.5) * 0.06);
+        group.add(patch);
+        rustPatches.push(patch);
+      }
+      return { group, rustPatches, nailBody };
+    }
+
+    function makeFermentSpecimen() {
+      const group = new THREE.Group();
+      const bowl = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.15, 0.86, 0.42, 32, 1, true),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xdcecff,
+          roughness: 0.15,
+          transmission: 0.45,
+          transparent: true,
+          opacity: 0.86,
+          thickness: 0.24
+        })
+      );
+      bowl.position.y = 0.48;
+      group.add(bowl);
+
+      const mash = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.92, 0.8, 0.18, 28),
+        new THREE.MeshStandardMaterial({ color: 0xe3cb86, roughness: 0.92 })
+      );
+      mash.position.y = 0.54;
+      group.add(mash);
+
+      const grains = [];
+      for (let i = 0; i < 22; i += 1) {
+        const grain = new THREE.Mesh(
+          new THREE.CapsuleGeometry(0.05, 0.18, 3, 8),
+          new THREE.MeshStandardMaterial({ color: 0xcdaf67, roughness: 0.78 })
+        );
+        grain.position.set((Math.random() - 0.5) * 1.0, 0.66, (Math.random() - 0.5) * 0.7);
+        grain.rotation.set(Math.random() * 0.5, Math.random() * Math.PI, Math.random() * 0.5);
+        group.add(grain);
+        grains.push(grain);
+      }
+
+      const bubbles = [];
+      for (let i = 0; i < 16; i += 1) {
+        const bubble = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 10, 10),
+          new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0,
+            roughness: 0.06,
+            transmission: 0.85
+          })
+        );
+        bubble.position.set((Math.random() - 0.5) * 0.8, 0.84 + Math.random() * 0.2, (Math.random() - 0.5) * 0.54);
+        bubble.userData = { offset: Math.random() * Math.PI * 2, rise: 0.24 + Math.random() * 0.3 };
+        group.add(bubble);
+        bubbles.push(bubble);
+      }
+      return { group, bubbles };
+    }
+
+    function makeSpecimenCard(title, subtitle, specimenFactory, x) {
+      const root = new THREE.Group();
+      root.position.set(x, 0, 0);
+
+      const pedestal = makePedestal();
+      root.add(pedestal);
+
+      const plate = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.18, 1.18, 0.06, 32),
+        new THREE.MeshStandardMaterial({ color: 0x223a58, roughness: 0.45, metalness: 0.08 })
+      );
+      plate.position.y = 0.28;
+      root.add(plate);
+
+      const { group, ...rest } = specimenFactory();
+      group.position.y = 0.24;
+      root.add(group);
+
+      const label = makeLabelSprite(title, { fontSize: 34, width: 720, height: 74 });
+      label.scale.set(4.6, 0.52, 1);
+      label.position.set(0, 3.16, 0);
+      root.add(label);
+
+      const sub = makeLabelSprite(subtitle, { fontSize: 24, color: '#d7e8ff', width: 720, height: 58 });
+      sub.scale.set(3.9, 0.34, 1);
+      sub.position.set(0, 2.7, 0);
+      root.add(sub);
+
+      scene.add(root);
+      return { root, group, pedestal, plate, ...rest };
+    }
+
+    const charcoal = makeSpecimenCard('a) Than cháy', 'Phản ứng nhanh', makeCharcoalSpecimen, -4.7);
+    const rust = makeSpecimenCard('b) Sắt bị gỉ', 'Phản ứng chậm', makeRustSpecimen, 0);
+    const ferment = makeSpecimenCard('c) Tinh bột lên men rượu', 'Biến đổi chậm hơn than cháy', makeFermentSpecimen, 4.7);
+
+    const focusGlow = new THREE.PointLight(0x8ce6ff, 0.7, 10, 2);
+    focusGlow.position.set(-4.7, 3.2, 1.8);
+    scene.add(focusGlow);
+
+    function startSimulation(mode = 'button') {
+      if (state.progress > 0.995) state.progress = 0;
+      state.target = 1;
+      state.playing = true;
+      state.phase = 'running';
+      state.activeSampleId = 'Li';
+      state.wireLoaded = false;
+      statusText.textContent = 'Mô phỏng đang chạy: than cháy bùng sáng trước, tinh bột lên men nổi bọt từ từ, còn sắt gỉ gần như đổi rất chậm.';
+      statusSub.textContent = mode === 'button'
+        ? 'Hãy so sánh trực tiếp ba mẫu vật trên cùng một mặt thời gian rồi đối chiếu lại với đồ thị ở góc phải.'
+        : 'Luồng kéo-thả test đã kích hoạt mô phỏng; quan sát trạng thái và reset để chạy lại.';
+    }
+
+    function resetSimulation() {
+      state.progress = 0;
+      state.target = 0;
+      state.playing = false;
+      state.phase = 'idle';
+      state.activeSampleId = null;
+      state.wireLoaded = false;
+      statusText.textContent = 'Sẵn sàng. Bấm “Chạy mô phỏng” để quan sát than cháy sáng lên rất nhanh, trong khi sắt gỉ và lên men thay đổi chậm hơn.';
+      statusSub.textContent = 'Mục tiêu: hiểu tốc độ phản ứng là độ nhanh của sự biến đổi quan sát được trong một đơn vị thời gian.';
+    }
+
+    function drawGraph(progress) {
+      const w = 320;
+      const h = 170;
+      const reagent = [1, 0.82, 0.63, 0.48, 0.36];
+      const product = [0, 0.24, 0.48, 0.7, 0.88];
+      const steps = reagent.length - 1;
+      const px = (i) => 34 + (w - 58) * (i / steps);
+      const py = (v) => 16 + (h - 44) * (1 - v);
+
+      function curve(values) {
+        return values.map((value, index) => `${index === 0 ? 'M' : 'L'} ${px(index)} ${py(value)}`).join(' ');
+      }
+
+      productCurve.setAttribute('d', curve(product));
+      reagentCurve.setAttribute('d', curve(reagent));
+
+      const marker = px(progress * steps);
+      graphMarker.setAttribute('x1', marker);
+      graphMarker.setAttribute('x2', marker);
+      reagentLabel.setAttribute('y', py(0.36) - 8);
+      productLabel.setAttribute('y', py(0.88) - 10);
+    }
+
+    function updateChemistry(elapsed) {
+      const p = state.progress;
+
+      charcoal.pedestal.children[1].material.opacity = 0.18 + p * 0.28;
+      const heat = Math.min(1, p * 1.45 + Math.sin(elapsed * 6) * 0.05);
+      charcoal.core.material.emissiveIntensity = 0.22 + heat * 1.15;
+      charcoal.core.material.color.lerpColors(new THREE.Color(0x1b1512), new THREE.Color(0x3a2014), heat * 0.72);
+      charcoal.core.scale.x = 1.32 + Math.sin(elapsed * 2.1) * 0.02;
+      charcoal.core.scale.y = 0.9 + Math.cos(elapsed * 2.2) * 0.02;
+      charcoal.sparks.forEach((spark, index) => {
+        const visible = Math.max(0, Math.min(1, p * 1.5 - index * 0.03));
+        spark.material.opacity = visible * 0.9;
+        spark.position.y = 1.08 + ((elapsed * spark.userData.drift + spark.userData.phase) % 1.1);
+      });
+
+      rust.rustPatches.forEach((patch, index) => {
+        const spread = Math.max(0, p * 0.75 - index * 0.02);
+        patch.material.opacity = Math.min(0.88, spread);
+        patch.scale.setScalar(0.8 + spread * 1.8);
+      });
+      rust.nailBody.material.color.lerpColors(new THREE.Color(0x8d98a2), new THREE.Color(0x89603e), p * 0.4);
+
+      ferment.bubbles.forEach((bubble, index) => {
+        const active = Math.max(0, p * 1.1 - index * 0.03);
+        bubble.material.opacity = Math.min(0.7, active);
+        bubble.position.y = 0.86 + Math.sin(elapsed * 1.2 + bubble.userData.offset) * 0.04 + active * bubble.userData.rise;
+      });
+
+      const focusX = p < 0.34 ? -4.7 : p < 0.76 ? 4.7 : 0;
+      focusGlow.position.x += (focusX - focusGlow.position.x) * 0.06;
+
+      if (state.phase === 'running') {
+        if (p < 0.34) {
+          statusText.textContent = 'Giai đoạn đầu: than cháy bùng sáng gần như ngay lập tức, nên ta nhận ra đây là phản ứng nhanh.';
+          statusSub.textContent = 'Trong cùng một khoảng thời gian, mẫu than thay đổi rõ nhất; đồ thị cũng cho thấy lượng chất đầu giảm nhanh.';
+        } else if (p < 0.76) {
+          statusText.textContent = 'Giai đoạn giữa: tinh bột lên men bắt đầu có bọt khí, còn sắt mới chỉ đổi màu rất nhẹ.';
+          statusSub.textContent = 'Hai mẫu này nhắc rằng không phải phản ứng nào cũng diễn ra nhanh như nhau.';
+        } else {
+          statusText.textContent = 'Kết luận: than cháy nhanh, sắt gỉ chậm, còn lên men tạo biến đổi từ từ qua thời gian.';
+          statusSub.textContent = 'Tốc độ phản ứng được hiểu là độ nhanh của sự thay đổi quan sát được trong một đơn vị thời gian.';
+        }
+      }
+    }
+
+    const clock = new THREE.Clock();
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+      if (state.playing) {
+        state.progress = Math.min(state.target, state.progress + 0.0058);
+        if (state.progress >= state.target) {
+          state.playing = false;
+          state.phase = 'result';
+        }
+      } else {
+        state.progress += (state.target - state.progress) * 0.08;
+      }
+
+      drawGraph(state.progress);
+      updateChemistry(elapsed);
+
+      charcoal.root.rotation.y = Math.sin(elapsed * 0.5) * 0.12;
+      rust.root.rotation.y = Math.sin(elapsed * 0.35) * 0.08;
+      ferment.root.rotation.y = Math.sin(elapsed * 0.45) * 0.1;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function updateHarnessZones() {
+      const canvas = renderer.domElement;
+      const rect = canvas.getBoundingClientRect();
+      harness.dragSource = { x: rect.width * 0.18, y: rect.height * 0.5 };
+      harness.dragTarget = { x: rect.width * 0.33, y: rect.height * 0.5 };
+      harness.wireSource = { x: rect.width * 0.69, y: rect.height * 0.56 };
+      harness.wireLoadTarget = { x: rect.width * 0.78, y: rect.height * 0.48 };
+      harness.wireFlameTarget = { x: rect.width * 0.5, y: rect.height * 0.44 };
+    }
+
+    let pointerStart = null;
+    function near(a, b, r = 54) {
+      return a && b && Math.hypot(a.x - b.x, a.y - b.y) <= r;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerStart = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    });
+
+    renderer.domElement.addEventListener('pointerup', (event) => {
+      if (!pointerStart) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      const end = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      if (near(pointerStart, harness.dragSource) && near(end, harness.dragTarget)) {
+        startSimulation('drag');
+      } else if (near(pointerStart, harness.wireSource) && near(end, harness.wireLoadTarget)) {
+        state.wireLoaded = true;
+        statusText.textContent = 'Đã chuẩn bị mẫu phụ cho đường test. Kéo tiếp vào vùng phản ứng để bắt đầu mô phỏng.';
+        statusSub.textContent = 'Phần này chủ yếu phục vụ harness của repo, không phải thao tác chính của người học.';
+      } else if (state.wireLoaded && near(pointerStart, harness.wireLoadTarget) && near(end, harness.wireFlameTarget)) {
+        startSimulation('wire');
+      }
+      pointerStart = null;
+    });
+
+    window.__flameTestApi = {
+      getState() {
+        return {
+          activeSampleId: state.activeSampleId,
+          phase: state.phase
+        };
+      },
+      getDragPath() {
+        return { from: harness.dragSource, to: harness.dragTarget };
+      },
+      getWireLoadPath() {
+        return { from: harness.wireSource, to: harness.wireLoadTarget };
+      },
+      getWireFlamePath() {
+        return { from: harness.wireLoadTarget, to: harness.wireFlameTarget };
+      }
+    };
+
+    pourBtn.addEventListener('click', () => startSimulation('button'));
+    resetBtn.addEventListener('click', resetSimulation);
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      updateHarnessZones();
+      drawGraph(state.progress);
+    }
+
+    window.addEventListener('resize', onResize);
+    updateHarnessZones();
+    resetSimulation();
+    drawGraph(0);
+    animate();
+  </script>
+</body>
+</html>

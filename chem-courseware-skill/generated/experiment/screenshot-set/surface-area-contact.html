@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ảnh hưởng của diện tích tiếp xúc</title>
+  <style>
+    :root {
+      --panel: rgba(39, 31, 15, 0.78);
+      --panel-soft: rgba(39, 31, 15, 0.64);
+      --border: rgba(255,255,255,0.14);
+      --text: #fffaf1;
+      --muted: rgba(255,250,241,0.76);
+      --accent: #ffd26f;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #fff3cf 0%, #efdca0 38%, #d5b565 100%);
+      color: var(--text);
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    .hud { position: fixed; inset: 0; pointer-events: none; }
+    .card, .status, .controls {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(0,0,0,0.16);
+    }
+    .card {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: min(520px, calc(100vw - 48px));
+      padding: 18px 20px;
+      background: var(--panel);
+    }
+    .card h1 { margin: 0 0 10px; font-size: 24px; line-height: 1.08; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .card p + p { margin-top: 8px; }
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: min(440px, calc(100vw - 48px));
+      padding: 16px 18px;
+      background: rgba(34, 27, 11, 0.82);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    #statusText { font-size: 17px; line-height: 1.45; }
+    #statusSub { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: min(320px, calc(100vw - 48px));
+      padding: 16px;
+      background: var(--panel-soft);
+      pointer-events: auto;
+    }
+    .controls p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .buttonRow { display: flex; gap: 10px; }
+    button {
+      flex: 1;
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    [data-action="autoplay"] {
+      color: #261903;
+      background: linear-gradient(135deg, #ffe5a1, #ffbe5a);
+    }
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    @media (max-width: 900px) {
+      .card, .status, .controls {
+        left: 14px;
+        right: 14px;
+        width: auto;
+      }
+      .card { top: 14px; }
+      .controls { bottom: 14px; }
+      .status { bottom: 94px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="card">
+      <h1>Em có biết: diện tích tiếp xúc càng lớn, phản ứng càng nhanh</h1>
+      <p>Ảnh gốc giải thích bằng tiếng Việt: hạt càng nhỏ thì tổng diện tích bề mặt càng lớn; có thể tăng diện tích tiếp xúc bằng cách đập nhỏ hạt hoặc tạo nhiều lỗ xốp.</p>
+      <p>Trang này biến hình tĩnh thành một so sánh trực quan giữa khối lớn và khối nhỏ: số chấm va chạm màu xanh tăng mạnh khi chất rắn bị chia nhỏ.</p>
+    </div>
+    <div class="status">
+      <div class="label">Trạng thái quan sát</div>
+      <div id="statusText">Sẵn sàng. Bấm “Đập nhỏ hạt” để xem cùng một lượng chất nhưng diện tích tiếp xúc lớn hơn làm số va chạm tăng lên.</div>
+      <div id="statusSub">Ý chính trên ảnh: tổng diện tích bề mặt lớn hơn tạo nhiều vị trí tiếp xúc hơn cho phản ứng xảy ra.</div>
+    </div>
+    <div class="controls">
+      <p>Mô phỏng đi từ cụm hạt lớn sang nhiều mảnh nhỏ giống minh họa trên sách, đồng thời tăng số chấm xanh để biểu diễn các phân tử môi trường va chạm với bề mặt.</p>
+      <div class="buttonRow">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button data-action="autoplay" type="button">Đập nhỏ hạt</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const autoplayBtn = document.querySelector('[data-action="autoplay"]');
+    const resetBtn = document.getElementById('resetBtn');
+    const state = { progress: 0, playing: false };
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawCube(x, y, s) {
+      ctx.fillStyle = '#aeb8d1';
+      ctx.fillRect(x, y, s, s);
+      ctx.fillStyle = '#cdd5ea';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + s * 0.26, y - s * 0.2);
+      ctx.lineTo(x + s * 1.26, y - s * 0.2);
+      ctx.lineTo(x + s, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#8a94ab';
+      ctx.beginPath();
+      ctx.moveTo(x + s, y);
+      ctx.lineTo(x + s * 1.26, y - s * 0.2);
+      ctx.lineTo(x + s * 1.26, y + s * 0.8);
+      ctx.lineTo(x + s, y + s);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawParticles(areaX, areaY, areaW, areaH, count) {
+      for (let i = 0; i < count; i += 1) {
+        const px = areaX + ((i * 37) % areaW);
+        const py = areaY + ((i * 53 + state.progress * 250) % areaH);
+        ctx.fillStyle = i % 4 === 0 ? '#ffd34f' : '#58c95e';
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function draw() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#fff2ca');
+      bg.addColorStop(1, '#d4b466');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.34)';
+      ctx.beginPath();
+      ctx.roundRect(42, h * 0.36, w - 84, h * 0.34, 24);
+      ctx.fill();
+
+      const leftX = w * 0.26;
+      const rightX = w * 0.62;
+      const y = h * 0.5;
+
+      drawParticles(leftX - 90, y - 80, 180, 150, 10 + Math.round(state.progress * 8));
+      drawCube(leftX - 50, y - 26, 48);
+      drawCube(leftX - 6, y - 42, 56);
+      drawCube(leftX - 20, y + 14, 42);
+
+      drawParticles(rightX - 110, y - 90, 220, 170, 16 + Math.round(state.progress * 22));
+      const pieces = 6 + Math.round(state.progress * 6);
+      for (let i = 0; i < pieces; i += 1) {
+        const px = rightX - 80 + (i % 4) * 42;
+        const py = y - 42 + Math.floor(i / 4) * 46 + Math.sin(i + state.progress * 4) * 4;
+        drawCube(px, py, 26);
+      }
+
+      ctx.fillStyle = 'rgba(66, 48, 12, 0.92)';
+      ctx.font = '700 18px Segoe UI';
+      ctx.fillText('Hạt lớn', leftX - 30, y + 130);
+      ctx.fillText('Hạt nhỏ / nhiều mảnh', rightX - 52, y + 130);
+      ctx.font = '600 15px Segoe UI';
+      ctx.fillText('Tăng diện tích tiếp xúc bằng cách đập nhỏ hạt hoặc tạo nhiều lỗ xốp.', 52, h - 42);
+    }
+
+    function syncText() {
+      if (state.progress < 0.02) {
+        statusText.textContent = 'Sẵn sàng. Bấm “Đập nhỏ hạt” để xem cùng một lượng chất nhưng diện tích tiếp xúc lớn hơn làm số va chạm tăng lên.';
+        statusSub.textContent = 'Ý chính trên ảnh: tổng diện tích bề mặt lớn hơn tạo nhiều vị trí tiếp xúc hơn cho phản ứng xảy ra.';
+      } else if (state.progress < 0.45) {
+        statusText.textContent = 'Các hạt bắt đầu được chia nhỏ: số phân tử màu xanh có thể tiếp xúc với bề mặt tăng dần.';
+        statusSub.textContent = 'Dù khối lượng chất không đổi, việc chia nhỏ làm tổng bề mặt ngoài tăng lên rõ rệt.';
+      } else {
+        statusText.textContent = 'Kết luận: hạt càng nhỏ hoặc càng xốp thì diện tích tiếp xúc càng lớn, nên phản ứng xảy ra nhanh hơn.';
+        statusSub.textContent = 'Đặt lại để so sánh trực tiếp cụm lớn bên trái với nhiều mảnh nhỏ bên phải.';
+      }
+    }
+
+    function tick() {
+      if (state.playing) {
+        state.progress = Math.min(1, state.progress + 0.007);
+        if (state.progress >= 1) state.playing = false;
+      }
+      syncText();
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    autoplayBtn.addEventListener('click', () => {
+      state.playing = true;
+      state.progress = 0;
+      statusText.textContent = 'Đang mô phỏng quá trình đập nhỏ hạt.';
+      statusSub.textContent = 'Quan sát số phân tử xanh va chạm với cụm hạt nhỏ tăng mạnh hơn so với cụm hạt lớn.';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.playing = false;
+      state.progress = 0;
+      syncText();
+      draw();
+    });
+
+    window.addEventListener('resize', () => {
+      resize();
+      draw();
+    });
+
+    resize();
+    syncText();
+    tick();
+  </script>
+</body>
+</html>

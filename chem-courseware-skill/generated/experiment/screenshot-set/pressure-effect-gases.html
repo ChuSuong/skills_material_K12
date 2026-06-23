@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ảnh hưởng của áp suất đến tốc độ phản ứng</title>
+  <style>
+    :root {
+      --panel: rgba(11, 18, 36, 0.78);
+      --panel-soft: rgba(11, 18, 36, 0.64);
+      --border: rgba(255,255,255,0.14);
+      --text: #f5f8ff;
+      --muted: rgba(245, 248, 255, 0.74);
+      --accent: #8bc5ff;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #eff5ff 0%, #c5d7f1 30%, #8aa7d0 100%);
+      color: var(--text);
+    }
+    canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+    .hud { position: fixed; inset: 0; pointer-events: none; }
+    .card, .status, .controls {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
+    }
+    .card {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      width: min(440px, calc(100vw - 48px));
+      padding: 18px 20px;
+      background: var(--panel);
+    }
+    .card h1 { margin: 0 0 10px; font-size: 24px; line-height: 1.08; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .card p + p { margin-top: 8px; }
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      width: min(420px, calc(100vw - 48px));
+      padding: 16px 18px;
+      background: rgba(9, 14, 26, 0.82);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    #statusText { font-size: 17px; line-height: 1.45; }
+    #statusSub { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: min(320px, calc(100vw - 48px));
+      padding: 16px;
+      background: var(--panel-soft);
+      pointer-events: auto;
+    }
+    .controls p { margin: 0 0 12px; color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .buttonRow { display: flex; gap: 10px; }
+    button {
+      flex: 1;
+      min-height: 46px;
+      border: 0;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    [data-action="autoplay"] {
+      color: #08111f;
+      background: linear-gradient(135deg, #bfdcff, #74acff);
+    }
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    @media (max-width: 900px) {
+      .card, .status, .controls {
+        left: 14px;
+        right: 14px;
+        width: auto;
+      }
+      .card { top: 14px; }
+      .controls { bottom: 14px; }
+      .status { bottom: 94px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="card">
+      <h1>2. Ảnh hưởng của áp suất đến tốc độ phản ứng</h1>
+      <p>Ảnh sách giáo khoa nêu: trong hỗn hợp khí, nồng độ mỗi khí tỉ lệ thuận với áp suất của nó; khi nén khí, số va chạm tăng lên nên phản ứng xảy ra nhanh hơn.</p>
+      <p>Mô phỏng này dùng hai xilanh: một ở áp suất thường, một ở áp suất cao để người học nhìn trực tiếp mật độ hạt và tần suất va chạm.</p>
+    </div>
+    <div class="status">
+      <div class="label">Trạng thái quan sát</div>
+      <div id="statusText">Sẵn sàng. Bấm “Nén khí” để hạ piston và xem số va chạm tăng khi thể tích giảm.</div>
+      <div id="statusSub">Lưu ý đúng như ảnh: thay đổi áp suất chủ yếu ảnh hưởng khi có chất khí tham gia phản ứng.</div>
+    </div>
+    <div class="controls">
+      <p>Trang này thay thế hình tĩnh “áp suất thường / áp suất cao” bằng một cảnh chuyển động: piston hạ xuống, các hạt khí dày hơn và chớp va chạm xuất hiện nhiều hơn.</p>
+      <div class="buttonRow">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button data-action="autoplay" type="button">Nén khí</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const autoplayBtn = document.querySelector('[data-action="autoplay"]');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const state = { progress: 0, target: 0, playing: false };
+    const leftParticles = Array.from({ length: 24 }, (_, i) => ({ x: (i * 37) % 180, y: (i * 53) % 200 }));
+    const rightParticles = Array.from({ length: 24 }, (_, i) => ({ x: (i * 41) % 180, y: (i * 67) % 200 }));
+
+    function resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(window.innerWidth * dpr);
+      canvas.height = Math.round(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + 'px';
+      canvas.style.height = window.innerHeight + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function drawChamber(x, y, w, h, compressed, title, particles, flashes) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.strokeStyle = 'rgba(59, 77, 112, 0.5)';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.roundRect(0, 0, w, h, 18);
+      ctx.fill();
+      ctx.stroke();
+
+      const pistonY = 20 + compressed * 88;
+      ctx.fillStyle = '#87909a';
+      ctx.fillRect(18, pistonY, w - 36, 22);
+      ctx.fillStyle = '#5e6772';
+      ctx.fillRect(w * 0.5 - 10, pistonY - 36, 20, 36);
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(18, pistonY + 22, w - 36, h - pistonY - 38);
+      ctx.clip();
+      particles.forEach((p, index) => {
+        const px = 28 + (p.x + Math.sin(index * 0.7 + compressed * 6) * 10) % (w - 56);
+        const range = h - pistonY - 48;
+        const py = pistonY + 34 + (p.y + index * 7) % Math.max(52, range);
+        ctx.fillStyle = '#e4573d';
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      for (let i = 0; i < flashes; i += 1) {
+        const fx = 36 + (i * 29) % (w - 72);
+        const fy = pistonY + 44 + ((i * 43 + compressed * 120) % Math.max(48, h - pistonY - 70));
+        ctx.strokeStyle = 'rgba(255,236,110,0.55)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fx - 6, fy);
+        ctx.lineTo(fx + 6, fy);
+        ctx.moveTo(fx, fy - 6);
+        ctx.lineTo(fx, fy + 6);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.fillStyle = '#2d3b4e';
+      ctx.font = '700 16px Segoe UI';
+      ctx.fillText(title, 20, h + 30);
+      ctx.restore();
+    }
+
+    function draw() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      ctx.clearRect(0, 0, w, h);
+
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#eef4ff');
+      bg.addColorStop(1, '#89a7d3');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      const chamberW = Math.min(260, w * 0.22);
+      const chamberH = Math.min(360, h * 0.44);
+      const y = h * 0.33;
+      drawChamber(w * 0.22, y, chamberW, chamberH, 0.02, 'Áp suất thường', leftParticles, 4);
+      drawChamber(w * 0.57, y, chamberW, chamberH, state.progress, 'Áp suất cao', rightParticles, Math.round(4 + state.progress * 14));
+
+      ctx.fillStyle = 'rgba(39, 50, 80, 0.92)';
+      ctx.font = '600 15px Segoe UI';
+      ctx.fillText('Khi piston hạ xuống, cùng số hạt nằm trong thể tích nhỏ hơn nên số va chạm hiệu quả tăng lên.', 52, h - 42);
+    }
+
+    function syncText() {
+      if (state.progress < 0.02) {
+        statusText.textContent = 'Sẵn sàng. Bấm “Nén khí” để hạ piston và xem số va chạm tăng khi thể tích giảm.';
+        statusSub.textContent = 'Lưu ý đúng như ảnh: thay đổi áp suất chủ yếu ảnh hưởng khi có chất khí tham gia phản ứng.';
+      } else if (state.progress < 0.45) {
+        statusText.textContent = 'Piston đang hạ xuống: mật độ hạt trong xilanh bên phải tăng lên rõ rệt.';
+        statusSub.textContent = 'Các chớp sáng mô phỏng nhiều va chạm hơn giữa các phân tử khí.';
+      } else {
+        statusText.textContent = 'Kết luận: áp suất cao tương đương nồng độ khí lớn hơn, nên tốc độ phản ứng tăng.';
+        statusSub.textContent = 'Đặt lại để so sánh lại “áp suất thường” và “áp suất cao” như ở Hình 19.4.';
+      }
+    }
+
+    function tick() {
+      if (state.playing) {
+        state.progress = Math.min(1, state.progress + 0.008);
+        if (state.progress >= 1) state.playing = false;
+      }
+      syncText();
+      draw();
+      requestAnimationFrame(tick);
+    }
+
+    autoplayBtn.addEventListener('click', () => {
+      state.playing = true;
+      state.progress = 0;
+      statusText.textContent = 'Đang nén khí trong xilanh bên phải.';
+      statusSub.textContent = 'Quan sát số chớp va chạm tăng lên khi piston đi xuống.';
+    });
+
+    resetBtn.addEventListener('click', () => {
+      state.playing = false;
+      state.progress = 0;
+      syncText();
+      draw();
+    });
+
+    window.addEventListener('resize', () => {
+      resize();
+      draw();
+    });
+
+    resize();
+    syncText();
+    tick();
+  </script>
+</body>
+</html>
