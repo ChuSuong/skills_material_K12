@@ -10,9 +10,13 @@
     "verify:pw": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
     "verify": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
     "test:format": "node --test tests/courseware-format.test.mjs",
-    "test:format:example": "COURSEWARE_HTML=/home/ding/chem-courseware-skill-base/examples/sugar-h2so4/sugar-h2so4.html node --test tests/courseware-format.test.mjs"
+    "test:format:example": "COURSEWARE_HTML=/home/ding/chem-courseware-skill-base/examples/sugar-h2so4/sugar-h2so4.html node --test tests/courseware-format.test.mjs",
+    "test:effects": "node --test tests/effects.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.0"
+  },
+  "devDependencies": {
+    "three": "^0.165.0"
   }
 }
