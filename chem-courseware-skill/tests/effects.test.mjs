@@ -4,6 +4,7 @@ import * as THREE from 'three';
 
 import { popThenFade } from '../skills/chem-courseware-base/effects/particle-pop.mjs';
 import { jitterGeometry } from '../skills/chem-courseware-base/effects/jitter-geometry.mjs';
+import { drawCloudBlobs, drawBubbleGlow, DEFAULT_CLOUD_BLOBS } from '../skills/chem-courseware-base/effects/organic-texture.mjs';
 
 test('popThenFade fades linearly before the pop threshold', () => {
   const result = popThenFade(0.5, 1);
@@ -49,4 +50,44 @@ test('jitterGeometry with amount 0 leaves positions unchanged', () => {
   for (let i = 0; i < before.length; i++) {
     assert.ok(Math.abs(before[i] - after[i]) < 1e-9);
   }
+});
+
+function createMockContext() {
+  const calls = { createRadialGradient: 0, fillRect: 0, fill: 0, beginPath: 0, arc: 0 };
+  const gradient = { addColorStop: () => {} };
+  return {
+    calls,
+    fillStyle: null,
+    createRadialGradient: () => {
+      calls.createRadialGradient++;
+      return gradient;
+    },
+    fillRect: () => { calls.fillRect++; },
+    fill: () => { calls.fill++; },
+    beginPath: () => { calls.beginPath++; },
+    arc: () => { calls.arc++; }
+  };
+}
+
+test('drawCloudBlobs draws one radial gradient per blob', () => {
+  const ctx = createMockContext();
+  drawCloudBlobs(ctx, 128);
+  assert.equal(ctx.calls.createRadialGradient, DEFAULT_CLOUD_BLOBS.length);
+  assert.equal(ctx.calls.fillRect, DEFAULT_CLOUD_BLOBS.length);
+});
+
+test('drawCloudBlobs accepts a custom blob list', () => {
+  const ctx = createMockContext();
+  drawCloudBlobs(ctx, 128, [{ x: 0.5, y: 0.5, r: 0.4, a: 0.5 }]);
+  assert.equal(ctx.calls.createRadialGradient, 1);
+  assert.equal(ctx.calls.fillRect, 1);
+});
+
+test('drawBubbleGlow draws a single radial gradient filled as a circle', () => {
+  const ctx = createMockContext();
+  drawBubbleGlow(ctx, 128);
+  assert.equal(ctx.calls.createRadialGradient, 1);
+  assert.equal(ctx.calls.beginPath, 1);
+  assert.equal(ctx.calls.arc, 1);
+  assert.equal(ctx.calls.fill, 1);
 });
