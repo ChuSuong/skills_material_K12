@@ -20,7 +20,7 @@ Không bắt buộc ghi record cho mọi output nhỏ nếu user chỉ cần s�
 3. Validate: chạy kiểm tra kỹ thuật tối thiểu.
 4. Verify: kiểm tra desktop/mobile, fallback, autoplay/manual flow, và nếu cần thì screenshot regression.
 5. Score: chấm rubric 100 điểm.
-6. Record: ghi JSON record vào `eval-runs/{slug}/{timestamp}.json`; nếu cần báo cáo người đọc, thêm Markdown trong `evaluations/`.
+6. Record: ghi JSON record vào `eval-runs/{slug}/{timestamp}.json`; feedback hook giữ raw JSON trong `evaluations/agent-feedback/` và render bài học đọc nhanh cho agent ở `evaluations/feedback-lessons.md`.
 7. Improve: nếu score thấp hoặc lỗi lặp lại, sửa output trước; nếu lỗi là pattern chung, cập nhật `SKILL.md`, checklist, reference hoặc template.
 
 ## Feedback Triage Trước Khi Nâng Thành Rule
