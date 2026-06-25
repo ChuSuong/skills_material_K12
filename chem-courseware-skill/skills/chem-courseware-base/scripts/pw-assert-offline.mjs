@@ -9,7 +9,10 @@ if (!htmlPath) {
 }
 
 const resolvedHtmlPath = path.resolve(htmlPath);
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--allow-file-access-from-files'],
+});
 const context = await browser.newContext();
 
 await context.route('**/*', (route) => {
