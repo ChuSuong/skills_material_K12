@@ -170,9 +170,16 @@ const HF='"Helvetica Neue",Helvetica,Arial,sans-serif';
 const DCOLS=['#2d70b3','#c74440','#388c46','#6042a6','#fa7e19'];
 
 let pX=0,pY=0,Z=55;
+let mode='geometry';
 let tool='drag',pend=[],dragId=null,hovId=null,panOn=false,panL={};
 let mCX=0,mCY=0;
 let pts=[],segs=[],circs=[],polys=[],pCnt=0;
+
+const PLACEHOLDER_MSG={
+  graphing:'Graphing mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
+  vector:'Vector mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
+  statistics:'Statistics mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
+};
 
 const gsx=x=>C.width/2+(x+pX)*Z;
 const gsy=y=>C.height/2-(y+pY)*Z;
@@ -316,7 +323,18 @@ function drawPts(){
   }
 }
 
-function redraw(){drawBg();drawGrid();drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
+function drawModePlaceholder(){
+  X.save();
+  X.fillStyle='#999';X.font=`13px ${HF}`;X.textAlign='center';
+  X.fillText(PLACEHOLDER_MSG[mode]||'',C.width/2,C.height/2);
+  X.restore();
+}
+
+function redraw(){
+  drawBg();drawGrid();
+  if(mode==='geometry'){drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
+  else{drawModePlaceholder();}
+}
 
 const TMSG={
   drag:'<strong>Select:</strong> drag any point to reshape — measurements update live. Drag background to pan. Scroll to zoom.',
@@ -325,6 +343,21 @@ const TMSG={
   circ:'<strong>Circle:</strong> click to place center, then click to define radius.',
   poly:'<strong>Polygon:</strong> click vertices, click first point again (or Enter) to close. Area shown inside.',
 };
+
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.dbm').forEach(b=>b.classList.remove('on'));
+  document.getElementById('m-'+m).classList.add('on');
+  const isGeo=m==='geometry';
+  document.getElementById('dtb-geo').style.display=isGeo?'flex':'none';
+  const ph=document.getElementById('dtb-placeholder');
+  ph.style.display=isGeo?'none':'block';
+  ph.textContent=PLACEHOLDER_MSG[m]||'';
+  document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isGeo);
+  if(isGeo){DST.innerHTML=TMSG[tool]||'';}
+  else{DST.innerHTML=PLACEHOLDER_MSG[m]||'';}
+  redraw();
+}
 
 function setT(t){
   tool=t;pend=[];
@@ -354,6 +387,7 @@ function loadEx(){
 function gpos(e){const r=C.getBoundingClientRect(),t=(e.touches&&e.touches[0])||e;return{x:t.clientX-r.left,y:t.clientY-r.top};}
 
 function onDown(e){
+  if(mode!=='geometry')return;
   const p=gpos(e);mCX=p.x;mCY=p.y;
   if(tool==='drag'){
     const pt=near(p.x,p.y,18);
@@ -376,6 +410,7 @@ function onDown(e){
   redraw();
 }
 function onMove(e){
+  if(mode!=='geometry')return;
   const p=gpos(e);mCX=p.x;mCY=p.y;
   if(dragId){const pt=byId(dragId);if(pt){pt.x=gmx(p.x);pt.y=gmy(p.y);}redraw();return;}
   if(panOn){pX+=(p.x-panL.x)/Z;pY-=(p.y-panL.y)/Z;panL=p;redraw();return;}
@@ -406,7 +441,7 @@ document.addEventListener('keydown',e=>{
 
 function resize(){const w=C.parentElement.clientWidth||660;C.width=w;C.height=Math.round(w*.54);redraw();}
 window.addEventListener('resize',resize);
-resize();loadEx();setT('drag');
+resize();loadEx();setT('drag');setMode('geometry');
 </script>
 ```
 
