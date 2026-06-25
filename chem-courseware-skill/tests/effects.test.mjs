@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { popThenFade } from '../skills/chem-courseware-base/effects/particle-pop.mjs';
 import { jitterGeometry } from '../skills/chem-courseware-base/effects/jitter-geometry.mjs';
 import { drawCloudBlobs, drawBubbleGlow, DEFAULT_CLOUD_BLOBS } from '../skills/chem-courseware-base/effects/organic-texture.mjs';
+import { createFlowMaterial } from '../skills/chem-courseware-base/effects/liquid-shader.mjs';
 
 test('popThenFade fades linearly before the pop threshold', () => {
   const result = popThenFade(0.5, 1);
@@ -90,4 +91,20 @@ test('drawBubbleGlow draws a single radial gradient filled as a circle', () => {
   assert.equal(ctx.calls.beginPath, 1);
   assert.equal(ctx.calls.arc, 1);
   assert.equal(ctx.calls.fill, 1);
+});
+
+test('createFlowMaterial returns a ShaderMaterial with default uniforms', () => {
+  const material = createFlowMaterial();
+  assert.ok(material instanceof THREE.ShaderMaterial);
+  assert.equal(material.uniforms.uOpacity.value, 0.7);
+  assert.equal(material.uniforms.uColor.value.getHexString(), 'bcecff');
+  assert.equal(material.uniforms.uGlow.value.getHexString(), '67d8ff');
+  assert.match(material.vertexShader, /uTime/);
+  assert.match(material.fragmentShader, /fresnel/);
+});
+
+test('createFlowMaterial accepts custom color and glow', () => {
+  const material = createFlowMaterial({ color: 0xff0000, glow: 0x00ff00 });
+  assert.equal(material.uniforms.uColor.value.getHexString(), 'ff0000');
+  assert.equal(material.uniforms.uGlow.value.getHexString(), '00ff00');
 });
