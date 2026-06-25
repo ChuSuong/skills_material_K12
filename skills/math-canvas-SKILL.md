@@ -126,23 +126,37 @@ tùy context.
 .dbt{padding:5px 10px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.4}
 .dbt:hover{background:var(--color-background-secondary)}
 .dbt.on{border-color:#2d70b3;background:#edf3fb;color:#2d70b3;font-weight:500}
+.dbt:disabled{opacity:.4;cursor:not-allowed}
+#dmodes{display:flex;gap:5px;padding:8px 10px 0;flex-wrap:wrap}
+.dbm{padding:5px 12px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
+.dbm:hover{background:var(--color-background-secondary)}
+.dbm.on{border-color:#fa7e19;background:#fff4ea;color:#fa7e19}
 #ggc{display:block;touch-action:none}
 #dst{padding:6px 13px;font-size:11.5px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary);min-height:26px;font-family:inherit;line-height:1.5}
 </style>
 
 <div id="dw">
+  <div id="dmodes">
+    <button class="dbm on" id="m-geometry"   onclick="setMode('geometry')">Geometry</button>
+    <button class="dbm" id="m-graphing"      onclick="setMode('graphing')">Graphing</button>
+    <button class="dbm" id="m-vector"        onclick="setMode('vector')">Vector</button>
+    <button class="dbm" id="m-statistics"    onclick="setMode('statistics')">Statistics</button>
+  </div>
   <div id="dtb">
-    <button class="dbt on" id="t-drag" onclick="setT('drag')"><i class="ti ti-cursor-arrow" aria-hidden="true"></i> Select</button>
-    <button class="dbt" id="t-pt"   onclick="setT('pt')"  ><i class="ti ti-point-filled"  aria-hidden="true"></i> Point</button>
-    <button class="dbt" id="t-seg"  onclick="setT('seg')" ><i class="ti ti-minus"          aria-hidden="true"></i> Segment</button>
-    <button class="dbt" id="t-circ" onclick="setT('circ')"><i class="ti ti-circle"         aria-hidden="true"></i> Circle</button>
-    <button class="dbt" id="t-poly" onclick="setT('poly')"><i class="ti ti-shape"          aria-hidden="true"></i> Polygon</button>
+    <div id="dtb-geo" style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+      <button class="dbt on" id="t-drag" onclick="setT('drag')"><i class="ti ti-cursor-arrow" aria-hidden="true"></i> Select</button>
+      <button class="dbt" id="t-pt"   onclick="setT('pt')"  ><i class="ti ti-point-filled"  aria-hidden="true"></i> Point</button>
+      <button class="dbt" id="t-seg"  onclick="setT('seg')" ><i class="ti ti-minus"          aria-hidden="true"></i> Segment</button>
+      <button class="dbt" id="t-circ" onclick="setT('circ')"><i class="ti ti-circle"         aria-hidden="true"></i> Circle</button>
+      <button class="dbt" id="t-poly" onclick="setT('poly')"><i class="ti ti-shape"          aria-hidden="true"></i> Polygon</button>
+    </div>
+    <div id="dtb-placeholder" style="display:none;font-size:12.5px;color:var(--color-text-secondary)"></div>
     <div style="flex:1"></div>
     <button class="dbt" onclick="adjZ(1.25)" style="font-size:16px;padding:3px 9px" aria-label="Zoom in">+</button>
     <button class="dbt" onclick="adjZ(0.8)"  style="font-size:16px;padding:3px 9px" aria-label="Zoom out">−</button>
     <button class="dbt" onclick="resetV()" aria-label="Reset view"><i class="ti ti-maximize" aria-hidden="true"></i></button>
-    <button class="dbt" onclick="loadEx()"  style="color:#388c46;border-color:#388c46"><i class="ti ti-refresh" aria-hidden="true"></i> Example</button>
-    <button class="dbt" onclick="clearAll()" style="color:#c74440;border-color:#c74440" aria-label="Clear"><i class="ti ti-x" aria-hidden="true"></i></button>
+    <button class="dbt dbt-geoaction" onclick="loadEx()"  style="color:#388c46;border-color:#388c46"><i class="ti ti-refresh" aria-hidden="true"></i> Example</button>
+    <button class="dbt dbt-geoaction" onclick="clearAll()" style="color:#c74440;border-color:#c74440" aria-label="Clear"><i class="ti ti-x" aria-hidden="true"></i></button>
   </div>
   <canvas id="ggc"></canvas>
   <div id="dst">Select a tool and click on the canvas to start building.</div>
