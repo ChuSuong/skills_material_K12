@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab Hóa 10: Tính chất H₂SO₄ loãng và đặc</title>
+</head>
+<body>
+  <div id="chem-exp-h2so4-properties" class="chem-exp">
+    <style>
+      #chem-exp-h2so4-properties {
+        --ink: #1d2732;
+        --muted: #617383;
+        --panel: rgba(255, 255, 255, 0.88);
+        --line: rgba(43, 73, 104, 0.14);
+        --blue: #4c8fd6;
+        --acid: #67a9df;
+        --zinc: #98a3af;
+        --copper: #c77a4f;
+        --oxide: #1a1f27;
+        --base: #be78dc;
+        --gas: #7fe3f0;
+        --gold: #f0c46b;
+        --good: #18a2a5;
+        --shadow: 0 26px 80px rgba(44, 73, 104, 0.16);
+        box-sizing: border-box;
+        min-height: 100vh;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(760px 420px at 10% -10%, rgba(76, 143, 214, 0.22), transparent 62%),
+          radial-gradient(640px 340px at 94% 3%, rgba(240, 196, 107, 0.18), transparent 58%),
+          linear-gradient(145deg, #f8fbff 0%, #edf3fa 48%, #dce8f4 100%);
+      }
+      #chem-exp-h2so4-properties *,
+      #chem-exp-h2so4-properties *::before,
+      #chem-exp-h2so4-properties *::after { box-sizing: inherit; }
+      #chem-exp-h2so4-properties .shell {
+        width: min(1380px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-h2so4-properties .topbar,
+      #chem-exp-h2so4-properties .stage-card,
+      #chem-exp-h2so4-properties .control-card,
+      #chem-exp-h2so4-properties .readout-card,
+      #chem-exp-h2so4-properties .summary-card {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.74);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+      #chem-exp-h2so4-properties .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 12px 14px;
+      }
+      #chem-exp-h2so4-properties h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.2vw, 30px);
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+      }
+      #chem-exp-h2so4-properties h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      #chem-exp-h2so4-properties .microcopy,
+      #chem-exp-h2so4-properties .status,
+      #chem-exp-h2so4-properties details p,
+      #chem-exp-h2so4-properties li {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+      #chem-exp-h2so4-properties .actions,
+      #chem-exp-h2so4-properties .button-row,
+      #chem-exp-h2so4-properties .choice-grid,
+      #chem-exp-h2so4-properties .chip-row,
+      #chem-exp-h2so4-properties .scenario-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      #chem-exp-h2so4-properties button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        background: #24394c;
+        cursor: pointer;
+      }
+      #chem-exp-h2so4-properties button.secondary {
+        color: #2a4964;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid var(--line);
+      }
+      #chem-exp-h2so4-properties button.choice,
+      #chem-exp-h2so4-properties button.scenario {
+        color: #234760;
+        background: rgba(76, 143, 214, 0.08);
+        border: 1px solid rgba(76, 143, 214, 0.14);
+      }
+      #chem-exp-h2so4-properties button.choice.active,
+      #chem-exp-h2so4-properties button.scenario.active {
+        color: #145e60;
+        background: rgba(24, 162, 165, 0.18);
+        border-color: rgba(24, 162, 165, 0.28);
+      }
+      #chem-exp-h2so4-properties .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(520px, 1.35fr) minmax(310px, 0.65fr);
+        gap: 12px;
+      }
+      #chem-exp-h2so4-properties .stage-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 760px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.8)),
+          radial-gradient(circle at 50% 76%, rgba(255,255,255,.94), transparent 34%);
+      }
+      #chem-exp-h2so4-properties .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 760px;
+        cursor: grab;
+        touch-action: none;
+      }
+      #chem-exp-h2so4-properties .stage-note,
+      #chem-exp-h2so4-properties .live-pill {
+        position: absolute;
+        z-index: 3;
+        border: 1px solid rgba(255,255,255,.78);
+        background: rgba(255,255,255,.92);
+        box-shadow: 0 16px 44px rgba(35, 58, 82, .12);
+      }
+      #chem-exp-h2so4-properties .stage-note {
+        left: 14px;
+        top: 14px;
+        width: min(360px, calc(100% - 28px));
+        padding: 12px;
+        border-radius: 18px;
+      }
+      #chem-exp-h2so4-properties .stage-note strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      #chem-exp-h2so4-properties .stage-note span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.36;
+      }
+      #chem-exp-h2so4-properties .stage-note em {
+        display: block;
+        margin-top: 4px;
+        color: #3e6688;
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #chem-exp-h2so4-properties .live-pill {
+        right: 16px;
+        bottom: 16px;
+        width: min(320px, calc(100% - 32px));
+        padding: 12px;
+        border-radius: 22px;
+      }
+      #chem-exp-h2so4-properties .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 31px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(76, 143, 214, 0.1);
+        color: #234d70;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-h2so4-properties .chip.gold {
+        background: rgba(240, 196, 107, 0.22);
+        color: #785515;
+      }
+      #chem-exp-h2so4-properties .chip.good {
+        background: rgba(24, 162, 165, 0.16);
+        color: #145f61;
+      }
+      #chem-exp-h2so4-properties .bar-group { display: grid; gap: 8px; }
+      #chem-exp-h2so4-properties .bar-row {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+      }
+      #chem-exp-h2so4-properties .swatch {
+        height: 16px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(90deg, rgba(76,143,214,.12), rgba(24,162,165,.12));
+      }
+      #chem-exp-h2so4-properties .fill {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+      }
+      #chem-exp-h2so4-properties .fill.effect { background: linear-gradient(90deg, #8bdcf0, var(--good)); }
+      #chem-exp-h2so4-properties .fill.solution { background: linear-gradient(90deg, #9bc5ef, var(--blue)); }
+      #chem-exp-h2so4-properties .fallback {
+        position: absolute;
+        inset: 16px;
+        display: none;
+        place-items: center;
+        text-align: center;
+        padding: 24px;
+        border-radius: 20px;
+        background: rgba(255,255,255,.96);
+        color: #2b4154;
+        z-index: 5;
+      }
+      #chem-exp-h2so4-properties .fallback.show { display: grid; }
+      #chem-exp-h2so4-properties .right-stack {
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-h2so4-properties .control-card,
+      #chem-exp-h2so4-properties .readout-card,
+      #chem-exp-h2so4-properties .summary-card {
+        padding: 14px;
+      }
+      #chem-exp-h2so4-properties .field {
+        display: grid;
+        gap: 6px;
+        margin: 12px 0;
+      }
+      #chem-exp-h2so4-properties label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: #30495e;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      #chem-exp-h2so4-properties input[type="range"] {
+        width: 100%;
+        accent-color: var(--blue);
+      }
+      #chem-exp-h2so4-properties .guess-box {
+        padding: 10px;
+        border-radius: 18px;
+        background: rgba(76, 143, 214, 0.06);
+        border: 1px solid rgba(76, 143, 214, 0.1);
+      }
+      #chem-exp-h2so4-properties .guess-box strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      #chem-exp-h2so4-properties .scenario-grid {
+        margin: 10px 0 4px;
+      }
+      #chem-exp-h2so4-properties .eq-card,
+      #chem-exp-h2so4-properties .note-item {
+        padding: 10px 12px;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.78);
+      }
+      #chem-exp-h2so4-properties .eq-card {
+        font-size: 13px;
+        line-height: 1.44;
+        font-weight: 800;
+        background: rgba(24, 162, 165, 0.08);
+        color: #204251;
+      }
+      #chem-exp-h2so4-properties .eq-card.warn {
+        background: rgba(240, 196, 107, 0.15);
+        color: #74510d;
+      }
+      #chem-exp-h2so4-properties .note-item strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      #chem-exp-h2so4-properties .note-item span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.36;
+      }
+      #chem-exp-h2so4-properties .equation-block,
+      #chem-exp-h2so4-properties .note-stack,
+      #chem-exp-h2so4-properties .mini-check {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-h2so4-properties details {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      #chem-exp-h2so4-properties summary {
+        color: #345168;
+        cursor: pointer;
+        font-weight: 800;
+      }
+      #chem-exp-h2so4-properties ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      #chem-exp-h2so4-properties sub { font-size: .68em; }
+      @media (max-width: 980px) {
+        #chem-exp-h2so4-properties {
+          padding: 10px;
+        }
+        #chem-exp-h2so4-properties .topbar,
+        #chem-exp-h2so4-properties .lab-grid {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-h2so4-properties .stage-card,
+        #chem-exp-h2so4-properties .stage-canvas {
+          min-height: 560px;
+        }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng tính chất của H2SO4">
+      <header class="topbar">
+        <div>
+          <h1>H₂SO₄ loãng và đặc: dự đoán sản phẩm, quan sát hiện tượng</h1>
+          <p class="microcopy">Learning loop: chọn thí nghiệm → dự đoán hiện tượng chính → chạy mô phỏng → so sánh với kết luận. Trọng tâm lớp 10: H₂SO₄ loãng là axit mạnh; H₂SO₄ đặc nóng có tính oxi hóa mạnh.</p>
+        </div>
+        <div class="actions">
+          <button type="button" data-role="toggle">Tạm dừng</button>
+          <button type="button" class="secondary" data-role="run">Chạy demo</button>
+          <button type="button" class="secondary" data-role="reset">Chạy lại</button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <section class="stage-card" aria-label="Mô hình thí nghiệm 3D">
+          <canvas class="stage-canvas" data-role="scene"></canvas>
+          <div class="stage-note">
+            <strong data-role="phase">Chuẩn bị thí nghiệm</strong>
+            <span data-role="observation">Chọn một tình huống ở panel bên phải. Mô hình sẽ cho thấy chất trong cốc, chất rắn đưa vào và dấu hiệu quan sát được.</span>
+            <em>Kéo để xoay mô hình 3D.</em>
+          </div>
+          <div class="live-pill">
+            <div class="chip-row" style="margin-bottom:8px">
+              <span class="chip" data-role="scenarioChip">H₂SO₄ loãng + Zn</span>
+              <span class="chip gold" data-role="timeChip">t = 0.0 s</span>
+            </div>
+            <div class="bar-group">
+              <div class="bar-row">
+                <strong>Hiện tượng</strong>
+                <div class="swatch"><div class="fill effect" data-role="effectFill"></div></div>
+              </div>
+              <div class="bar-row">
+                <strong>Dung dịch</strong>
+                <div class="swatch"><div class="fill solution" data-role="solutionFill"></div></div>
+              </div>
+            </div>
+            <p class="status" style="margin-top:8px" data-role="liveStatus">Demo đang tự chạy ở tốc độ mặc định.</p>
+          </div>
+          <div class="fallback" data-role="fallback">
+            <div>
+              <strong>Không thể hiển thị Three.js/WebGL.</strong>
+              <p>Vẫn có thể dùng panel bên phải để học theo quy trình dự đoán → so sánh → kết luận.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="right-stack">
+          <section class="control-card">
+            <h2>1) Chọn tình huống và dự đoán</h2>
+            <p class="status">Mỗi tình huống đại diện cho một tính chất hay gặp của H₂SO₄ trong chương trình lớp 10.</p>
+            <div class="scenario-grid">
+              <button type="button" class="scenario active" data-role="scenario" data-value="zn">H₂SO₄ loãng + Zn</button>
+              <button type="button" class="scenario" data-role="scenario" data-value="naoh">H₂SO₄ + NaOH</button>
+              <button type="button" class="scenario" data-role="scenario" data-value="cuo">H₂SO₄ + CuO</button>
+              <button type="button" class="scenario" data-role="scenario" data-value="cu-hot">H₂SO₄ đặc nóng + Cu</button>
+            </div>
+            <div class="guess-box" style="margin-top:10px">
+              <strong>Chọn dấu hiệu chính em dự đoán sẽ thấy</strong>
+              <div class="choice-grid">
+                <button type="button" class="choice" data-role="guess" data-value="gas">Có khí thoát ra</button>
+                <button type="button" class="choice" data-role="guess" data-value="blue">Dung dịch chuyển xanh</button>
+                <button type="button" class="choice" data-role="guess" data-value="neutral">Tạo muối + nước</button>
+                <button type="button" class="choice" data-role="guess" data-value="so2">Khí SO₂ tạo ra</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="timeSlider">Thời gian quan sát <span data-role="timeValue">0.0 s</span></label>
+              <input id="timeSlider" data-role="time" type="range" min="0" max="14" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label for="speedSlider">Tốc độ demo <span data-role="speedValue">1.0x</span></label>
+              <input id="speedSlider" data-role="speed" type="range" min="0.5" max="2.2" step="0.1" value="1">
+            </div>
+            <div class="button-row">
+              <button type="button" class="secondary" data-role="checkpoint-mid">Đến mốc giữa</button>
+              <button type="button" class="secondary" data-role="checkpoint-end">Đến kết quả</button>
+            </div>
+            <p class="status" data-role="feedback" style="margin-top:10px">Hãy chọn một dấu hiệu chính trước khi nhìn kết quả đầy đủ.</p>
+          </section>
+
+          <section class="readout-card">
+            <h2>2) Đọc hiện tượng và phương trình</h2>
+            <div class="equation-block">
+              <div class="eq-card" data-role="equation">Zn + H₂SO₄ (loãng) → ZnSO₄ + H₂↑</div>
+              <div class="eq-card warn" data-role="concept">Khái niệm: H₂SO₄ loãng thể hiện tính axit mạnh, tác dụng với kim loại đứng trước H.</div>
+            </div>
+            <div class="note-stack" style="margin-top:10px">
+              <div class="note-item">
+                <strong data-role="observationTitle">Hiện tượng chính</strong>
+                <span data-role="observationReadout">Xuất hiện bọt khí H₂, miếng Zn tan dần, dung dịch gần như không màu.</span>
+              </div>
+              <div class="note-item">
+                <strong data-role="compareTitle">So sánh dễ nhầm</strong>
+                <span data-role="compareReadout">Không phải mọi kim loại đều phản ứng với H₂SO₄ loãng. Cu là ngoại lệ quan trọng ở mức này.</span>
+              </div>
+            </div>
+            <details>
+              <summary>Mô hình đang giả định gì?</summary>
+              <p data-role="modelNote">Đây là mô hình định tính để học dấu hiệu quan sát và sản phẩm chính, không phải mô phỏng động học phản ứng thật.</p>
+            </details>
+          </section>
+
+          <section class="summary-card">
+            <h2>3) Kết luận nhanh</h2>
+            <div class="mini-check">
+              <div class="note-item">
+                <strong>H₂SO₄ loãng</strong>
+                <span>Tác dụng với kim loại đứng trước H, bazơ và oxit bazơ.</span>
+              </div>
+              <div class="note-item">
+                <strong>H₂SO₄ đặc nóng</strong>
+                <span>Có tính oxi hóa mạnh, ví dụ phản ứng với Cu tạo SO₂.</span>
+              </div>
+              <div class="note-item">
+                <strong>Quy tắc an toàn</strong>
+                <span>Luôn rót axit vào nước, không làm ngược lại.</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </section>
+
+    <script>
+      (function(rootId) {
+        "use strict";
+        const EXPERIMENT = {
+          title: "H2SO4 loãng và đặc",
+          grade: "Hóa 10",
+          interactionPattern: "virtual-mix-lab",
+          modelFidelity: "qualitative",
+          learningGoal: "Phân biệt dấu hiệu phản ứng của H2SO4 loãng với Zn, NaOH, CuO và H2SO4 đặc nóng với Cu.",
+          assessmentNotes: "Học sinh cần chọn tình huống và dự đoán hiện tượng chính trước khi xem mô phỏng hoàn chỉnh."
+        };
+        const root = document.getElementById(rootId);
+        if (!root) return;
+        const el = {
+          scene: root.querySelector("[data-role='scene']"),
+          fallback: root.querySelector("[data-role='fallback']"),
+          phase: root.querySelector("[data-role='phase']"),
+          observation: root.querySelector("[data-role='observation']"),
+          scenarioChip: root.querySelector("[data-role='scenarioChip']"),
+          timeChip: root.querySelector("[data-role='timeChip']"),
+          liveStatus: root.querySelector("[data-role='liveStatus']"),
+          effectFill: root.querySelector("[data-role='effectFill']"),
+          solutionFill: root.querySelector("[data-role='solutionFill']"),
+          time: root.querySelector("[data-role='time']"),
+          speed: root.querySelector("[data-role='speed']"),
+          timeValue: root.querySelector("[data-role='timeValue']"),
+          speedValue: root.querySelector("[data-role='speedValue']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          run: root.querySelector("[data-role='run']"),
+          reset: root.querySelector("[data-role='reset']"),
+          checkpointMid: root.querySelector("[data-role='checkpoint-mid']"),
+          checkpointEnd: root.querySelector("[data-role='checkpoint-end']"),
+          feedback: root.querySelector("[data-role='feedback']"),
+          equation: root.querySelector("[data-role='equation']"),
+          concept: root.querySelector("[data-role='concept']"),
+          observationTitle: root.querySelector("[data-role='observationTitle']"),
+          observationReadout: root.querySelector("[data-role='observationReadout']"),
+          compareTitle: root.querySelector("[data-role='compareTitle']"),
+          compareReadout: root.querySelector("[data-role='compareReadout']"),
+          modelNote: root.querySelector("[data-role='modelNote']")
+        };
+        const scenarios = {
+          zn: {
+            label: "H₂SO₄ loãng + Zn",
+            effectLabel: "khí H₂",
+            solutionLabel: "không màu",
+            equation: "Zn + H₂SO₄ (loãng) → ZnSO₄ + H₂↑",
+            concept: "Khái niệm: H₂SO₄ loãng thể hiện tính axit mạnh, tác dụng với kim loại đứng trước H.",
+            modelNote: "Mô hình định tính: bong bóng tăng dần, miếng Zn nhỏ lại để biểu diễn phản ứng giải phóng H₂.",
+            observationTitle: "Hiện tượng chính",
+            observationReadout: "Xuất hiện bọt khí H₂, Zn tan dần, dung dịch gần như không màu.",
+            compareTitle: "Điểm cần phân biệt",
+            compareReadout: "Kim loại phản ứng ở đây là Zn vì đứng trước H. Cu không phản ứng với H₂SO₄ loãng.",
+            guess: "gas",
+            phases: [
+              { at: 0, title: "Bắt đầu cho Zn vào axit", observation: "Miếng Zn vừa chạm dung dịch, chưa thấy nhiều bọt khí." },
+              { at: 4, title: "Phản ứng diễn ra rõ", observation: "Bọt khí H₂ bám quanh Zn và thoát lên trên." },
+              { at: 10, title: "Kết luận", observation: "Zn tan dần vì H₂SO₄ loãng tác dụng với kim loại đứng trước H." }
+            ],
+            solutionColor: 0xddeafb,
+            metalColor: 0x98a3af,
+            productColor: 0x7fe3f0,
+            effectAt: function(t, maxTime) { return Math.min(1, Math.pow(t / maxTime, 1.05)); },
+            solutionAt: function(t, maxTime) { return 1 - Math.min(0.22, Math.pow(t / maxTime, 1.1) * 0.22); },
+            solidScaleAt: function(t, maxTime) { return 1 - Math.min(0.45, Math.pow(t / maxTime, 1.05) * 0.45); },
+            smoke: false,
+            bubbles: true,
+            precipitate: false,
+            dissolve: false,
+            blueRise: false,
+            gasType: "H₂"
+          },
+          naoh: {
+            label: "H₂SO₄ + NaOH",
+            effectLabel: "trung hòa",
+            solutionLabel: "không màu",
+            equation: "2NaOH + H₂SO₄ → Na₂SO₄ + 2H₂O",
+            concept: "Khái niệm: đây là phản ứng trung hòa giữa axit và bazơ, tạo muối sunfat và nước.",
+            modelNote: "Mô hình định tính: không có khí hay kết tủa; hai dung dịch hòa trộn dần để nhấn mạnh phản ứng trung hòa.",
+            observationTitle: "Hiện tượng chính",
+            observationReadout: "Không có khí, không có kết tủa; dung dịch sau phản ứng vẫn trong.",
+            compareTitle: "Điểm cần phân biệt",
+            compareReadout: "Phản ứng vẫn xảy ra dù không có dấu hiệu quá nổi bật. Cần dựa vào bản chất trung hòa và phương trình.",
+            guess: "neutral",
+            phases: [
+              { at: 0, title: "Chuẩn bị trộn hai dung dịch", observation: "Axit và bazơ đều trong suốt nên mắt thường khó phân biệt ngay." },
+              { at: 4, title: "Đang trung hòa", observation: "Hai dung dịch hòa vào nhau, không tạo khí hay kết tủa." },
+              { at: 10, title: "Kết luận", observation: "Sản phẩm là muối Na₂SO₄ và nước, dung dịch vẫn trong." }
+            ],
+            solutionColor: 0xe7f2ff,
+            metalColor: 0xbe78dc,
+            productColor: 0x8aa6c8,
+            effectAt: function(t, maxTime) { return Math.min(1, Math.pow(t / maxTime, 1.2) * 0.55); },
+            solutionAt: function(t, maxTime) { return 1 - Math.min(0.08, Math.pow(t / maxTime, 1.1) * 0.08); },
+            solidScaleAt: function() { return 1; },
+            smoke: false,
+            bubbles: false,
+            precipitate: false,
+            dissolve: true,
+            blueRise: false,
+            gasType: "-"
+          },
+          cuo: {
+            label: "H₂SO₄ + CuO",
+            effectLabel: "dung dịch xanh",
+            solutionLabel: "CuSO₄",
+            equation: "CuO + H₂SO₄ → CuSO₄ + H₂O",
+            concept: "Khái niệm: H₂SO₄ tác dụng với oxit bazơ tạo muối sunfat và nước.",
+            modelNote: "Mô hình định tính: chất rắn đen CuO tan dần, dung dịch chuyển xanh để biểu diễn tạo CuSO₄.",
+            observationTitle: "Hiện tượng chính",
+            observationReadout: "Chất rắn CuO tan dần, dung dịch chuyển sang màu xanh của CuSO₄.",
+            compareTitle: "Điểm cần phân biệt",
+            compareReadout: "Không có khí thoát ra; dấu hiệu nổi bật ở đây là màu xanh của dung dịch muối đồng(II).",
+            guess: "blue",
+            phases: [
+              { at: 0, title: "Cho CuO vào dung dịch axit", observation: "Bột CuO màu đen còn rõ, dung dịch chưa đổi màu nhiều." },
+              { at: 4, title: "CuO tan dần", observation: "Màu xanh của CuSO₄ bắt đầu xuất hiện trong dung dịch." },
+              { at: 10, title: "Kết luận", observation: "Dung dịch xanh cho thấy đã tạo muối CuSO₄, còn CuO giảm dần." }
+            ],
+            solutionColor: 0x5fa8e2,
+            metalColor: 0x1a1f27,
+            productColor: 0x5fa8e2,
+            effectAt: function(t, maxTime) { return Math.min(1, Math.pow(t / maxTime, 1.08)); },
+            solutionAt: function(t, maxTime) { return 0.38 + Math.min(0.62, Math.pow(t / maxTime, 1.05) * 0.62); },
+            solidScaleAt: function(t, maxTime) { return 1 - Math.min(0.62, Math.pow(t / maxTime, 1.04) * 0.62); },
+            smoke: false,
+            bubbles: false,
+            precipitate: false,
+            dissolve: true,
+            blueRise: true,
+            gasType: "-"
+          },
+          "cu-hot": {
+            label: "H₂SO₄ đặc nóng + Cu",
+            effectLabel: "khí SO₂",
+            solutionLabel: "CuSO₄ xanh",
+            equation: "Cu + 2H₂SO₄ (đặc, nóng) → CuSO₄ + SO₂↑ + 2H₂O",
+            concept: "Khái niệm: H₂SO₄ đặc nóng có tính oxi hóa mạnh nên oxi hóa được Cu, khác với H₂SO₄ loãng.",
+            modelNote: "Mô hình định tính: tỏa khói khí SO₂, thanh Cu nhỏ dần và dung dịch chuyển xanh do tạo CuSO₄.",
+            observationTitle: "Hiện tượng chính",
+            observationReadout: "Cu tan dần, có khí SO₂ thoát ra và dung dịch chuyển xanh.",
+            compareTitle: "Điểm cần phân biệt",
+            compareReadout: "Đây là tình huống duy nhất trong nhóm cần H₂SO₄ đặc nóng và nhấn mạnh tính oxi hóa mạnh.",
+            guess: "so2",
+            phases: [
+              { at: 0, title: "Đun nóng H₂SO₄ đặc với Cu", observation: "Thanh Cu chưa đổi nhiều, phản ứng mới bắt đầu khi có nhiệt." },
+              { at: 4, title: "Phản ứng oxi hóa diễn ra", observation: "Khí SO₂ thoát ra, Cu mòn dần và dung dịch bắt đầu xanh." },
+              { at: 10, title: "Kết luận", observation: "Cu phản ứng được vì H₂SO₄ đặc nóng là chất oxi hóa mạnh." }
+            ],
+            solutionColor: 0x5fa8e2,
+            metalColor: 0xc77a4f,
+            productColor: 0xb9eaf0,
+            effectAt: function(t, maxTime) { return Math.min(1, Math.pow(t / maxTime, 1.03)); },
+            solutionAt: function(t, maxTime) { return 0.22 + Math.min(0.68, Math.pow(t / maxTime, 1.02) * 0.68); },
+            solidScaleAt: function(t, maxTime) { return 1 - Math.min(0.58, Math.pow(t / maxTime, 1.02) * 0.58); },
+            smoke: true,
+            bubbles: true,
+            precipitate: false,
+            dissolve: false,
+            blueRise: true,
+            gasType: "SO₂"
+          }
+        };
+        const state = {
+          time: 0,
+          maxTime: 14,
+          speed: 1,
+          running: true,
+          guess: null,
+          scenarioKey: "zn",
+          sceneReady: false,
+          timeline: null,
+          threeScene: null
+        };
+        function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+        function currentScenario() { return scenarios[state.scenarioKey]; }
+        function scenarioEffectAt() { return currentScenario().effectAt(state.time, state.maxTime); }
+        function scenarioSolutionAt() { return currentScenario().solutionAt(state.time, state.maxTime); }
+        function scenarioSolidScaleAt() { return currentScenario().solidScaleAt(state.time, state.maxTime); }
+        function pickPhase(time) {
+          const phaseList = currentScenario().phases;
+          let current = phaseList[0];
+          for (let i = 0; i < phaseList.length; i += 1) {
+            if (time >= phaseList[i].at) current = phaseList[i];
+          }
+          return current;
+        }
+        function updateButtons(role, value) {
+          root.querySelectorAll("[data-role='" + role + "']").forEach(function(button) {
+            button.classList.toggle("active", button.getAttribute("data-value") === value);
+          });
+        }
+        function updateFeedback() {
+          const scenario = currentScenario();
+          if (!state.guess) {
+            el.feedback.textContent = "Hãy chọn một dấu hiệu chính trước khi nhìn kết quả đầy đủ.";
+            return;
+          }
+          if (state.time < 4) {
+            el.feedback.textContent = "Quan sát vài giây đầu: dấu hiệu đúng thường mới lộ ra một phần ở giai đoạn này.";
+            return;
+          }
+          if (state.time < 10) {
+            el.feedback.innerHTML = state.guess === scenario.guess
+              ? "Dự đoán đang khớp với mô phỏng: <strong>" + renderGuessLabel(scenario.guess) + "</strong>."
+              : "Hiện tượng đang gợi ý lại đáp án. Hãy so sánh với lựa chọn của em.";
+            return;
+          }
+          el.feedback.innerHTML = state.guess === scenario.guess
+            ? "Kết luận đúng: <strong>" + renderGuessLabel(scenario.guess) + "</strong>."
+            : "Kết luận: dấu hiệu đúng là <strong>" + renderGuessLabel(scenario.guess) + "</strong>.";
+        }
+        function renderGuessLabel(key) {
+          switch (key) {
+            case "gas": return "có khí H₂ thoát ra";
+            case "blue": return "dung dịch chuyển xanh";
+            case "neutral": return "tạo muối và nước, không có khí";
+            case "so2": return "khí SO₂ tạo ra";
+            default: return key;
+          }
+        }
+        function updateReadout() {
+          const scenario = currentScenario();
+          const effect = scenarioEffectAt();
+          const solution = scenarioSolutionAt();
+          const phase = pickPhase(state.time);
+          el.phase.textContent = phase.title;
+          el.observation.textContent = phase.observation;
+          el.scenarioChip.textContent = scenario.label;
+          el.timeChip.textContent = "t = " + state.time.toFixed(1) + " s";
+          el.timeValue.textContent = state.time.toFixed(1) + " s";
+          el.speedValue.textContent = state.speed.toFixed(1) + "x";
+          el.liveStatus.textContent = state.running ? "Demo đang tự chạy ở tốc độ " + state.speed.toFixed(1) + "x." : "Đang tạm dừng tại mốc " + state.time.toFixed(1) + " s để đọc hiện tượng.";
+          el.effectFill.style.width = Math.round(effect * 100) + "%";
+          el.solutionFill.style.width = Math.round(solution * 100) + "%";
+          el.equation.textContent = scenario.equation;
+          el.concept.textContent = scenario.concept;
+          el.observationTitle.textContent = scenario.observationTitle;
+          el.observationReadout.textContent = scenario.observationReadout;
+          el.compareTitle.textContent = scenario.compareTitle;
+          el.compareReadout.textContent = scenario.compareReadout;
+          el.modelNote.textContent = scenario.modelNote;
+          updateFeedback();
+          if (state.sceneReady) updateScene();
+        }
+        function hasWebGL() {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+        function showFallback(message) {
+          el.fallback.classList.add("show");
+          const strong = el.fallback.querySelector("strong");
+          if (strong) strong.textContent = message;
+        }
+        function loadScript(urls, globalName) {
+          return new Promise(function(resolve, reject) {
+            if (window[globalName]) {
+              resolve(window[globalName]);
+              return;
+            }
+            let index = 0;
+            function tryNext() {
+              if (index >= urls.length) {
+                reject(new Error("Không tải được " + globalName));
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = urls[index++];
+              script.async = true;
+              script.onload = function() { if (window[globalName]) resolve(window[globalName]); else tryNext(); };
+              script.onerror = tryNext;
+              document.head.appendChild(script);
+            }
+            tryNext();
+          });
+        }
+        function makeLabelSprite(THREE, text) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 256;
+          canvas.height = 80;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return null;
+          ctx.fillStyle = "rgba(255,255,255,0.92)";
+          ctx.roundRect ? ctx.roundRect(4, 8, 248, 64, 18) : ctx.fillRect(4, 8, 248, 64);
+          ctx.fill();
+          ctx.fillStyle = "#2b4560";
+          ctx.font = "700 28px Aptos, Segoe UI, sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(text, 128, 40);
+          const texture = new THREE.CanvasTexture(canvas);
+          const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+          const sprite = new THREE.Sprite(material);
+          sprite.scale.set(1.8, 0.56, 1);
+          return sprite;
+        }
+        function setupScene(THREE) {
+          if (!hasWebGL()) {
+            showFallback("Trình duyệt không hỗ trợ WebGL.");
+            return;
+          }
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0xf8fbff);
+          const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+          const renderer = new THREE.WebGLRenderer({ canvas: el.scene, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+          scene.add(new THREE.HemisphereLight(0xffffff, 0xa9bbce, 1.06));
+          const key = new THREE.DirectionalLight(0xffffff, 1.18);
+          key.position.set(4.6, 7.8, 5.4);
+          key.castShadow = true;
+          scene.add(key);
+
+          const table = new THREE.Mesh(new THREE.CylinderGeometry(4.0, 4.4, 0.18, 90), new THREE.MeshStandardMaterial({ color: 0xe8dfcf, roughness: 0.78 }));
+          table.position.y = -0.11;
+          table.receiveShadow = true;
+          scene.add(table);
+
+          const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.24, roughness: 0.08, metalness: 0, transmission: 0.54 });
+          const beaker = new THREE.Mesh(new THREE.CylinderGeometry(1.66, 1.53, 3.0, 72, 1, true), glassMat);
+          beaker.position.y = 1.5;
+          beaker.castShadow = true;
+          scene.add(beaker);
+          const rim = new THREE.Mesh(new THREE.TorusGeometry(1.66, 0.03, 12, 88), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.72 }));
+          rim.rotation.x = Math.PI / 2;
+          rim.position.y = 3.0;
+          scene.add(rim);
+
+          const solutionMat = new THREE.MeshPhysicalMaterial({ color: 0x7eb7eb, transparent: true, opacity: 0.62, roughness: 0.18, metalness: 0, transmission: 0.16 });
+          const solution = new THREE.Mesh(new THREE.CylinderGeometry(1.43, 1.34, 1.95, 72), solutionMat);
+          solution.position.y = 1.02;
+          scene.add(solution);
+
+          const zinc = new THREE.Mesh(new THREE.BoxGeometry(0.56, 1.1, 0.18), new THREE.MeshStandardMaterial({ color: 0x98a3af, roughness: 0.75, metalness: 0.18 }));
+          zinc.position.set(-0.62, 1.02, 0);
+          zinc.castShadow = true;
+          scene.add(zinc);
+
+          const copperRod = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.26, 24), new THREE.MeshStandardMaterial({ color: 0xc77a4f, roughness: 0.45, metalness: 0.48 }));
+          copperRod.position.set(-0.62, 1.02, 0);
+          copperRod.castShadow = true;
+          scene.add(copperRod);
+
+          const oxide = new THREE.Mesh(new THREE.DodecahedronGeometry(0.36, 0), new THREE.MeshStandardMaterial({ color: 0x1a1f27, roughness: 0.92 }));
+          oxide.position.set(-0.52, 0.74, 0.15);
+          oxide.castShadow = true;
+          scene.add(oxide);
+
+          const baseDrop = new THREE.Mesh(new THREE.SphereGeometry(0.23, 24, 18), new THREE.MeshStandardMaterial({ color: 0xbe78dc, roughness: 0.35 }));
+          baseDrop.position.set(-0.38, 2.64, 0);
+          scene.add(baseDrop);
+
+          const dropperBody = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 1.3, 18), new THREE.MeshStandardMaterial({ color: 0xf0f4fa, roughness: 0.25 }));
+          dropperBody.rotation.z = 0.28;
+          dropperBody.position.set(-0.04, 3.34, 0);
+          scene.add(dropperBody);
+          const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.17, 18, 18), new THREE.MeshStandardMaterial({ color: 0x526478, roughness: 0.45 }));
+          bulb.position.set(0.14, 3.92, 0);
+          scene.add(bulb);
+
+          const burnerBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, 0.18, 28), new THREE.MeshStandardMaterial({ color: 0x7f8fa0, roughness: 0.55 }));
+          burnerBase.position.set(1.7, 0.1, 0.3);
+          scene.add(burnerBase);
+          const burnerStem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.78, 18), new THREE.MeshStandardMaterial({ color: 0xa7b3bf, roughness: 0.42 }));
+          burnerStem.position.set(1.7, 0.48, 0.3);
+          scene.add(burnerStem);
+          const flame = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.44, 18), new THREE.MeshBasicMaterial({ color: 0xffa83a, transparent: true, opacity: 0.0 }));
+          flame.position.set(1.7, 0.98, 0.3);
+          scene.add(flame);
+
+          const label = makeLabelSprite(THREE, "H₂SO₄");
+          if (label) {
+            label.position.set(0, 3.6, 0.8);
+            scene.add(label);
+          }
+
+          const bubbles = [];
+          for (let i = 0; i < 34; i += 1) {
+            const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.038 + (i % 4) * 0.008, 14, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x90ddf1, emissiveIntensity: 0.16, transparent: true, opacity: 0.06, roughness: 0.16 }));
+            bubble.userData.phase = i * 0.29;
+            bubble.userData.speed = 0.62 + (i % 5) * 0.1;
+            bubble.userData.baseX = -0.62 + ((i % 4) - 1.5) * 0.12;
+            bubble.userData.baseZ = ((i % 5) - 2) * 0.05;
+            scene.add(bubble);
+            bubbles.push(bubble);
+          }
+
+          const smokeClouds = [];
+          for (let i = 0; i < 18; i += 1) {
+            const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.11 + (i % 4) * 0.02, 14, 12), new THREE.MeshStandardMaterial({ color: 0xd9eef2, transparent: true, opacity: 0.02, roughness: 0.9 }));
+            cloud.userData.phase = i * 0.4;
+            cloud.userData.baseY = 2.2 + (i % 5) * 0.18;
+            scene.add(cloud);
+            smokeClouds.push(cloud);
+          }
+
+          const swirl = new THREE.Mesh(new THREE.TorusGeometry(0.56, 0.05, 10, 48), new THREE.MeshBasicMaterial({ color: 0xcaa1db, transparent: true, opacity: 0.0 }));
+          swirl.rotation.x = Math.PI / 2;
+          swirl.position.set(0, 1.62, 0);
+          scene.add(swirl);
+
+          const orbit = { theta: 0.86, phi: 1.08, radius: 11.1, dragging: false, pointerId: null, lastX: 0, lastY: 0 };
+          state.threeScene = {
+            scene: scene,
+            camera: camera,
+            renderer: renderer,
+            solution: solution,
+            zinc: zinc,
+            copperRod: copperRod,
+            oxide: oxide,
+            baseDrop: baseDrop,
+            dropperBody: dropperBody,
+            bulb: bulb,
+            flame: flame,
+            swirl: swirl,
+            bubbles: bubbles,
+            smokeClouds: smokeClouds,
+            orbit: orbit,
+            target: new THREE.Vector3(0, 1.62, 0)
+          };
+
+          function resize() {
+            const rect = el.scene.getBoundingClientRect();
+            const width = Math.max(360, rect.width);
+            const height = Math.max(420, rect.height);
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+          el.scene.addEventListener("pointerdown", function(event) {
+            orbit.dragging = true;
+            orbit.pointerId = event.pointerId;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            el.scene.style.cursor = "grabbing";
+            if (el.scene.setPointerCapture) el.scene.setPointerCapture(event.pointerId);
+          });
+          el.scene.addEventListener("pointermove", function(event) {
+            if (!orbit.dragging || orbit.pointerId !== event.pointerId) return;
+            const dx = event.clientX - orbit.lastX;
+            const dy = event.clientY - orbit.lastY;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            orbit.theta -= dx * 0.008;
+            orbit.phi = clamp(orbit.phi + dy * 0.006, 0.62, 1.42);
+          });
+          function endDrag(event) {
+            if (event.pointerId !== undefined && orbit.pointerId !== event.pointerId) return;
+            orbit.dragging = false;
+            orbit.pointerId = null;
+            el.scene.style.cursor = "grab";
+          }
+          el.scene.addEventListener("pointerup", endDrag);
+          el.scene.addEventListener("pointercancel", endDrag);
+          resize();
+          window.addEventListener("resize", resize);
+          state.sceneReady = true;
+          updateScene();
+          animateScene();
+        }
+        function updateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const scenario = currentScenario();
+          const effect = scenarioEffectAt();
+          const solutionLevel = scenarioSolutionAt();
+          const solidScale = scenarioSolidScaleAt();
+          sceneData.solution.material.color.setHex(scenario.solutionColor);
+          sceneData.solution.material.opacity = 0.26 + solutionLevel * 0.48;
+          sceneData.solution.scale.y = 0.94 + solutionLevel * 0.12;
+
+          sceneData.zinc.visible = state.scenarioKey === "zn";
+          sceneData.copperRod.visible = state.scenarioKey === "cu-hot";
+          sceneData.oxide.visible = state.scenarioKey === "cuo";
+          sceneData.baseDrop.visible = state.scenarioKey === "naoh";
+          sceneData.dropperBody.visible = state.scenarioKey === "naoh";
+          sceneData.bulb.visible = state.scenarioKey === "naoh";
+          sceneData.flame.material.opacity = state.scenarioKey === "cu-hot" ? 0.45 + effect * 0.4 : 0;
+          sceneData.flame.scale.y = 0.7 + effect * 0.8;
+          sceneData.swirl.material.opacity = state.scenarioKey === "naoh" ? 0.12 + effect * 0.26 : 0;
+          sceneData.swirl.scale.setScalar(0.9 + effect * 0.5);
+          sceneData.swirl.rotation.z += 0.01;
+
+          if (sceneData.zinc.visible) {
+            sceneData.zinc.scale.y = solidScale;
+            sceneData.zinc.position.y = 0.7 + solidScale * 0.34;
+          }
+          if (sceneData.copperRod.visible) {
+            sceneData.copperRod.scale.y = solidScale;
+            sceneData.copperRod.position.y = 0.7 + solidScale * 0.48;
+          }
+          if (sceneData.oxide.visible) {
+            const oxideScale = 0.65 + solidScale * 0.45;
+            sceneData.oxide.scale.setScalar(oxideScale);
+            sceneData.oxide.material.opacity = 0.35 + solidScale * 0.65;
+            sceneData.oxide.material.transparent = true;
+          }
+          if (sceneData.baseDrop.visible) {
+            sceneData.baseDrop.position.y = 2.64 - effect * 1.25;
+            sceneData.baseDrop.scale.setScalar(1 - effect * 0.78);
+            sceneData.dropperBody.rotation.z = 0.28 + effect * 0.18;
+          }
+
+          sceneData.bubbles.forEach(function(bubble, index) {
+            const active = scenario.bubbles && effect > index / sceneData.bubbles.length * 0.88;
+            bubble.material.opacity = active ? 0.22 + effect * 0.34 : 0.02;
+            bubble.visible = scenario.bubbles;
+          });
+          sceneData.smokeClouds.forEach(function(cloud, index) {
+            const active = scenario.smoke && effect > index / sceneData.smokeClouds.length * 0.8;
+            cloud.material.opacity = active ? 0.08 + effect * 0.14 : 0.0;
+            cloud.visible = scenario.smoke;
+          });
+        }
+        function animateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const now = performance.now() * 0.001;
+          const scenario = currentScenario();
+          const effect = scenarioEffectAt();
+          const orbit = sceneData.orbit;
+          sceneData.bubbles.forEach(function(bubble) {
+            const phase = now * bubble.userData.speed + bubble.userData.phase;
+            const loop = (phase % 1 + 1) % 1;
+            bubble.position.set(bubble.userData.baseX + Math.sin(phase * 8) * 0.05, 0.44 + loop * 2.22, bubble.userData.baseZ + Math.cos(phase * 6) * 0.04);
+            bubble.scale.setScalar(0.8 + effect * 1.0);
+          });
+          sceneData.smokeClouds.forEach(function(cloud, index) {
+            const phase = now * (0.3 + index * 0.02) + cloud.userData.phase;
+            cloud.position.set(-0.2 + Math.sin(phase * 0.8) * 0.7, cloud.userData.baseY + (phase % 1) * 1.1, Math.cos(phase * 1.1) * 0.32);
+            cloud.scale.setScalar(0.9 + effect * 0.8);
+          });
+          if (!orbit.dragging) orbit.theta += 0.0015;
+          const sinPhi = Math.sin(orbit.phi);
+          sceneData.camera.position.x = Math.cos(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.position.y = orbit.radius * Math.cos(orbit.phi) + 2.15;
+          sceneData.camera.position.z = Math.sin(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.lookAt(sceneData.target);
+          sceneData.renderer.render(sceneData.scene, sceneData.camera);
+          requestAnimationFrame(animateScene);
+        }
+        function gotoTime(target) {
+          state.time = clamp(target, 0, state.maxTime);
+          el.time.value = state.time.toFixed(1);
+          updateReadout();
+        }
+        function startLoop(gsapInstance) {
+          const driver = { value: 0 };
+          state.timeline = gsapInstance.timeline({ repeat: -1, defaults: { ease: "none" } });
+          state.timeline.to(driver, {
+            duration: state.maxTime,
+            value: state.maxTime,
+            onUpdate: function() {
+              state.time = clamp(driver.value, 0, state.maxTime);
+              el.time.value = state.time.toFixed(1);
+              updateReadout();
+            },
+            onRepeat: function() {
+              driver.value = 0;
+              state.time = 0;
+              el.time.value = "0.0";
+              updateReadout();
+            }
+          });
+          state.timeline.timeScale(state.speed);
+        }
+        function resetScenario() {
+          gotoTime(0);
+          if (state.timeline) {
+            state.timeline.pause(0);
+            if (state.running) state.timeline.resume();
+          }
+        }
+        function bindEvents() {
+          root.querySelectorAll("[data-role='guess']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              state.guess = button.getAttribute("data-value");
+              updateButtons("guess", state.guess);
+              updateReadout();
+            });
+          });
+          root.querySelectorAll("[data-role='scenario']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              state.scenarioKey = button.getAttribute("data-value");
+              updateButtons("scenario", state.scenarioKey);
+              resetScenario();
+            });
+          });
+          el.toggle.addEventListener("click", function() {
+            state.running = !state.running;
+            el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+            if (state.timeline) {
+              if (state.running) state.timeline.resume();
+              else state.timeline.pause();
+            }
+            updateReadout();
+          });
+          el.run.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            if (state.timeline) state.timeline.resume();
+            updateReadout();
+          });
+          el.reset.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            resetScenario();
+          });
+          el.time.addEventListener("input", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(Number(el.time.value));
+          });
+          el.speed.addEventListener("input", function() {
+            state.speed = Number(el.speed.value);
+            if (state.timeline) state.timeline.timeScale(state.speed);
+            updateReadout();
+          });
+          el.checkpointMid.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(6.5);
+          });
+          el.checkpointEnd.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(state.maxTime);
+          });
+        }
+        Promise.all([
+          loadScript([
+            "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+            "https://unpkg.com/three@0.160.0/build/three.min.js"
+          ], "THREE").catch(function() { return null; }),
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+            "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+          ], "gsap")
+        ]).then(function(loaded) {
+          const THREE = loaded[0];
+          const gsapInstance = loaded[1];
+          if (THREE) setupScene(THREE);
+          else showFallback("Không tải được Three.js.");
+          startLoop(gsapInstance);
+          bindEvents();
+          updateReadout();
+        }).catch(function(error) {
+          showFallback(error && error.message ? error.message : "Không khởi tạo được mô phỏng.");
+          bindEvents();
+          updateReadout();
+        });
+      })("chem-exp-h2so4-properties");
+    </script>
+  </div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Khái niệm tốc độ phản ứng hoá học</title>
+  <style>
+:root {
+  color-scheme: dark;
+  --panel: rgba(12, 18, 32, 0.74);
+  --panel2: rgba(10, 14, 26, 0.72);
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #67d8ff;
+  --warm: #ffce6b;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #1f2a44 0%, #0b1220 48%, #05070d 100%);
+}
+
+canvas.stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  max-width: 380px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+}
+
+.panel h1 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+}
+
+.panel p {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.5;
+  font-size: 13px;
+}
+
+.panel .hint {
+  margin-top: 4px;
+  color: var(--warm);
+}
+
+.secondary {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  width: 280px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(16px);
+  pointer-events: auto;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+}
+
+.secondary .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.status {
+  position: absolute;
+  left: 24px;
+  bottom: 24px;
+  max-width: 460px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.status .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.status .value {
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.status .sub {
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+}
+
+.primary-btn {
+  pointer-events: auto;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(103, 216, 255, 0.12);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+  </style>
+</head>
+<body>
+  <canvas class="stage" id="stage"></canvas>
+
+  <div class="hud">
+<style>
+  .secondary h2 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .secondary .legend {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 10px;
+  }
+  .legendDot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 4px;
+  }
+  .chartRow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .chartRow canvas {
+    width: 150px;
+    height: 70px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .chartRow .meta {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.82);
+    line-height: 1.4;
+  }
+  .chartRow .meta b { color: #fff; }
+</style>
+<div class="panel">
+  <h1>Khái niệm tốc độ phản ứng hoá học</h1>
+  <p>Khi phản ứng xảy ra, lượng chất đầu giảm dần, lượng chất sản phẩm tăng dần theo thời gian. Tốc độ phản ứng được xác định bằng sự thay đổi lượng chất đầu hoặc sản phẩm trong một đơn vị thời gian.</p>
+  <p class="hint">Bấm vào từng vật mẫu hoặc nhấn nút để bắt đầu, rồi so sánh độ dốc của 3 đồ thị bên phải.</p>
+  <button class="primary-btn" id="pourBtn" data-action="autoplay">Bắt đầu cả 3 phản ứng</button>
+  <button class="primary-btn" id="resetBtn" data-action="reset">Đặt lại</button>
+</div>
+
+<div class="secondary">
+  <h2>Hình 19.1 — Lượng chất theo thời gian</h2>
+  <div class="legend"><span class="legendDot" style="background:#ff6b5e"></span>Chất đầu &nbsp; <span class="legendDot" style="background:#67d8ff"></span>Chất sản phẩm</div>
+  <div class="chartRow">
+    <canvas id="chartA" width="150" height="70"></canvas>
+    <div class="meta">a) Than cháy<br/><b>Nhanh</b></div>
+  </div>
+  <div class="chartRow">
+    <canvas id="chartB" width="150" height="70"></canvas>
+    <div class="meta">b) Sắt bị gỉ<br/><b>Chậm</b></div>
+  </div>
+  <div class="chartRow">
+    <canvas id="chartC" width="150" height="70"></canvas>
+    <div class="meta">c) Tinh bột lên men rượu<br/><b>Chậm</b></div>
+  </div>
+</div>
+
+<div class="status">
+  <div class="label">Trạng thái</div>
+  <div class="value" id="statusText">Sẵn sàng. Hãy bấm vào một vật mẫu để bắt đầu phản ứng.</div>
+  <div class="sub" id="statusSub">Orbit: kéo nền để xoay góc nhìn. Bấm trực tiếp vào than, sắt hoặc bát cơm rượu.</div>
+</div>
+
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../../../skills/chem-courseware-base/vendor/three/three.module.js",
+        "three/addons/controls/OrbitControls.js": "../../../skills/chem-courseware-base/vendor/three/OrbitControls.js"
+      }
+    }
+  </script>
+  <script type="module" src="./scene.js"></script>
+</body>
+</html>

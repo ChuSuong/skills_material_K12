@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Thử màu ngọn lửa của ion kim loại</title>
+</head>
+<body>
+  <div id="chem-exp-ngon-lua-kim-loai" class="chem-exp" data-widget-family="chemistry-experiment-lab" data-phase="predict">
+    <style>
+      #chem-exp-ngon-lua-kim-loai {
+        --bg-1: #08111f;
+        --bg-2: #132544;
+        --panel: rgba(8, 16, 30, 0.78);
+        --panel-soft: rgba(255, 255, 255, 0.08);
+        --line: rgba(190, 222, 255, 0.16);
+        --ink: #ecf6ff;
+        --muted: #9eb4ce;
+        --good: #7cf5bb;
+        --warn: #ffd48d;
+        --accent: #8fc6ff;
+        --shadow: 0 26px 60px rgba(0, 0, 0, 0.32);
+        box-sizing: border-box;
+        min-height: 100vh;
+        margin: 0;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(880px 460px at 8% -10%, rgba(57, 120, 255, 0.24), transparent 60%),
+          radial-gradient(760px 420px at 94% 8%, rgba(255, 157, 67, 0.16), transparent 58%),
+          linear-gradient(160deg, var(--bg-1), var(--bg-2));
+      }
+      #chem-exp-ngon-lua-kim-loai *,
+      #chem-exp-ngon-lua-kim-loai *::before,
+      #chem-exp-ngon-lua-kim-loai *::after {
+        box-sizing: inherit;
+      }
+      #chem-exp-ngon-lua-kim-loai .shell {
+        width: min(1380px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-ngon-lua-kim-loai .topbar,
+      #chem-exp-ngon-lua-kim-loai .stage-card,
+      #chem-exp-ngon-lua-kim-loai .side-card,
+      #chem-exp-ngon-lua-kim-loai .footer-card {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 26px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+        min-width: 0;
+      }
+      #chem-exp-ngon-lua-kim-loai .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 14px 16px;
+      }
+      #chem-exp-ngon-lua-kim-loai h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.4vw, 30px);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+      }
+      #chem-exp-ngon-lua-kim-loai .sub,
+      #chem-exp-ngon-lua-kim-loai .meta,
+      #chem-exp-ngon-lua-kim-loai .status,
+      #chem-exp-ngon-lua-kim-loai .fidelity-text,
+      #chem-exp-ngon-lua-kim-loai .footnote {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      #chem-exp-ngon-lua-kim-loai .badge-row,
+      #chem-exp-ngon-lua-kim-loai .actions,
+      #chem-exp-ngon-lua-kim-loai .predict-grid,
+      #chem-exp-ngon-lua-kim-loai .sample-tabs,
+      #chem-exp-ngon-lua-kim-loai .legend-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      #chem-exp-ngon-lua-kim-loai .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      #chem-exp-ngon-lua-kim-loai .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.38fr) minmax(310px, 0.62fr);
+        gap: 12px;
+        align-items: start;
+      }
+      #chem-exp-ngon-lua-kim-loai .stage-card {
+        position: relative;
+        min-height: 520px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 78%, rgba(255, 214, 146, 0.11), transparent 22%),
+          radial-gradient(circle at 50% 64%, rgba(255, 255, 255, 0.08), transparent 16%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+      }
+      #chem-exp-ngon-lua-kim-loai .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 520px;
+        touch-action: none;
+        cursor: grab;
+      }
+      #chem-exp-ngon-lua-kim-loai .overlay,
+      #chem-exp-ngon-lua-kim-loai .equation-pill,
+      #chem-exp-ngon-lua-kim-loai .focus-pill {
+        position: absolute;
+        z-index: 3;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(7, 13, 26, 0.76);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, 0.24);
+        backdrop-filter: blur(10px);
+      }
+      #chem-exp-ngon-lua-kim-loai .overlay {
+        top: 14px;
+        left: 14px;
+        width: min(350px, calc(100% - 28px));
+        padding: 12px;
+        border-radius: 20px;
+      }
+      #chem-exp-ngon-lua-kim-loai .equation-pill {
+        right: 14px;
+        top: 14px;
+        width: min(270px, calc(100% - 28px));
+        padding: 10px 12px;
+        border-radius: 18px;
+      }
+      #chem-exp-ngon-lua-kim-loai .focus-pill {
+        left: 14px;
+        bottom: 14px;
+        width: min(320px, calc(100% - 28px));
+        padding: 12px;
+        border-radius: 22px;
+      }
+      #chem-exp-ngon-lua-kim-loai .overlay strong,
+      #chem-exp-ngon-lua-kim-loai .equation-pill strong,
+      #chem-exp-ngon-lua-kim-loai .focus-pill strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      #chem-exp-ngon-lua-kim-loai .overlay span,
+      #chem-exp-ngon-lua-kim-loai .equation-pill span,
+      #chem-exp-ngon-lua-kim-loai .focus-pill span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-tabs {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 118px;
+        z-index: 3;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-tab {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        padding: 8px 11px;
+        color: var(--ink);
+        background: rgba(8, 16, 32, 0.72);
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-tab.active {
+        background: rgba(140, 198, 255, 0.18);
+        border-color: rgba(140, 198, 255, 0.28);
+      }
+      #chem-exp-ngon-lua-kim-loai .side-card {
+        padding: 12px;
+        display: grid;
+        align-content: start;
+        gap: 10px;
+      }
+      #chem-exp-ngon-lua-kim-loai h2 {
+        margin: 0 0 6px;
+        font-size: 16px;
+      }
+      #chem-exp-ngon-lua-kim-loai .mini {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #9fc5ee;
+        font-weight: 800;
+      }
+      #chem-exp-ngon-lua-kim-loai button {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+      }
+      #chem-exp-ngon-lua-kim-loai button.primary {
+        background: linear-gradient(135deg, #ffb36a, #ff6f5c);
+        color: #1e0e02;
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      #chem-exp-ngon-lua-kim-loai button.secondary {
+        background: rgba(143, 198, 255, 0.12);
+      }
+      #chem-exp-ngon-lua-kim-loai button:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-list,
+      #chem-exp-ngon-lua-kim-loai .results-list {
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-card,
+      #chem-exp-ngon-lua-kim-loai .result-card,
+      #chem-exp-ngon-lua-kim-loai .fidelity-box {
+        padding: 9px 10px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-card.active {
+        background: rgba(143, 198, 255, 0.12);
+        border-color: rgba(143, 198, 255, 0.24);
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-header,
+      #chem-exp-ngon-lua-kim-loai .result-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-name {
+        font-size: 13px;
+        font-weight: 800;
+      }
+      #chem-exp-ngon-lua-kim-loai .sample-formula {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      #chem-exp-ngon-lua-kim-loai .predict-grid {
+        margin-top: 8px;
+        gap: 6px;
+      }
+      #chem-exp-ngon-lua-kim-loai .predict-chip {
+        padding: 6px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.selected {
+        outline: 2px solid rgba(255, 255, 255, 0.18);
+      }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.option-crimson.selected { background: rgba(255, 84, 92, 0.3); }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.option-gold.selected { background: rgba(255, 193, 79, 0.28); }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.option-lilac.selected { background: rgba(184, 146, 255, 0.3); }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.option-brick.selected { background: rgba(255, 146, 94, 0.28); }
+      #chem-exp-ngon-lua-kim-loai .predict-chip.option-jade.selected { background: rgba(85, 229, 176, 0.24); }
+      #chem-exp-ngon-lua-kim-loai .small-line {
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      #chem-exp-ngon-lua-kim-loai .result-card {
+        display: grid;
+        gap: 4px;
+      }
+      #chem-exp-ngon-lua-kim-loai .result-card.pending .small-line:last-child {
+        display: none;
+      }
+      #chem-exp-ngon-lua-kim-loai .result-card.good {
+        border-color: rgba(124, 245, 187, 0.22);
+      }
+      #chem-exp-ngon-lua-kim-loai .result-card.warn {
+        border-color: rgba(255, 212, 141, 0.24);
+      }
+      #chem-exp-ngon-lua-kim-loai .truth {
+        font-weight: 800;
+      }
+      #chem-exp-ngon-lua-kim-loai .swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        box-shadow: 0 0 16px currentColor;
+      }
+      #chem-exp-ngon-lua-kim-loai .status {
+        min-height: 28px;
+      }
+      #chem-exp-ngon-lua-kim-loai .footer-card {
+        padding: 12px 14px;
+        display: grid;
+        gap: 8px;
+      }
+      #chem-exp-ngon-lua-kim-loai .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      #chem-exp-ngon-lua-kim-loai .fail {
+        min-height: 540px;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        text-align: center;
+        color: #ffd7d1;
+      }
+      @media (max-width: 980px) {
+        #chem-exp-ngon-lua-kim-loai .layout {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-ngon-lua-kim-loai .sample-list {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-ngon-lua-kim-loai .stage-card,
+        #chem-exp-ngon-lua-kim-loai .stage-canvas {
+          min-height: 460px;
+        }
+      }
+      @media (max-width: 720px) {
+        #chem-exp-ngon-lua-kim-loai {
+          padding: 10px;
+        }
+        #chem-exp-ngon-lua-kim-loai .topbar {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-ngon-lua-kim-loai .stage-card,
+        #chem-exp-ngon-lua-kim-loai .stage-canvas {
+          min-height: 390px;
+        }
+        #chem-exp-ngon-lua-kim-loai .overlay,
+        #chem-exp-ngon-lua-kim-loai .equation-pill,
+        #chem-exp-ngon-lua-kim-loai .focus-pill {
+          width: calc(100% - 28px);
+        }
+        #chem-exp-ngon-lua-kim-loai .sample-tabs {
+          bottom: 136px;
+        }
+      }
+    </style>
+
+    <div class="shell">
+      <script type="application/json" data-role="test-contract">
+        {
+          "schema_version": "chem-lab.test-contract.v1",
+          "interaction_family": "classification",
+          "answer_reveal_policy": "after-complete",
+          "primary_observation": "flame-color-change",
+          "supports_reset": true,
+          "supports_pause": true
+        }
+      </script>
+      <section class="topbar">
+        <div>
+          <div class="mini">Phòng thí nghiệm Hóa học</div>
+          <h1>Thử màu ngọn lửa của ion kim loại</h1>
+          <p class="sub">Dự đoán màu ngọn lửa của Li<sup>+</sup>, Na<sup>+</sup>, K<sup>+</sup>, Ca<sup>2+</sup>, Cu<sup>2+</sup> trước khi đốt mẫu trên dây platin.</p>
+        </div>
+        <div class="badge-row">
+          <span class="badge">Bước 1: dự đoán đủ 5 mẫu</span>
+          <span class="badge">Bước 2: quan sát khay lửa</span>
+          <span class="badge">Bước 3: so sánh và kết luận</span>
+        </div>
+      </section>
+
+      <section class="layout">
+        <div class="stage-card" data-role="stage">
+          <canvas class="stage-canvas" data-role="canvas"></canvas>
+          <div class="overlay">
+            <strong>Yêu cầu của học sinh</strong>
+            <span>Chọn màu bạn tin là đúng cho từng ion. Khi đủ 5 dự đoán, nhấn <b>Quan sát khay lửa</b> để bật thí nghiệm.</span>
+            <span style="margin-top:6px;">Mẹo: Na<sup>+</sup> thường cho màu rất mạnh và dễ lấn át màu khác nếu mẫu bị lẫn tạp.</span>
+          </div>
+          <div class="equation-pill">
+            <strong>Thao tác mô phỏng</strong>
+            <span>Dây platin nhúng mẫu muối, đưa vào vùng nóng của đèn cồn để quan sát màu phát xạ đặc trưng.</span>
+          </div>
+          <div class="sample-tabs" data-role="sample-tabs"></div>
+          <div class="focus-pill">
+            <strong data-role="focus-title">Chưa bắt đầu quan sát</strong>
+            <span data-role="focus-copy">Hoàn thành phần dự đoán để mô phỏng bắt đầu chạy theo thứ tự từ Li<sup>+</sup> đến Cu<sup>2+</sup>.</span>
+          </div>
+        </div>
+
+        <aside class="side-card">
+          <section>
+            <div class="mini">Dự đoán</div>
+            <h2>Chọn màu cho từng ion</h2>
+            <p class="meta">Mỗi ion chỉ cần một lựa chọn. Bạn có thể đổi đáp án trước khi bắt đầu quan sát.</p>
+          </section>
+
+          <div class="sample-list" data-role="sample-list"></div>
+
+          <section>
+            <div class="actions">
+              <button type="button" class="primary" data-role="primary-action" disabled>Quan sát khay lửa</button>
+              <button type="button" class="secondary" data-role="pause" disabled>Tạm dừng</button>
+              <button type="button" data-role="reset">Làm lại</button>
+            </div>
+            <p class="status" data-role="status">Cần đủ 5 dự đoán trước khi mô phỏng mở ngọn lửa.</p>
+          </section>
+
+          <section>
+            <div class="mini">So sánh</div>
+            <h2>Kết quả sau quan sát</h2>
+            <div class="results-list" data-role="result" data-revealed="false" data-phase="predict"></div>
+          </section>
+
+          <section class="fidelity-box">
+            <div class="mini">Độ trung thực mô hình</div>
+            <p class="fidelity-text">Mô hình <b>định tính</b>: màu lửa được đơn giản hóa để dễ học. Cường độ sáng và sắc độ thực tế còn phụ thuộc nồng độ mẫu, tạp chất, đầu đốt và điều kiện quan sát.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="footer-card">
+        <div class="legend-row">
+          <span class="legend-item"><span class="swatch" style="color:#ff6a75;background:#ff6a75;"></span>Vùng đỏ carmine</span>
+          <span class="legend-item"><span class="swatch" style="color:#ffd45c;background:#ffd45c;"></span>Vùng vàng mạnh</span>
+          <span class="legend-item"><span class="swatch" style="color:#b591ff;background:#b591ff;"></span>Vùng tím lilac</span>
+          <span class="legend-item"><span class="swatch" style="color:#ff9c5c;background:#ff9c5c;"></span>Vùng đỏ gạch</span>
+          <span class="legend-item"><span class="swatch" style="color:#59dfb6;background:#59dfb6;"></span>Vùng xanh lục</span>
+        </div>
+        <p class="footnote">Ghi nhớ nhanh: quan sát màu trước, rồi mới đối chiếu lại kết quả sau khi khay lửa chạy xong. Đây là mô hình lớp học, không thay thế phân tích định lượng trong phòng thí nghiệm thật.</p>
+      </section>
+    </div>
+
+    <script>
+      (function(rootId) {
+        const EXPERIMENT = {
+          title: "Thử màu ngọn lửa của ion kim loại",
+          grade: "Hóa học THPT",
+          mode: "định tính",
+          learningGoal: "Liên hệ màu phát xạ đặc trưng với từng ion kim loại khi đưa mẫu vào ngọn lửa.",
+          learningLoop: {
+            predict: "Chọn màu lửa cho 5 ion trước khi xem mô phỏng.",
+            observe: "Quan sát khay lửa bật lần lượt và tập trung vào màu từng mẫu.",
+            compare: "Đối chiếu dự đoán với màu thực tế trên danh sách kết quả.",
+            explain: "Mỗi ion phát xạ ánh sáng đặc trưng khi electron chuyển mức năng lượng."
+          },
+          reactionNote: "Mô phỏng thao tác thử màu ngọn lửa trên dây platin, không mô phỏng đầy đủ cơ chế phổ phát xạ.",
+          interactionPattern: "variable-comparison-lab",
+          modelFidelity: "qualitative"
+        };
+
+        const root = document.getElementById(rootId);
+        const stageCard = root.querySelector(".stage-card");
+        const canvas = root.querySelector("[data-role='canvas']");
+        const sampleList = root.querySelector("[data-role='sample-list']");
+        const resultsList = root.querySelector("[data-role='result']");
+        const statusEl = root.querySelector("[data-role='status']");
+        const runButton = root.querySelector("[data-role='primary-action']");
+        const pauseButton = root.querySelector("[data-role='pause']");
+        const resetButton = root.querySelector("[data-role='reset']");
+        const focusTitle = root.querySelector("[data-role='focus-title']");
+        const focusCopy = root.querySelector("[data-role='focus-copy']");
+        const sampleTabs = root.querySelector("[data-role='sample-tabs']");
+
+        const samples = [
+          { id: "li", label: "Li+", formula: "LiCl", answer: "crimson", answerLabel: "Đỏ carmine", color: "#ff5b67", metal: 0xf2eef6, note: "Lithium cho màu đỏ carmine khá rõ." },
+          { id: "na", label: "Na+", formula: "NaCl", answer: "gold", answerLabel: "Vàng mạnh", color: "#ffd64d", metal: 0xf7f0c8, note: "Sodium phát sáng vàng rất mạnh, dễ lấn át tạp màu." },
+          { id: "k", label: "K+", formula: "KCl", answer: "lilac", answerLabel: "Tím lilac", color: "#b792ff", metal: 0xeeebff, note: "Potassium cho tím lilac nhạt hơn Na+." },
+          { id: "ca", label: "Ca2+", formula: "CaCl2", answer: "brick", answerLabel: "Đỏ gạch", color: "#ff955a", metal: 0xf6e9e1, note: "Calcium cho đỏ gạch hoặc cam đỏ." },
+          { id: "cu", label: "Cu2+", formula: "CuCl2", answer: "jade", answerLabel: "Xanh lục", color: "#59dfb6", metal: 0xdff5ef, note: "Copper tạo xanh lục rõ ở vùng nóng." }
+        ];
+
+        const options = [
+          { id: "crimson", label: "Đỏ carmine", className: "option-crimson", chip: "#ff6471" },
+          { id: "gold", label: "Vàng mạnh", className: "option-gold", chip: "#ffd45c" },
+          { id: "lilac", label: "Tím lilac", className: "option-lilac", chip: "#b591ff" },
+          { id: "brick", label: "Đỏ gạch", className: "option-brick", chip: "#ff9c5c" },
+          { id: "jade", label: "Xanh lục", className: "option-jade", chip: "#59dfb6" }
+        ];
+
+        const state = {
+          predictions: {},
+          running: false,
+          ready: false,
+          started: false,
+          completed: false,
+          paused: false,
+          sequenceElapsed: 0,
+          focusIndex: 0,
+          burnerProgress: samples.map(function() { return 0; })
+        };
+
+        function updateSemanticState() {
+          let phase = "predict";
+          if (state.started && !state.completed) phase = "observe";
+          if (state.completed) phase = "complete";
+          root.setAttribute("data-phase", phase);
+          resultsList.setAttribute("data-phase", phase);
+          resultsList.setAttribute("data-revealed", state.completed ? "true" : "false");
+        }
+
+        function escapeHtml(text) {
+          return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+        }
+
+        function renderPredictionPanels() {
+          sampleList.innerHTML = samples.map(function(sample, index) {
+            const predicted = state.predictions[sample.id];
+            const predictedLabel = predicted ? options.find(function(option) { return option.id === predicted; }).label : "Chưa chọn";
+            return "<div class='sample-card" + (state.focusIndex === index ? " active" : "") + "'>" +
+              "<div class='sample-header'>" +
+                "<div>" +
+                  "<div class='sample-name'>" + sample.label + "</div>" +
+                  "<div class='sample-formula'>Mẫu minh họa: " + sample.formula + "</div>" +
+                "</div>" +
+                "<button type='button' data-action='focus' data-sample='" + sample.id + "'>Xem mẫu</button>" +
+              "</div>" +
+              "<div class='predict-grid'>" +
+                options.map(function(option) {
+                  const selected = predicted === option.id ? " selected" : "";
+                  return "<button type='button' class='predict-chip " + option.className + selected + "' data-role='classification-choice' data-action='predict' data-sample='" + sample.id + "' data-option='" + option.id + "'>" + option.label + "</button>";
+                }).join("") +
+              "</div>" +
+              "<div class='small-line'>Dự đoán hiện tại: <b>" + escapeHtml(predictedLabel) + "</b></div>" +
+            "</div>";
+          }).join("");
+        }
+
+        function resultCard(sample) {
+          if (!state.completed) {
+            const prediction = state.predictions[sample.id];
+            const predictionLabel = prediction ? options.find(function(option) { return option.id === prediction; }).label : "Chưa chọn";
+            return "<div class='result-card pending'><div class='result-top'><strong>" + sample.label + "</strong><span class='sample-formula'>Chờ quan sát</span></div><div class='small-line'>Bạn đã chọn: <b>" + escapeHtml(predictionLabel) + "</b></div><div class='small-line'>Màu thực tế chỉ mở sau khi quan sát xong toàn bộ khay lửa.</div></div>";
+          }
+          const prediction = state.predictions[sample.id];
+          const isCorrect = prediction === sample.answer;
+          const predictionLabel = prediction ? options.find(function(option) { return option.id === prediction; }).label : "Không có";
+          return "<div class='result-card " + (isCorrect ? "good" : "warn") + "'>" +
+            "<div class='result-top'>" +
+              "<strong>" + sample.label + "</strong>" +
+              "<span class='truth'>" + (isCorrect ? "Khớp dự đoán" : "Cần sửa dự đoán") + "</span>" +
+            "</div>" +
+            "<div class='small-line'>Bạn chọn: <b>" + escapeHtml(predictionLabel) + "</b></div>" +
+            "<div class='small-line'>Màu quan sát: <b>" + escapeHtml(sample.answerLabel) + "</b></div>" +
+            "<div class='small-line'>" + escapeHtml(sample.note) + "</div>" +
+          "</div>";
+        }
+
+        function renderResults() {
+          resultsList.innerHTML = samples.map(resultCard).join("");
+        }
+
+        function renderTabs() {
+          sampleTabs.innerHTML = samples.map(function(sample, index) {
+            const active = state.focusIndex === index ? " active" : "";
+            return "<button type='button' class='sample-tab" + active + "' data-action='focus' data-sample='" + sample.id + "'>" + sample.label + "</button>";
+          }).join("");
+        }
+
+        function updateStatus() {
+          const predictedCount = Object.keys(state.predictions).length;
+          state.ready = predictedCount === samples.length;
+          runButton.disabled = !state.ready || state.started;
+          pauseButton.disabled = !state.started;
+          if (!state.started) {
+            statusEl.innerHTML = state.ready
+              ? "Đã có đủ 5 dự đoán. Nhấn <b>Quan sát khay lửa</b> để bắt đầu mô phỏng."
+              : "Đã chọn " + predictedCount + "/5 dự đoán. Cần đủ 5 dự đoán trước khi mở ngọn lửa.";
+            return;
+          }
+          if (state.completed) {
+            const correct = samples.filter(function(sample) { return state.predictions[sample.id] === sample.answer; }).length;
+            statusEl.innerHTML = "Đã quan sát xong. Bạn đúng <b>" + correct + "/5</b> mẫu. Chọn từng nút <b>Xem mẫu</b> để soi lại từng màu.";
+            return;
+          }
+          statusEl.innerHTML = state.paused
+            ? "Mô phỏng đang tạm dừng ở mẫu <b>" + escapeHtml(samples[state.focusIndex].label) + "</b>."
+            : "Đang quan sát mẫu <b>" + escapeHtml(samples[state.focusIndex].label) + "</b>. Có thể kéo để xoay giá thí nghiệm.";
+        }
+
+        function updateFocusText() {
+          const sample = samples[state.focusIndex];
+          if (!state.started) {
+            focusTitle.textContent = "Chưa bắt đầu quan sát";
+            focusCopy.innerHTML = "Hoàn thành phần dự đoán để mô phỏng bắt đầu chạy theo thứ tự từ Li<sup>+</sup> đến Cu<sup>2+</sup>.";
+            return;
+          }
+          const prediction = state.predictions[sample.id];
+          const predictionLabel = prediction ? options.find(function(option) { return option.id === prediction; }).label : "chưa dự đoán";
+          if (!state.completed) {
+            focusTitle.textContent = "Đang soi mẫu " + sample.label;
+            focusCopy.innerHTML = "Bạn dự đoán: <b>" + escapeHtml(predictionLabel) + "</b>. Hãy nhìn màu lửa trên sân khấu trước khi mở phần đối chiếu.";
+            return;
+          }
+          focusTitle.textContent = sample.label + " • " + sample.answerLabel;
+          focusCopy.innerHTML = "Bạn dự đoán: <b>" + escapeHtml(predictionLabel) + "</b>. " + escapeHtml(sample.note);
+        }
+
+        function syncUI() {
+          updateSemanticState();
+          renderPredictionPanels();
+          renderResults();
+          renderTabs();
+          updateStatus();
+          updateFocusText();
+          pauseButton.textContent = state.paused ? "Tiếp tục" : "Tạm dừng";
+        }
+
+        root.addEventListener("click", function(event) {
+          const trigger = event.target.closest("[data-action]");
+          if (!trigger) return;
+          const action = trigger.getAttribute("data-action");
+          const sampleId = trigger.getAttribute("data-sample");
+          if (action === "predict") {
+            const optionId = trigger.getAttribute("data-option");
+            state.predictions[sampleId] = optionId;
+            syncUI();
+            return;
+          }
+          if (action === "focus") {
+            const nextIndex = samples.findIndex(function(sample) { return sample.id === sampleId; });
+            if (nextIndex >= 0) {
+              state.focusIndex = nextIndex;
+              syncUI();
+            }
+          }
+        });
+
+        runButton.addEventListener("click", function() {
+          if (!state.ready || state.started) return;
+          state.started = true;
+          state.running = true;
+          state.paused = false;
+          state.completed = false;
+          state.sequenceElapsed = 0;
+          state.focusIndex = 0;
+          state.burnerProgress = samples.map(function() { return 0; });
+          syncUI();
+        });
+
+        pauseButton.addEventListener("click", function() {
+          if (!state.started) return;
+          state.paused = !state.paused;
+          state.running = !state.paused && !state.completed;
+          syncUI();
+        });
+
+        resetButton.addEventListener("click", function() {
+          state.predictions = {};
+          state.running = false;
+          state.ready = false;
+          state.started = false;
+          state.completed = false;
+          state.paused = false;
+          state.sequenceElapsed = 0;
+          state.focusIndex = 0;
+          state.burnerProgress = samples.map(function() { return 0; });
+          syncUI();
+        });
+
+        function showFail(message) {
+          stageCard.innerHTML = "<div class='fail'><div><strong>Không tải được mô phỏng 3D</strong><p class='footnote'>" + message + "</p><p class='footnote'>Học sinh vẫn có thể dùng phần dự đoán và ghi nhớ bảng màu ở bên phải để ôn kiến thức.</p></div></div>";
+        }
+
+        function loadScript(urls, globalName, done, fail) {
+          if (window[globalName]) {
+            done(window[globalName]);
+            return;
+          }
+          let index = 0;
+          function next() {
+            if (index >= urls.length) {
+              fail();
+              return;
+            }
+            const script = document.createElement("script");
+            script.src = urls[index++];
+            script.onload = function() {
+              if (window[globalName]) {
+                done(window[globalName]);
+              } else {
+                next();
+              }
+            };
+            script.onerror = next;
+            document.head.appendChild(script);
+          }
+          next();
+        }
+
+        function loadThree(done) {
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+            "https://unpkg.com/three@0.137.0/build/three.min.js"
+          ], "THREE", done, function() {
+            showFail("Không thể tải thư viện Three.js. Hãy kiểm tra mạng rồi mở lại tệp HTML.");
+          });
+        }
+
+        function hasWebGL() {
+          try {
+            const testCanvas = document.createElement("canvas");
+            return !!(window.WebGLRenderingContext &&
+              (testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function start(THREE) {
+          if (!hasWebGL()) {
+            showFail("Trình duyệt hiện tại không hỗ trợ WebGL. Hãy mở bằng Chrome, Edge hoặc Firefox mới hơn để xem sân khấu ngọn lửa.");
+            return;
+          }
+
+          const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          const scene = new THREE.Scene();
+          scene.fog = new THREE.Fog(0x09111d, 11, 22);
+
+          const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
+          camera.position.set(0, 3.95, 10.4);
+          camera.lookAt(0, 2.05, 0);
+
+          const ambient = new THREE.HemisphereLight(0xcfe4ff, 0x1b2334, 1.2);
+          scene.add(ambient);
+          const key = new THREE.DirectionalLight(0xf9ecce, 1.1);
+          key.position.set(5, 10, 7);
+          scene.add(key);
+          const rim = new THREE.PointLight(0x7ec2ff, 0.7, 40, 2);
+          rim.position.set(-4, 4, 6);
+          scene.add(rim);
+
+          const rig = new THREE.Group();
+          scene.add(rig);
+
+          const table = new THREE.Mesh(
+            new THREE.CylinderGeometry(6.2, 6.8, 0.58, 52),
+            new THREE.MeshStandardMaterial({ color: 0x243448, roughness: 0.92, metalness: 0.08 })
+          );
+          table.position.set(0, -0.35, 0);
+          rig.add(table);
+
+          const topDisk = new THREE.Mesh(
+            new THREE.CylinderGeometry(5.35, 5.55, 0.16, 52),
+            new THREE.MeshStandardMaterial({ color: 0x314661, roughness: 0.55, metalness: 0.18 })
+          );
+          topDisk.position.set(0, 0.06, 0);
+          rig.add(topDisk);
+
+          const rack = new THREE.Mesh(
+            new THREE.BoxGeometry(9.4, 0.34, 2.6),
+            new THREE.MeshStandardMaterial({ color: 0x3b4f6c, roughness: 0.72, metalness: 0.16 })
+          );
+          rack.position.set(0, 1.18, 0.15);
+          rig.add(rack);
+
+          const rail = new THREE.Mesh(
+            new THREE.BoxGeometry(9.4, 0.12, 0.22),
+            new THREE.MeshStandardMaterial({ color: 0x8295b2, roughness: 0.44, metalness: 0.74 })
+          );
+          rail.position.set(0, 2.65, 0.02);
+          rig.add(rail);
+
+          const benchGlow = new THREE.Mesh(
+            new THREE.CircleGeometry(5.1, 44),
+            new THREE.MeshBasicMaterial({ color: 0x254a78, transparent: true, opacity: 0.28 })
+          );
+          benchGlow.rotation.x = -Math.PI / 2;
+          benchGlow.position.set(0, 0.08, 0);
+          rig.add(benchGlow);
+
+          const burners = [];
+          const burnerSpacing = 2.05;
+
+          function makeLabelSprite(text, color) {
+            const labelCanvas = document.createElement("canvas");
+            labelCanvas.width = 256;
+            labelCanvas.height = 96;
+            const ctx = labelCanvas.getContext("2d");
+            ctx.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+            ctx.fillStyle = "rgba(6, 12, 24, 0.72)";
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 4;
+            const radius = 22;
+            ctx.beginPath();
+            ctx.moveTo(radius, 8);
+            ctx.lineTo(labelCanvas.width - radius, 8);
+            ctx.quadraticCurveTo(labelCanvas.width - 8, 8, labelCanvas.width - 8, radius);
+            ctx.lineTo(labelCanvas.width - 8, labelCanvas.height - radius);
+            ctx.quadraticCurveTo(labelCanvas.width - 8, labelCanvas.height - 8, labelCanvas.width - radius, labelCanvas.height - 8);
+            ctx.lineTo(radius, labelCanvas.height - 8);
+            ctx.quadraticCurveTo(8, labelCanvas.height - 8, 8, labelCanvas.height - radius);
+            ctx.lineTo(8, radius);
+            ctx.quadraticCurveTo(8, 8, radius, 8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = color;
+            ctx.font = "bold 34px Aptos, Segoe UI, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, labelCanvas.width / 2, labelCanvas.height / 2 + 2);
+            const texture = new THREE.CanvasTexture(labelCanvas);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(1.42, 0.54, 1);
+            return sprite;
+          }
+
+          function makeFlameBody(colorHex) {
+            const flameGroup = new THREE.Group();
+            const inner = new THREE.Mesh(
+              new THREE.SphereGeometry(0.36, 20, 20),
+              new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.88 })
+            );
+            inner.scale.set(0.84, 1.95, 0.84);
+            inner.position.y = 0.76;
+            flameGroup.add(inner);
+
+            const outer = new THREE.Mesh(
+              new THREE.SphereGeometry(0.5, 24, 24),
+              new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.38 })
+            );
+            outer.scale.set(1.45, 2.8, 1.45);
+            outer.position.y = 0.96;
+            flameGroup.add(outer);
+
+            const halo = new THREE.Mesh(
+              new THREE.SphereGeometry(0.74, 24, 24),
+              new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.2 })
+            );
+            halo.scale.set(1.76, 3.25, 1.76);
+            halo.position.y = 1.14;
+            flameGroup.add(halo);
+
+            flameGroup.userData = { inner: inner, outer: outer, halo: halo };
+            return flameGroup;
+          }
+
+          function makeSparkSystem(colorHex) {
+            const sparkCount = 14;
+            const positions = new Float32Array(sparkCount * 3);
+            const geom = new THREE.BufferGeometry();
+            geom.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+            const mat = new THREE.PointsMaterial({
+              color: colorHex,
+              size: 0.13,
+              transparent: true,
+              opacity: 0.9,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false
+            });
+            const points = new THREE.Points(geom, mat);
+            const seeds = [];
+            for (let i = 0; i < sparkCount; i += 1) {
+              seeds.push({
+                angle: Math.random() * Math.PI * 2,
+                radius: 0.08 + Math.random() * 0.18,
+                offset: Math.random(),
+                speed: 0.6 + Math.random() * 0.8,
+                height: 0.4 + Math.random() * 0.8
+              });
+            }
+            points.userData.seeds = seeds;
+            return points;
+          }
+
+          function makeBurner(sample, index) {
+            const x = (index - 2) * burnerSpacing;
+            const burner = new THREE.Group();
+            burner.position.set(x, 0.18, 0);
+
+            const base = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.4, 0.5, 0.36, 28),
+              new THREE.MeshStandardMaterial({ color: 0x607089, roughness: 0.42, metalness: 0.84 })
+            );
+            base.position.y = 0.18;
+            burner.add(base);
+
+            const stem = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.1, 0.12, 1.16, 20),
+              new THREE.MeshStandardMaterial({ color: 0x92a0b8, roughness: 0.34, metalness: 0.9 })
+            );
+            stem.position.y = 0.88;
+            burner.add(stem);
+
+            const loop = new THREE.Mesh(
+              new THREE.TorusGeometry(0.28, 0.04, 12, 40),
+              new THREE.MeshStandardMaterial({ color: sample.metal, roughness: 0.25, metalness: 0.95 })
+            );
+            loop.rotation.x = Math.PI / 2;
+            loop.position.set(0, 2.08, 0);
+            burner.add(loop);
+
+            const dish = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.34, 0.34, 0.08, 18),
+              new THREE.MeshStandardMaterial({ color: sample.metal, roughness: 0.18, metalness: 0.92 })
+            );
+            dish.position.set(0, 1.76, 0);
+            burner.add(dish);
+
+            const salt = new THREE.Mesh(
+              new THREE.DodecahedronGeometry(0.18, 0),
+              new THREE.MeshStandardMaterial({
+                color: sample.metal,
+                emissive: 0x0,
+                roughness: 0.42,
+                metalness: 0.08
+              })
+            );
+            salt.position.set(0, 1.82, 0);
+            burner.add(salt);
+
+            const flame = makeFlameBody(sample.color);
+            flame.position.y = 1.18;
+            flame.visible = false;
+            burner.add(flame);
+
+            const light = new THREE.PointLight(sample.color, 0, 5.5, 2.2);
+            light.position.set(0, 1.8, 0);
+            burner.add(light);
+
+            const sparks = makeSparkSystem(sample.color);
+            sparks.position.set(0, 1.4, 0);
+            sparks.visible = false;
+            burner.add(sparks);
+
+            const label = makeLabelSprite(sample.label, sample.color);
+            label.position.set(0, 3.18, 0);
+            burner.add(label);
+
+            rig.add(burner);
+            return { burner: burner, flame: flame, salt: salt, light: light, sparks: sparks, label: label, sample: sample, index: index };
+          }
+
+          for (let i = 0; i < samples.length; i += 1) {
+            burners.push(makeBurner(samples[i], i));
+          }
+
+          const orbitState = { dragging: false, lastX: 0 };
+          canvas.addEventListener("pointerdown", function(event) {
+            orbitState.dragging = true;
+            orbitState.lastX = event.clientX;
+            canvas.setPointerCapture(event.pointerId);
+          });
+          canvas.addEventListener("pointermove", function(event) {
+            if (!orbitState.dragging) return;
+            const deltaX = event.clientX - orbitState.lastX;
+            orbitState.lastX = event.clientX;
+            rig.rotation.y += deltaX * 0.0062;
+          });
+          canvas.addEventListener("pointerup", function(event) {
+            orbitState.dragging = false;
+            if (canvas.hasPointerCapture(event.pointerId)) {
+              canvas.releasePointerCapture(event.pointerId);
+            }
+          });
+
+          function resize() {
+            const width = canvas.clientWidth || stageCard.clientWidth || 960;
+            const height = canvas.clientHeight || stageCard.clientHeight || 640;
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+          resize();
+          if (window.ResizeObserver) {
+            new ResizeObserver(resize).observe(stageCard);
+          } else {
+            window.addEventListener("resize", resize);
+          }
+
+          function updateSparks(system, t, progress) {
+            const positions = system.geometry.attributes.position.array;
+            const seeds = system.userData.seeds;
+            for (let i = 0; i < seeds.length; i += 1) {
+              const seed = seeds[i];
+              const tt = (t * seed.speed + seed.offset) % 1;
+              const angle = seed.angle + t * 2.1;
+              positions[i * 3] = Math.cos(angle) * seed.radius * (0.7 + progress * 0.4);
+              positions[i * 3 + 1] = tt * seed.height + 0.08;
+              positions[i * 3 + 2] = Math.sin(angle) * seed.radius * (0.7 + progress * 0.4);
+            }
+            system.geometry.attributes.position.needsUpdate = true;
+          }
+
+          function updateBurners(time) {
+            const step = 1.6;
+            const hold = 1.7;
+            const total = samples.length * step + hold;
+            if (state.running && !state.paused && !state.completed) {
+              state.sequenceElapsed = Math.min(state.sequenceElapsed + time, total);
+              const focus = Math.min(samples.length - 1, Math.floor(state.sequenceElapsed / step));
+              state.focusIndex = focus;
+            }
+
+            for (let i = 0; i < burners.length; i += 1) {
+              const burner = burners[i];
+              let progress = 0;
+              if (state.started) {
+                const local = (state.sequenceElapsed - i * step) / 0.75;
+                progress = Math.max(0, Math.min(local, 1));
+                if (state.completed) progress = 1;
+              }
+              state.burnerProgress[i] = progress;
+              const flameVisible = progress > 0.02;
+              burner.flame.visible = flameVisible;
+              burner.sparks.visible = flameVisible;
+              burner.light.intensity = flameVisible ? 1.3 + progress * 1.8 : 0;
+              burner.salt.material.emissive.setHex(flameVisible ? 0x111111 : 0x000000);
+              burner.salt.material.color.setHex(flameVisible ? 0xffffff : burner.sample.metal);
+              burner.salt.position.y = 1.82 + Math.sin((performance.now() * 0.003) + i) * 0.02 * progress;
+              const flicker = 0.9 + Math.sin(performance.now() * 0.012 + i * 0.8) * 0.11;
+              burner.flame.userData.inner.scale.set(0.84 + progress * 0.16, (1.72 + progress * 0.74) * flicker, 0.84 + progress * 0.12);
+              burner.flame.userData.outer.scale.set(1.32 + progress * 0.26, (2.34 + progress * 0.62) * flicker, 1.32 + progress * 0.26);
+              burner.flame.userData.halo.scale.set(1.58 + progress * 0.34, (2.86 + progress * 0.7) * flicker, 1.58 + progress * 0.34);
+              burner.flame.userData.inner.material.opacity = 0.5 + progress * 0.4;
+              burner.flame.userData.outer.material.opacity = 0.18 + progress * 0.24;
+              burner.flame.userData.halo.material.opacity = 0.12 + progress * 0.14;
+              burner.label.material.opacity = i === state.focusIndex ? 1 : 0.68;
+              updateSparks(burner.sparks, performance.now() * 0.001, progress);
+              burner.burner.position.y = Math.sin(performance.now() * 0.0012 + i) * 0.02;
+            }
+
+            if (state.started && !state.completed && state.sequenceElapsed >= total) {
+              state.completed = true;
+              state.running = false;
+              state.paused = false;
+              syncUI();
+            }
+          }
+
+          let last = performance.now();
+          function frame(now) {
+            const dt = Math.min((now - last) / 1000, 0.05);
+            last = now;
+            updateBurners(dt);
+            rig.rotation.y += state.started && !state.paused ? 0.0008 : 0.00035;
+            const targetX = (state.focusIndex - 2) * 0.28;
+            camera.position.x += (targetX - camera.position.x) * 0.045;
+            camera.lookAt(targetX * 0.2, 2.0, 0);
+            renderer.render(scene, camera);
+            requestAnimationFrame(frame);
+          }
+
+          syncUI();
+          requestAnimationFrame(frame);
+        }
+
+        syncUI();
+        loadThree(start);
+      })("chem-exp-ngon-lua-kim-loai");
+    </script>
+  </div>
+</body>
+</html>

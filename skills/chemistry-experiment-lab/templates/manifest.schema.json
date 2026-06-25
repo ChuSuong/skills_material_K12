@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Run Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "slug",
+    "created_at",
+    "status",
+    "current_attempt",
+    "published_attempt",
+    "published_output",
+    "attempts",
+    "legacy_mirrors",
+    "exemplar_refs"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "run_id": { "type": "string" },
+    "slug": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "initialized",
+        "generated",
+        "verified",
+        "published",
+        "published-with-mirror-error",
+        "needs-repair"
+      ]
+    },
+    "current_attempt": { "type": ["string", "null"] },
+    "published_attempt": { "type": ["string", "null"] },
+    "published_output": { "type": ["string", "null"] },
+    "attempts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["attempt_id", "kind", "status", "created_at", "path"],
+        "properties": {
+          "attempt_id": { "type": "string" },
+          "kind": { "type": "string", "enum": ["attempt", "repair"] },
+          "status": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "path": { "type": "string" },
+          "base_attempt": { "type": ["string", "null"] },
+          "validation_status": { "type": ["string", "null"] },
+          "verification_status": { "type": ["string", "null"] },
+          "published_at": { "type": ["string", "null"], "format": "date-time" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "legacy_mirrors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["attempt_id", "path", "status"],
+        "properties": {
+          "attempt_id": { "type": "string" },
+          "path": { "type": "string" },
+          "status": { "type": "string", "enum": ["ok", "error"] },
+          "error": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "exemplar_refs": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

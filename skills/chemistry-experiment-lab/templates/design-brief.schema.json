@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chemistry Experiment Lab Design Brief",
+  "type": "object",
+  "required": [
+    "goal",
+    "grade",
+    "design_family",
+    "model_fidelity",
+    "learning_loop",
+    "must_show",
+    "must_control",
+    "must_explain",
+    "forbidden_shortcuts"
+  ],
+  "properties": {
+    "goal": { "type": "string", "minLength": 1 },
+    "grade": { "type": "string", "minLength": 1 },
+    "design_family": {
+      "type": "string",
+      "enum": [
+        "titration",
+        "electrolysis",
+        "kinetics",
+        "equilibrium",
+        "apparatus-drag-drop",
+        "virtual-mix-lab",
+        "timeline-classification",
+        "variable-comparison-lab"
+      ]
+    },
+    "model_fidelity": {
+      "type": "string",
+      "enum": ["qualitative", "semi-quantitative", "quantitative"]
+    },
+    "learning_loop": {
+      "type": "object",
+      "required": ["predict", "observe", "compare", "explain"],
+      "properties": {
+        "predict": { "type": "string" },
+        "observe": { "type": "string" },
+        "compare": { "type": "string" },
+        "explain": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "must_show": { "type": "array", "items": { "type": "string" } },
+    "must_control": { "type": "array", "items": { "type": "string" } },
+    "must_explain": { "type": "array", "items": { "type": "string" } },
+    "forbidden_shortcuts": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

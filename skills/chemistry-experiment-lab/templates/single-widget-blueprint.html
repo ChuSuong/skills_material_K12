@@ -1,0 +1,230 @@
+<div id="chem-exp-demo" class="chem-exp">
+  <style>
+    #chem-exp-demo {
+      --ink: #e6eefb;
+      --muted: #9db4e6;
+      color: var(--ink);
+      font-family: inherit;
+      padding: 14px;
+      border-radius: 16px;
+      background: radial-gradient(900px 360px at 18% -12%, #243a6b 0%, transparent 60%),
+        linear-gradient(150deg, #0b1426, #121a33);
+    }
+    #chem-exp-demo * { box-sizing: border-box; }
+    #chem-exp-demo header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    #chem-exp-demo h2 { margin: 0; font-size: 20px; line-height: 1.15; font-weight: 800; }
+    #chem-exp-demo .sub { margin: 4px 0 0; max-width: 680px; font-size: 12px; line-height: 1.35; color: var(--muted); }
+    #chem-exp-demo .tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    #chem-exp-demo button {
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,.08);
+      color: var(--ink);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    #chem-exp-demo .stage {
+      position: relative;
+      min-height: min(68vh, 560px);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+    }
+    #chem-exp-demo canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    #chem-exp-demo .panel {
+      position: absolute;
+      z-index: 3;
+      left: 12px;
+      top: 12px;
+      max-width: 220px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(8,14,28,.62);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(6px);
+    }
+    #chem-exp-demo .k { font-size: 11px; color: var(--muted); }
+    #chem-exp-demo .v { font-size: 22px; font-weight: 800; }
+    #chem-exp-demo .fail {
+      height: 100%;
+      min-height: 420px;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      color: #fecaca;
+      text-align: center;
+    }
+  </style>
+
+  <header>
+    <div>
+      <h2>TITLE</h2>
+      <p class="sub">SUBTITLE</p>
+    </div>
+    <div class="tools">
+      <button type="button" data-role="toggle">Tạm dừng</button>
+      <button type="button" data-role="reset">Chạy lại</button>
+    </div>
+  </header>
+  <div class="stage" data-role="stage">
+    <canvas data-role="canvas"></canvas>
+    <div class="panel">
+      <div class="k">Biến quan sát</div>
+      <div class="v" data-role="readout">0</div>
+    </div>
+  </div>
+
+  <script>
+    (function(rootId) {
+      const EXPERIMENT = {
+        title: "TITLE",
+        interactionPattern: "pattern-id",
+        modelFidelity: "qualitative",
+        learningGoal: "Mục tiêu học tập trong một câu.",
+        assessmentNotes: "Widget tự chạy demo; học sinh có thể tạm dừng/chạy lại."
+      };
+      const root = document.getElementById(rootId);
+      const stage = root.querySelector("[data-role='stage']");
+      const canvas = root.querySelector("[data-role='canvas']");
+      const readout = root.querySelector("[data-role='readout']");
+      const toggleButton = root.querySelector("[data-role='toggle']");
+      const resetButton = root.querySelector("[data-role='reset']");
+      const state = { value: 0, running: true, started: true };
+
+      function showFail(message) {
+        stage.innerHTML = "<div class='fail'>" + message + "</div>";
+      }
+
+      function loadScript(urls, globalName, done, fail) {
+        if (window[globalName]) { done(window[globalName]); return; }
+        let index = 0;
+        function next() {
+          if (index >= urls.length) {
+            fail();
+            return;
+          }
+          const script = document.createElement("script");
+          script.src = urls[index++];
+          script.onload = function() { window[globalName] ? done(window[globalName]) : next(); };
+          script.onerror = next;
+          document.head.appendChild(script);
+        }
+        next();
+      }
+
+      function loadThree(done) {
+        loadScript([
+          "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+          "https://unpkg.com/three@0.137.0/build/three.min.js"
+        ], "THREE", done, function() {
+          showFail("Không tải được mô phỏng 3D. Hãy kiểm tra kết nối mạng rồi mở lại.");
+        });
+      }
+
+      function hasWebGL() {
+        try {
+          const test = document.createElement("canvas");
+          return !!(window.WebGLRenderingContext &&
+            (test.getContext("webgl") || test.getContext("experimental-webgl")));
+        } catch (error) {
+          return false;
+        }
+      }
+
+      function start(THREE) {
+        if (!hasWebGL()) {
+          showFail("Thiết bị hoặc trình duyệt hiện tại không hỗ trợ WebGL. Hãy đọc phần mô tả thí nghiệm và thử mở bằng Chrome/Firefox mới hơn.");
+          return;
+        }
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+        camera.position.set(0, 2.2, 7);
+        camera.lookAt(0, 0.8, 0);
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x33405a, 1.0));
+        const light = new THREE.DirectionalLight(0xffffff, 0.9);
+        light.position.set(4, 8, 6);
+        scene.add(light);
+
+        const pivot = new THREE.Group();
+        scene.add(pivot);
+        const beaker = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.2, 1.1, 2.0, 40, 1, true),
+          new THREE.MeshStandardMaterial({
+            color: 0xeaf6ff,
+            transparent: true,
+            opacity: 0.18,
+            side: THREE.DoubleSide
+          })
+        );
+        beaker.position.y = 1;
+        pivot.add(beaker);
+
+        function resize() {
+          const w = canvas.clientWidth || stage.clientWidth || 640;
+          const h = canvas.clientHeight || stage.clientHeight || 420;
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+        }
+        resize();
+        if (window.ResizeObserver) new ResizeObserver(resize).observe(stage);
+        window.addEventListener("resize", resize);
+
+        let dragging = false;
+        let px = 0;
+        canvas.addEventListener("pointerdown", function(event) {
+          dragging = true;
+          px = event.clientX;
+        });
+        window.addEventListener("pointermove", function(event) {
+          if (!dragging) return;
+          pivot.rotation.y += (event.clientX - px) * 0.01;
+          px = event.clientX;
+        });
+        window.addEventListener("pointerup", function() { dragging = false; });
+
+        let last = performance.now();
+        function loop(now) {
+          const dt = Math.min((now - last) / 1000, 0.05);
+          last = now;
+          if (state.running) state.value += dt;
+          readout.textContent = state.value.toFixed(1).replace(".", ",");
+          if (state.running) pivot.rotation.y += dt * 0.25;
+          renderer.render(scene, camera);
+          requestAnimationFrame(loop);
+        }
+        toggleButton.addEventListener("click", function() {
+          state.running = !state.running;
+          toggleButton.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+        });
+        resetButton.addEventListener("click", function() {
+          state.value = 0;
+          state.running = true;
+          toggleButton.textContent = "Tạm dừng";
+        });
+        requestAnimationFrame(loop);
+      }
+
+      loadThree(start);
+    })("chem-exp-demo");
+  </script>
+</div>

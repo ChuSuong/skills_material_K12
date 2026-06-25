@@ -1,0 +1,25 @@
+{
+  "schema_version": "chem-lab.run-manifest.v2",
+  "run_id": "2026-06-20T12-55-00Z-titration-fixture",
+  "slug": "titration-fixture",
+  "created_at": "2026-06-20T12:55:00Z",
+  "status": "verified",
+  "current_attempt": "attempt_0",
+  "published_attempt": null,
+  "published_output": null,
+  "attempts": [
+    {
+      "attempt_id": "attempt_0",
+      "kind": "attempt",
+      "status": "verified",
+      "created_at": "2026-06-20T12:55:00Z",
+      "path": "runs/2026-06-20T12-55-00Z-titration-fixture/attempts/attempt_0",
+      "base_attempt": null,
+      "validation_status": "pass",
+      "verification_status": "pass",
+      "published_at": null
+    }
+  ],
+  "legacy_mirrors": [],
+  "exemplar_refs": []
+}

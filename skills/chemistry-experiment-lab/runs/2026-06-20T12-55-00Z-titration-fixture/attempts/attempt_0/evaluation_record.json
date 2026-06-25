@@ -1,0 +1,36 @@
+{
+  "slug": "titration-fixture",
+  "output_file": "runs/2026-06-20T12-55-00Z-titration-fixture/attempts/attempt_0/widget.html",
+  "experiment": {
+    "title": "Chuẩn độ HCl bằng NaOH",
+    "grade": "Hóa 11",
+    "learning_goal": "Dự đoán thời điểm hồng bền và liên hệ nó với điểm tương đương."
+  },
+  "interaction_pattern": "stage-plus-chart-panel",
+  "libraries": [],
+  "model_fidelity": "qualitative",
+  "validation_results": {
+    "html_self_contained": "pass",
+    "learning_loop": "pass"
+  },
+  "scores": {
+    "total": 90
+  },
+  "blockers": [],
+  "warnings": [],
+  "design_family": "titration",
+  "verification": {
+    "invariants": {
+      "stage_present": true,
+      "mobile_fit_pass": true
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "artifacts/desktop.png",
+    "mobile_screenshot": "artifacts/mobile.png",
+    "trace": "artifacts/trace.zip"
+  },
+  "promoted_as_baseline": false,
+  "final_status": "pass",
+  "created_at": "2026-06-20T12:55:03Z"
+}

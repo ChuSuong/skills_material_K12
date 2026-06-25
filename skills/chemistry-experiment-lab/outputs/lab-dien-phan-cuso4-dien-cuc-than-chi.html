@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Điện phân dung dịch CuSO4 với điện cực than chì</title>
+</head>
+<body>
+  <div id="chem-exp-dien-phan-cuso4" class="chem-exp">
+    <style>
+      #chem-exp-dien-phan-cuso4 {
+        --ink: #1d2732;
+        --muted: #617383;
+        --panel: rgba(255, 255, 255, 0.88);
+        --line: rgba(43, 73, 104, 0.14);
+        --blue: #4c8fd6;
+        --copper: #ca7f51;
+        --teal: #18a2a5;
+        --gold: #f0c46b;
+        --shadow: 0 26px 80px rgba(44, 73, 104, 0.16);
+        box-sizing: border-box;
+        min-height: 100vh;
+        max-width: 100%;
+        overflow-x: hidden;
+        padding: 16px;
+        color: var(--ink);
+        font-family: "Aptos", "Segoe UI", "Noto Sans", sans-serif;
+        background:
+          radial-gradient(760px 420px at 10% -10%, rgba(76, 143, 214, 0.22), transparent 62%),
+          radial-gradient(640px 340px at 94% 3%, rgba(240, 196, 107, 0.2), transparent 58%),
+          linear-gradient(145deg, #f8fbff 0%, #edf3fa 48%, #dce8f4 100%);
+      }
+      #chem-exp-dien-phan-cuso4 *,
+      #chem-exp-dien-phan-cuso4 *::before,
+      #chem-exp-dien-phan-cuso4 *::after { box-sizing: inherit; }
+      #chem-exp-dien-phan-cuso4 .shell {
+        width: min(1380px, 100%);
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-dien-phan-cuso4 .topbar,
+      #chem-exp-dien-phan-cuso4 .stage-card,
+      #chem-exp-dien-phan-cuso4 .control-card,
+      #chem-exp-dien-phan-cuso4 .schematic-card,
+      #chem-exp-dien-phan-cuso4 .chart-card {
+        min-width: 0;
+        border: 1px solid rgba(255, 255, 255, 0.74);
+        border-radius: 24px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(16px);
+      }
+      #chem-exp-dien-phan-cuso4 .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: end;
+        padding: 12px 14px;
+      }
+      #chem-exp-dien-phan-cuso4 h1 {
+        margin: 0;
+        font-size: clamp(20px, 2.2vw, 30px);
+        line-height: 1.08;
+        letter-spacing: -0.035em;
+      }
+      #chem-exp-dien-phan-cuso4 h2 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      #chem-exp-dien-phan-cuso4 .microcopy,
+      #chem-exp-dien-phan-cuso4 .status,
+      #chem-exp-dien-phan-cuso4 details p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      #chem-exp-dien-phan-cuso4 .actions,
+      #chem-exp-dien-phan-cuso4 .button-row,
+      #chem-exp-dien-phan-cuso4 .choice-grid,
+      #chem-exp-dien-phan-cuso4 .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      #chem-exp-dien-phan-cuso4 button {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 800;
+        color: #fff;
+        background: #24394c;
+        cursor: pointer;
+      }
+      #chem-exp-dien-phan-cuso4 button.secondary {
+        color: #2a4964;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid var(--line);
+      }
+      #chem-exp-dien-phan-cuso4 button.choice {
+        color: #234760;
+        background: rgba(76, 143, 214, 0.08);
+        border: 1px solid rgba(76, 143, 214, 0.14);
+      }
+      #chem-exp-dien-phan-cuso4 button.choice.active {
+        color: #145e60;
+        background: rgba(24, 162, 165, 0.18);
+        border-color: rgba(24, 162, 165, 0.28);
+      }
+      #chem-exp-dien-phan-cuso4 .lab-grid {
+        display: grid;
+        grid-template-columns: minmax(460px, 1.22fr) minmax(300px, 0.78fr);
+        gap: 12px;
+      }
+      #chem-exp-dien-phan-cuso4 .stage-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 760px;
+        background:
+          linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.76)),
+          radial-gradient(circle at 50% 76%, rgba(255,255,255,.94), transparent 34%);
+      }
+      #chem-exp-dien-phan-cuso4 .stage-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 760px;
+        cursor: grab;
+        touch-action: none;
+      }
+      #chem-exp-dien-phan-cuso4 .stage-note,
+      #chem-exp-dien-phan-cuso4 .live-pill {
+        position: absolute;
+        z-index: 3;
+        border: 1px solid rgba(255,255,255,.78);
+        background: rgba(255,255,255,.9);
+        box-shadow: 0 16px 44px rgba(35, 58, 82, .12);
+      }
+      #chem-exp-dien-phan-cuso4 .stage-note {
+        left: 14px;
+        top: 14px;
+        width: min(330px, calc(100% - 28px));
+        padding: 12px;
+        border-radius: 18px;
+      }
+      #chem-exp-dien-phan-cuso4 .stage-note strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+      }
+      #chem-exp-dien-phan-cuso4 .stage-note span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.36;
+      }
+      #chem-exp-dien-phan-cuso4 .stage-note em {
+        display: block;
+        margin-top: 4px;
+        color: #3e6688;
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      #chem-exp-dien-phan-cuso4 .live-pill {
+        right: 16px;
+        bottom: 16px;
+        width: min(280px, calc(100% - 32px));
+        padding: 12px;
+        border-radius: 22px;
+      }
+      #chem-exp-dien-phan-cuso4 .chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 31px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(76, 143, 214, 0.1);
+        color: #234d70;
+        font-size: 12px;
+        font-weight: 800;
+      }
+      #chem-exp-dien-phan-cuso4 .chip.gold {
+        background: rgba(240, 196, 107, 0.22);
+        color: #785515;
+      }
+      #chem-exp-dien-phan-cuso4 .chip.good {
+        background: rgba(24, 162, 165, 0.16);
+        color: #145f61;
+      }
+      #chem-exp-dien-phan-cuso4 .electrode-strip { display: grid; gap: 8px; }
+      #chem-exp-dien-phan-cuso4 .electrode-row {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        gap: 10px;
+        align-items: center;
+        font-size: 12px;
+      }
+      #chem-exp-dien-phan-cuso4 .swatch {
+        height: 16px;
+        border-radius: 999px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(90deg, rgba(76,143,214,.12), rgba(24,162,165,.12));
+      }
+      #chem-exp-dien-phan-cuso4 .fill {
+        width: 0%;
+        height: 100%;
+        border-radius: inherit;
+      }
+      #chem-exp-dien-phan-cuso4 .fill.copper { background: linear-gradient(90deg, #dfa07b, var(--copper)); }
+      #chem-exp-dien-phan-cuso4 .fill.oxygen { background: linear-gradient(90deg, #89d7f0, var(--teal)); }
+      #chem-exp-dien-phan-cuso4 .fallback {
+        position: absolute;
+        inset: 16px;
+        display: none;
+        place-items: center;
+        text-align: center;
+        padding: 24px;
+        border-radius: 20px;
+        background: rgba(255,255,255,.96);
+        color: #2b4154;
+        z-index: 5;
+      }
+      #chem-exp-dien-phan-cuso4 .fallback.show { display: grid; }
+      #chem-exp-dien-phan-cuso4 .right-stack {
+        display: grid;
+        gap: 12px;
+      }
+      #chem-exp-dien-phan-cuso4 .control-card,
+      #chem-exp-dien-phan-cuso4 .schematic-card,
+      #chem-exp-dien-phan-cuso4 .chart-card {
+        padding: 14px;
+      }
+      #chem-exp-dien-phan-cuso4 .field {
+        display: grid;
+        gap: 6px;
+        margin: 12px 0;
+      }
+      #chem-exp-dien-phan-cuso4 label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        color: #30495e;
+        font-size: 13px;
+        font-weight: 800;
+      }
+      #chem-exp-dien-phan-cuso4 input[type="range"] {
+        width: 100%;
+        accent-color: var(--blue);
+      }
+      #chem-exp-dien-phan-cuso4 .split-two {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      #chem-exp-dien-phan-cuso4 .guess-box {
+        padding: 10px;
+        border-radius: 18px;
+        background: rgba(76, 143, 214, 0.06);
+        border: 1px solid rgba(76, 143, 214, 0.1);
+      }
+      #chem-exp-dien-phan-cuso4 .guess-box strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+      #chem-exp-dien-phan-cuso4 .schematic-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+        gap: 12px;
+      }
+      #chem-exp-dien-phan-cuso4 .electrode-map {
+        position: relative;
+        min-height: 180px;
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(76,143,214,.08), rgba(24,162,165,.08)), #fcfeff;
+        border: 1px solid rgba(76, 143, 214, 0.12);
+        overflow: hidden;
+      }
+      #chem-exp-dien-phan-cuso4 .beaker-line {
+        position: absolute;
+        left: 50%;
+        top: 28px;
+        transform: translateX(-50%);
+        width: 56%;
+        height: 116px;
+        border: 3px solid rgba(76, 143, 214, 0.26);
+        border-top: 0;
+        border-radius: 0 0 28px 28px;
+      }
+      #chem-exp-dien-phan-cuso4 .liquid-line {
+        position: absolute;
+        left: 50%;
+        bottom: 34px;
+        transform: translateX(-50%);
+        width: 48%;
+        height: 62px;
+        border-radius: 0 0 22px 22px;
+        background: linear-gradient(180deg, rgba(116, 176, 232, .2), rgba(76, 143, 214, .42));
+      }
+      #chem-exp-dien-phan-cuso4 .rod {
+        position: absolute;
+        top: 18px;
+        width: 14px;
+        height: 118px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #40464d, #262c32);
+      }
+      #chem-exp-dien-phan-cuso4 .rod.left { left: 28%; }
+      #chem-exp-dien-phan-cuso4 .rod.right { right: 28%; }
+      #chem-exp-dien-phan-cuso4 .arrow {
+        position: absolute;
+        top: 52px;
+        width: 98px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #36546e;
+      }
+      #chem-exp-dien-phan-cuso4 .arrow.left { left: 14px; }
+      #chem-exp-dien-phan-cuso4 .arrow.right { right: 14px; text-align: right; }
+      #chem-exp-dien-phan-cuso4 .electrode-notes { display: grid; gap: 8px; }
+      #chem-exp-dien-phan-cuso4 .note-item {
+        padding: 10px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,.78);
+      }
+      #chem-exp-dien-phan-cuso4 .note-item strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 13px;
+      }
+      #chem-exp-dien-phan-cuso4 .note-item span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.38;
+      }
+      #chem-exp-dien-phan-cuso4 .equation-block {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      #chem-exp-dien-phan-cuso4 .eq-card {
+        padding: 10px 12px;
+        border-radius: 18px;
+        background: rgba(24, 162, 165, 0.08);
+        color: #204251;
+        font-size: 13px;
+        line-height: 1.44;
+        font-weight: 800;
+      }
+      #chem-exp-dien-phan-cuso4 .eq-card.copper {
+        background: rgba(202, 127, 81, 0.1);
+        color: #7a492c;
+      }
+      #chem-exp-dien-phan-cuso4 .chart-wrap {
+        position: relative;
+        height: 340px;
+      }
+      #chem-exp-dien-phan-cuso4 .chart-wrap canvas {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+      }
+      #chem-exp-dien-phan-cuso4 details {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--line);
+      }
+      #chem-exp-dien-phan-cuso4 summary {
+        color: #345168;
+        cursor: pointer;
+        font-weight: 800;
+      }
+      #chem-exp-dien-phan-cuso4 sub { font-size: .68em; }
+      @media (max-width: 980px) {
+        #chem-exp-dien-phan-cuso4 {
+          padding: 10px;
+        }
+        #chem-exp-dien-phan-cuso4 .topbar,
+        #chem-exp-dien-phan-cuso4 .lab-grid,
+        #chem-exp-dien-phan-cuso4 .split-two,
+        #chem-exp-dien-phan-cuso4 .schematic-grid {
+          grid-template-columns: 1fr;
+        }
+        #chem-exp-dien-phan-cuso4 .stage-card,
+        #chem-exp-dien-phan-cuso4 .stage-canvas {
+          min-height: 560px;
+        }
+      }
+    </style>
+
+    <section class="shell" aria-label="Mô phỏng điện phân dung dịch CuSO4">
+      <header class="topbar">
+        <div>
+          <h1>Điện phân dung dịch CuSO<sub>4</sub> với điện cực than chì</h1>
+          <p class="microcopy">Tập trung vào ba dấu hiệu: catot bám đồng nâu đỏ, anot có bọt khí O<sub>2</sub>, và màu xanh Cu<sup>2+</sup> nhạt dần theo thời gian.</p>
+        </div>
+        <div class="actions">
+          <button type="button" data-role="toggle">Tạm dừng</button>
+          <button type="button" class="secondary" data-role="run">Chạy tự động</button>
+          <button type="button" class="secondary" data-role="reset">Chạy lại</button>
+        </div>
+      </header>
+
+      <main class="lab-grid">
+        <section class="stage-card" aria-label="Mô hình điện phân 3D">
+          <canvas class="stage-canvas" data-role="scene"></canvas>
+          <div class="stage-note">
+            <strong data-role="phase">Bắt đầu điện phân</strong>
+            <span data-role="observation">Dung dịch còn xanh đậm. Catot mới bám một lớp đồng mỏng và anot chỉ có vài bọt nhỏ.</span>
+            <em>Kéo để xoay mô hình 3D.</em>
+          </div>
+          <div class="live-pill">
+            <div class="chip-row" style="margin-bottom:8px">
+              <span class="chip" data-role="timeChip">t = 0.0 s</span>
+              <span class="chip gold" data-role="solutionChip">Cu<sup>2+</sup>: đậm</span>
+            </div>
+            <div class="electrode-strip">
+              <div class="electrode-row">
+                <strong>Catot</strong>
+                <div class="swatch"><div class="fill copper" data-role="copperFill"></div></div>
+              </div>
+              <div class="electrode-row">
+                <strong>Anot</strong>
+                <div class="swatch"><div class="fill oxygen" data-role="oxygenFill"></div></div>
+              </div>
+            </div>
+            <p class="status" style="margin-top:8px" data-role="liveStatus">Mô phỏng đang tự chạy ở tốc độ mặc định.</p>
+          </div>
+          <div class="fallback" data-role="fallback">
+            <div>
+              <strong>Không thể hiển thị Three.js/WebGL.</strong>
+              <p>Vẫn có thể dùng phần dự đoán, sơ đồ điện cực và biểu đồ để rút ra kết luận.</p>
+            </div>
+          </div>
+        </section>
+
+        <div class="right-stack">
+          <section class="control-card">
+            <h2>Dự đoán và điều khiển</h2>
+            <p class="status">Chọn sản phẩm ở mỗi điện cực trước, rồi xem hiện tượng có khớp hay không.</p>
+            <div class="split-two">
+              <div class="guess-box">
+                <strong>Catot tạo gì?</strong>
+                <div class="choice-grid">
+                  <button type="button" class="choice" data-role="guess-cathode" data-value="Cu">Cu</button>
+                  <button type="button" class="choice" data-role="guess-cathode" data-value="H2">H<sub>2</sub></button>
+                  <button type="button" class="choice" data-role="guess-cathode" data-value="O2">O<sub>2</sub></button>
+                </div>
+              </div>
+              <div class="guess-box">
+                <strong>Anot tạo gì?</strong>
+                <div class="choice-grid">
+                  <button type="button" class="choice" data-role="guess-anode" data-value="O2">O<sub>2</sub></button>
+                  <button type="button" class="choice" data-role="guess-anode" data-value="Cu">Cu</button>
+                  <button type="button" class="choice" data-role="guess-anode" data-value="H2">H<sub>2</sub></button>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="timeSlider">Thời gian điện phân <span data-role="timeValue">0.0 s</span></label>
+              <input id="timeSlider" data-role="time" type="range" min="0" max="16" step="0.1" value="0">
+            </div>
+            <div class="field">
+              <label for="speedSlider">Tốc độ auto-run <span data-role="speedValue">1.0x</span></label>
+              <input id="speedSlider" data-role="speed" type="range" min="0.5" max="2.2" step="0.1" value="1">
+            </div>
+            <div class="button-row">
+              <button type="button" class="secondary" data-role="checkpoint-mid">Đến mốc giữa</button>
+              <button type="button" class="secondary" data-role="checkpoint-end">Đến kết quả</button>
+            </div>
+            <p class="status" data-role="feedback">Chọn sản phẩm ở hai điện cực rồi quan sát xem hiện tượng có khớp với dự đoán hay không.</p>
+          </section>
+
+          <section class="schematic-card">
+            <h2>Phương trình và sơ đồ điện cực</h2>
+            <div class="schematic-grid">
+              <div class="electrode-map" aria-hidden="true">
+                <div class="beaker-line"></div>
+                <div class="liquid-line"></div>
+                <div class="rod left"></div>
+                <div class="rod right"></div>
+                <div class="arrow left">e<sup>-</sup> đến catot</div>
+                <div class="arrow right">e<sup>-</sup> rời anot</div>
+              </div>
+              <div class="electrode-notes">
+                <div class="note-item">
+                  <strong>Catot (-)</strong>
+                  <span data-role="cathodeReadout">Cu<sup>2+</sup> nhận electron và bám thành Cu kim loại.</span>
+                </div>
+                <div class="note-item">
+                  <strong>Anot (+)</strong>
+                  <span data-role="anodeReadout">Nước bị oxi hóa, tạo O<sub>2</sub> vì điện cực than chì là điện cực trơ.</span>
+                </div>
+              </div>
+            </div>
+            <div class="equation-block">
+              <div class="eq-card copper">Catot: Cu<sup>2+</sup> + 2e<sup>-</sup> → Cu</div>
+              <div class="eq-card">Anot: 2H<sub>2</sub>O → O<sub>2</sub> + 4H<sup>+</sup> + 4e<sup>-</sup></div>
+            </div>
+            <details>
+              <summary>Mô hình đang giả định gì?</summary>
+              <p>Đây là mô hình bán định lượng để học sản phẩm ưu tiên và dấu hiệu quan sát. Nó không mô phỏng chi tiết động học bề mặt điện cực hay gradient nồng độ thật.</p>
+            </details>
+          </section>
+        </div>
+      </main>
+
+      <section class="chart-card">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:8px;flex-wrap:wrap">
+          <div>
+            <h2>Biểu đồ hiện tượng theo thời gian</h2>
+            <p class="status" data-role="chartStatus">Đường đồng và O<sub>2</sub> tăng dần, trong khi màu Cu<sup>2+</sup> giảm dần khi điện phân tiếp tục.</p>
+          </div>
+          <div class="chip-row">
+            <span class="chip" data-role="chartCopperChip">Đồng bám: 0%</span>
+            <span class="chip good" data-role="chartOxygenChip">O<sub>2</sub>: 0%</span>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas data-role="chart"></canvas>
+        </div>
+      </section>
+    </section>
+
+    <script>
+      (function(rootId) {
+        "use strict";
+        const root = document.getElementById(rootId);
+        if (!root) return;
+        const el = {
+          scene: root.querySelector("[data-role='scene']"),
+          chart: root.querySelector("[data-role='chart']"),
+          fallback: root.querySelector("[data-role='fallback']"),
+          phase: root.querySelector("[data-role='phase']"),
+          observation: root.querySelector("[data-role='observation']"),
+          timeChip: root.querySelector("[data-role='timeChip']"),
+          solutionChip: root.querySelector("[data-role='solutionChip']"),
+          liveStatus: root.querySelector("[data-role='liveStatus']"),
+          time: root.querySelector("[data-role='time']"),
+          speed: root.querySelector("[data-role='speed']"),
+          timeValue: root.querySelector("[data-role='timeValue']"),
+          speedValue: root.querySelector("[data-role='speedValue']"),
+          toggle: root.querySelector("[data-role='toggle']"),
+          run: root.querySelector("[data-role='run']"),
+          reset: root.querySelector("[data-role='reset']"),
+          checkpointMid: root.querySelector("[data-role='checkpoint-mid']"),
+          checkpointEnd: root.querySelector("[data-role='checkpoint-end']"),
+          feedback: root.querySelector("[data-role='feedback']"),
+          cathodeReadout: root.querySelector("[data-role='cathodeReadout']"),
+          anodeReadout: root.querySelector("[data-role='anodeReadout']"),
+          chartStatus: root.querySelector("[data-role='chartStatus']"),
+          chartCopperChip: root.querySelector("[data-role='chartCopperChip']"),
+          chartOxygenChip: root.querySelector("[data-role='chartOxygenChip']"),
+          copperFill: root.querySelector("[data-role='copperFill']"),
+          oxygenFill: root.querySelector("[data-role='oxygenFill']")
+        };
+        const state = {
+          time: 0,
+          maxTime: 16,
+          speed: 1,
+          running: true,
+          guessCathode: null,
+          guessAnode: null,
+          chart: null,
+          chartFallback: false,
+          chartReady: false,
+          sceneReady: false,
+          timeline: null,
+          threeScene: null
+        };
+        function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+        function copperAt(time) { return clamp(Math.pow(time / state.maxTime, 1.14), 0, 1); }
+        function oxygenAt(time) { return clamp(Math.pow(time / state.maxTime, 1.05) * 0.96, 0, 1); }
+        function solutionFadeAt(time) { return clamp(Math.pow(time / state.maxTime, 1.02) * 0.9, 0, 0.9); }
+        function pickPhase(time) {
+          if (time < 3.8) return { title: "Bắt đầu điện phân", observation: "Dung dịch còn xanh đậm. Catot mới bám một lớp đồng mỏng và anot chỉ có vài bọt nhỏ." };
+          if (time < 9.8) return { title: "Hiện tượng đã rõ", observation: "Đồng nâu đỏ bám dày hơn trên catot, bọt O2 thoát ra đều và màu xanh của Cu2+ đã nhạt đi." };
+          return { title: "Gần kết thúc lượt quan sát", observation: "Ba dấu hiệu cần chốt là: catot tạo Cu, anot tạo O2 và dung dịch nhạt màu dần do Cu2+ giảm." };
+        }
+        function updateButtons(role, value) {
+          root.querySelectorAll("[data-role='" + role + "']").forEach(function(button) {
+            button.classList.toggle("active", button.getAttribute("data-value") === value);
+          });
+        }
+        function updateFeedback() {
+          const cathodeOk = state.guessCathode === "Cu";
+          const anodeOk = state.guessAnode === "O2";
+          if (!state.guessCathode || !state.guessAnode) {
+            el.feedback.textContent = "Chọn sản phẩm ở hai điện cực rồi quan sát xem hiện tượng có khớp với dự đoán hay không.";
+            return;
+          }
+          if (state.time < 4) {
+            el.feedback.textContent = "Hãy nhìn catot trước: nếu dự đoán đúng, lớp đồng sẽ xuất hiện ở đây sớm hơn khi anot có nhiều bọt khí.";
+            return;
+          }
+          if (state.time < 10) {
+            el.feedback.innerHTML = cathodeOk && anodeOk
+              ? "Dự đoán đang khớp: catot bám <strong>Cu</strong>, anot thoát <strong>O<sub>2</sub></strong>."
+              : "Đối chiếu lại từng điện cực: catot đang bám gì, anot đang thoát khí gì?";
+            return;
+          }
+          el.feedback.innerHTML = cathodeOk && anodeOk
+            ? "Kết luận đúng: <strong>catot tạo Cu</strong>, <strong>anot tạo O<sub>2</sub></strong>."
+            : "Kết luận: cần sửa dự đoán thành <strong>catot tạo Cu</strong> và <strong>anot tạo O<sub>2</sub></strong>.";
+        }
+        function updateReadout() {
+          const copper = copperAt(state.time);
+          const oxygen = oxygenAt(state.time);
+          const fade = solutionFadeAt(state.time);
+          const phase = pickPhase(state.time);
+          el.phase.textContent = phase.title;
+          el.observation.textContent = phase.observation;
+          el.timeChip.textContent = "t = " + state.time.toFixed(1) + " s";
+          el.timeValue.textContent = state.time.toFixed(1) + " s";
+          el.speedValue.textContent = state.speed.toFixed(1) + "x";
+          el.solutionChip.innerHTML = fade < 0.28 ? "Cu<sup>2+</sup>: đậm" : fade < 0.62 ? "Cu<sup>2+</sup>: nhạt dần" : "Cu<sup>2+</sup>: rất nhạt";
+          el.liveStatus.textContent = state.running ? "Mô phỏng đang tự chạy ở tốc độ " + state.speed.toFixed(1) + "x." : "Đang tạm dừng tại mốc " + state.time.toFixed(1) + " s để đọc hiện tượng.";
+          el.copperFill.style.width = Math.round(copper * 100) + "%";
+          el.oxygenFill.style.width = Math.round(oxygen * 100) + "%";
+          el.chartCopperChip.textContent = "Đồng bám: " + Math.round(copper * 100) + "%";
+          el.chartOxygenChip.innerHTML = "O<sub>2</sub>: " + Math.round(oxygen * 100) + "%";
+          el.cathodeReadout.innerHTML = copper < 0.22 ? "Bề mặt catot mới bắt đầu đổi màu do Cu bám mỏng." : copper < 0.6 ? "Lớp đồng nâu đỏ bám rõ dần trên catot." : "Catot đã có lớp đồng bám rõ, xác nhận sản phẩm khử là Cu.";
+          el.anodeReadout.innerHTML = oxygen < 0.18 ? "Anot mới có ít bọt nhỏ, nước bắt đầu bị oxi hóa." : oxygen < 0.58 ? "Bọt khí O<sub>2</sub> thoát ra đều ở anot." : "Anot tạo O<sub>2</sub> rõ ràng, phù hợp với điện cực trơ.";
+          el.chartStatus.innerHTML = "Mốc hiện tại: catot bám <strong>" + Math.round(copper * 100) + "%</strong>, anot tạo O<sub>2</sub> khoảng <strong>" + Math.round(oxygen * 100) + "%</strong>, dung dịch còn khoảng <strong>" + Math.round((1 - fade) * 100) + "%</strong> màu ban đầu.";
+          updateFeedback();
+          if (state.chartReady) updateChart();
+          else drawFallbackChart();
+          if (state.sceneReady) updateScene();
+        }
+        function hasWebGL() {
+          try {
+            const canvas = document.createElement("canvas");
+            return Boolean(window.WebGLRenderingContext && (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")));
+          } catch (error) {
+            return false;
+          }
+        }
+        function showFallback(message) {
+          el.fallback.classList.add("show");
+          const strong = el.fallback.querySelector("strong");
+          if (strong) strong.textContent = message;
+        }
+        function loadScript(urls, globalName) {
+          return new Promise(function(resolve, reject) {
+            if (window[globalName]) {
+              resolve(window[globalName]);
+              return;
+            }
+            let index = 0;
+            function tryNext() {
+              if (index >= urls.length) {
+                reject(new Error("Không tải được " + globalName));
+                return;
+              }
+              const script = document.createElement("script");
+              script.src = urls[index++];
+              script.async = true;
+              script.onload = function() { if (window[globalName]) resolve(window[globalName]); else tryNext(); };
+              script.onerror = tryNext;
+              document.head.appendChild(script);
+            }
+            tryNext();
+          });
+        }
+        function setupScene(THREE) {
+          if (!hasWebGL()) {
+            showFallback("Trình duyệt không hỗ trợ WebGL.");
+            return;
+          }
+          const scene = new THREE.Scene();
+          scene.background = new THREE.Color(0xf8fbff);
+          const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+          const renderer = new THREE.WebGLRenderer({ canvas: el.scene, antialias: true, alpha: true });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+          scene.add(new THREE.HemisphereLight(0xffffff, 0xa9bbce, 1.06));
+          const key = new THREE.DirectionalLight(0xffffff, 1.18);
+          key.position.set(4.6, 7.8, 5.4);
+          key.castShadow = true;
+          scene.add(key);
+          const table = new THREE.Mesh(new THREE.CylinderGeometry(4.0, 4.4, 0.18, 90), new THREE.MeshStandardMaterial({ color: 0xe8dfcf, roughness: 0.78 }));
+          table.position.y = -0.11;
+          table.receiveShadow = true;
+          scene.add(table);
+          const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.24, roughness: 0.08, metalness: 0, transmission: 0.54 });
+          const beaker = new THREE.Mesh(new THREE.CylinderGeometry(1.66, 1.53, 3.0, 72, 1, true), glassMat);
+          beaker.position.y = 1.5;
+          beaker.castShadow = true;
+          scene.add(beaker);
+          const rim = new THREE.Mesh(new THREE.TorusGeometry(1.66, 0.03, 12, 88), new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.72 }));
+          rim.rotation.x = Math.PI / 2;
+          rim.position.y = 3.0;
+          scene.add(rim);
+          const solutionMat = new THREE.MeshPhysicalMaterial({ color: 0x68aee8, transparent: true, opacity: 0.66, roughness: 0.16, metalness: 0, transmission: 0.16 });
+          const solution = new THREE.Mesh(new THREE.CylinderGeometry(1.43, 1.34, 1.95, 72), solutionMat);
+          solution.position.y = 1.02;
+          scene.add(solution);
+          const solutionGlow = new THREE.Mesh(new THREE.CylinderGeometry(1.53, 1.44, 2.0, 72), new THREE.MeshBasicMaterial({ color: 0x83bff1, transparent: true, opacity: 0.16 }));
+          solutionGlow.position.copy(solution.position);
+          scene.add(solutionGlow);
+          const electrodeMat = new THREE.MeshStandardMaterial({ color: 0x353c43, roughness: 0.82, metalness: 0.06 });
+          const cathode = new THREE.Mesh(new THREE.BoxGeometry(0.18, 2.95, 0.2), electrodeMat);
+          cathode.position.set(-0.8, 2.02, 0);
+          cathode.castShadow = true;
+          scene.add(cathode);
+          const anode = cathode.clone();
+          anode.position.x = 0.8;
+          scene.add(anode);
+          const wireMat = new THREE.MeshStandardMaterial({ color: 0xc7a761, roughness: 0.34, metalness: 0.72 });
+          const wireBridge = new THREE.Mesh(new THREE.TorusGeometry(1.76, 0.035, 12, 96, Math.PI), wireMat);
+          wireBridge.rotation.z = Math.PI;
+          wireBridge.position.y = 3.36;
+          scene.add(wireBridge);
+          const battery = new THREE.Group();
+          const batteryBody = new THREE.Mesh(new THREE.BoxGeometry(1.24, 0.62, 0.72), new THREE.MeshStandardMaterial({ color: 0x213244, roughness: 0.42 }));
+          const batteryTop = new THREE.Mesh(new THREE.BoxGeometry(1.08, 0.1, 0.5), new THREE.MeshStandardMaterial({ color: 0xfefefe, roughness: 0.2 }));
+          batteryTop.position.y = 0.28;
+          battery.add(batteryBody, batteryTop);
+          battery.position.set(0, 3.72, 0);
+          scene.add(battery);
+          const plusH = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.06, 0.06), new THREE.MeshStandardMaterial({ color: 0xd45f55 }));
+          const plusV = plusH.clone();
+          plusV.rotation.z = Math.PI / 2;
+          plusH.position.set(0.24, 0.36, 0);
+          plusV.position.copy(plusH.position);
+          const minus = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.06, 0.06), new THREE.MeshStandardMaterial({ color: 0x3d8fd5 }));
+          minus.position.set(-0.24, 0.36, 0);
+          battery.add(plusH, plusV, minus);
+          const copperShell = new THREE.Mesh(new THREE.BoxGeometry(0.24, 2.32, 0.24), new THREE.MeshStandardMaterial({ color: 0xc77b4c, roughness: 0.42, metalness: 0.4, transparent: true, opacity: 0.08 }));
+          copperShell.position.set(-0.8, 1.28, 0);
+          copperShell.scale.y = 0.08;
+          scene.add(copperShell);
+          const copperFlakes = [];
+          for (let i = 0; i < 18; i += 1) {
+            const flake = new THREE.Mesh(new THREE.BoxGeometry(0.06 + (i % 3) * 0.02, 0.12 + (i % 4) * 0.05, 0.024), new THREE.MeshStandardMaterial({ color: 0xd2895d, roughness: 0.34, metalness: 0.44, transparent: true, opacity: 0.04 }));
+            flake.position.set(-0.67 - (i % 2) * 0.14, 0.44 + i * 0.11, ((i % 4) - 1.5) * 0.06);
+            flake.rotation.z = (i % 5) * 0.18;
+            scene.add(flake);
+            copperFlakes.push(flake);
+          }
+          const bubbles = [];
+          for (let i = 0; i < 40; i += 1) {
+            const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.038 + (i % 5) * 0.008, 14, 12), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x90ddf1, emissiveIntensity: 0.18, transparent: true, opacity: 0.12, roughness: 0.16 }));
+            bubble.userData.phase = i * 0.31;
+            bubble.userData.speed = 0.62 + (i % 5) * 0.1;
+            bubble.userData.baseZ = ((i % 6) - 2.5) * 0.065;
+            scene.add(bubble);
+            bubbles.push(bubble);
+          }
+          const orbit = { theta: 0.86, phi: 1.08, radius: 11.1, dragging: false, pointerId: null, lastX: 0, lastY: 0 };
+          state.threeScene = { scene: scene, camera: camera, renderer: renderer, solution: solution, solutionGlow: solutionGlow, copperShell: copperShell, copperFlakes: copperFlakes, bubbles: bubbles, orbit: orbit, target: new THREE.Vector3(0, 1.62, 0) };
+          function resize() {
+            const rect = el.scene.getBoundingClientRect();
+            const width = Math.max(360, rect.width);
+            const height = Math.max(420, rect.height);
+            renderer.setSize(width, height, false);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+          }
+          el.scene.addEventListener("pointerdown", function(event) {
+            orbit.dragging = true;
+            orbit.pointerId = event.pointerId;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            el.scene.style.cursor = "grabbing";
+            if (el.scene.setPointerCapture) el.scene.setPointerCapture(event.pointerId);
+          });
+          el.scene.addEventListener("pointermove", function(event) {
+            if (!orbit.dragging || orbit.pointerId !== event.pointerId) return;
+            const dx = event.clientX - orbit.lastX;
+            const dy = event.clientY - orbit.lastY;
+            orbit.lastX = event.clientX;
+            orbit.lastY = event.clientY;
+            orbit.theta -= dx * 0.008;
+            orbit.phi = clamp(orbit.phi + dy * 0.006, 0.62, 1.42);
+          });
+          function endDrag(event) {
+            if (event.pointerId !== undefined && orbit.pointerId !== event.pointerId) return;
+            orbit.dragging = false;
+            orbit.pointerId = null;
+            el.scene.style.cursor = "grab";
+          }
+          el.scene.addEventListener("pointerup", endDrag);
+          el.scene.addEventListener("pointercancel", endDrag);
+          resize();
+          window.addEventListener("resize", resize);
+          state.sceneReady = true;
+          updateScene();
+          animateScene();
+        }
+        function updateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const copper = copperAt(state.time);
+          const oxygen = oxygenAt(state.time);
+          const fade = solutionFadeAt(state.time);
+          sceneData.solution.material.color.setRGB(0.41 - fade * 0.2, 0.68 - fade * 0.06, 0.91 - fade * 0.02);
+          sceneData.solution.material.opacity = 0.66 - fade * 0.34;
+          sceneData.solution.scale.y = 1 - fade * 0.06;
+          sceneData.solution.position.y = 1.02 - fade * 0.06;
+          sceneData.solutionGlow.material.opacity = 0.16 - fade * 0.1;
+          sceneData.solutionGlow.scale.y = 1 - fade * 0.05;
+          sceneData.copperShell.material.opacity = 0.1 + copper * 0.82;
+          sceneData.copperShell.scale.y = 0.08 + copper * 0.98;
+          sceneData.copperShell.position.y = 0.42 + sceneData.copperShell.scale.y * 0.98;
+          sceneData.copperFlakes.forEach(function(flake, index) {
+            const threshold = index / sceneData.copperFlakes.length * 0.94;
+            const visible = Math.max(0, (copper - threshold) * 3.8);
+            flake.material.opacity = Math.min(0.96, visible);
+            flake.scale.setScalar(0.76 + visible * 0.38);
+          });
+          sceneData.bubbles.forEach(function(bubble, index) {
+            const active = oxygen > index / sceneData.bubbles.length * 0.9;
+            bubble.material.opacity = active ? 0.32 + oxygen * 0.42 : 0.03;
+          });
+        }
+        function animateScene() {
+          const sceneData = state.threeScene;
+          if (!sceneData) return;
+          const now = performance.now() * 0.001;
+          const oxygen = oxygenAt(state.time);
+          const orbit = sceneData.orbit;
+          sceneData.bubbles.forEach(function(bubble) {
+            const phase = now * bubble.userData.speed + bubble.userData.phase;
+            const loop = (phase % 1 + 1) % 1;
+            bubble.position.set(0.82 + Math.sin(phase * 8) * 0.09, 0.44 + loop * 2.28, bubble.userData.baseZ + Math.cos(phase * 6) * 0.04);
+            bubble.visible = oxygen > 0.05;
+            bubble.scale.setScalar(0.8 + oxygen * 1.2);
+          });
+          if (!orbit.dragging) orbit.theta += 0.0015;
+          const sinPhi = Math.sin(orbit.phi);
+          sceneData.camera.position.x = Math.cos(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.position.y = orbit.radius * Math.cos(orbit.phi) + 2.15;
+          sceneData.camera.position.z = Math.sin(orbit.theta) * orbit.radius * sinPhi;
+          sceneData.camera.lookAt(sceneData.target);
+          sceneData.renderer.render(sceneData.scene, sceneData.camera);
+          requestAnimationFrame(animateScene);
+        }
+        function sampleSeries(fn) {
+          const data = [];
+          for (let i = 0; i <= 16; i += 1) data.push({ x: i, y: Number(fn(i).toFixed(3)) });
+          return data;
+        }
+        function drawFallbackChart() {
+          const canvas = el.chart;
+          const rect = canvas.getBoundingClientRect();
+          const width = Math.max(320, rect.width || 320);
+          const height = Math.max(240, rect.height || 240);
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, width, height);
+          const pad = { left: 42, right: 18, top: 18, bottom: 32 };
+          const plotW = width - pad.left - pad.right;
+          const plotH = height - pad.top - pad.bottom;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, width, height);
+          ctx.strokeStyle = "rgba(43, 71, 98, 0.1)";
+          for (let i = 0; i <= 4; i += 1) {
+            const y = pad.top + plotH * i / 4;
+            ctx.beginPath();
+            ctx.moveTo(pad.left, y);
+            ctx.lineTo(width - pad.right, y);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = "#2b4762";
+          ctx.beginPath();
+          ctx.moveTo(pad.left, pad.top);
+          ctx.lineTo(pad.left, height - pad.bottom);
+          ctx.lineTo(width - pad.right, height - pad.bottom);
+          ctx.stroke();
+          function drawSeries(color, valueAt) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.3;
+            ctx.beginPath();
+            for (let i = 0; i <= 64; i += 1) {
+              const t = state.maxTime * i / 64;
+              const value = valueAt(t);
+              const x = pad.left + plotW * i / 64;
+              const y = pad.top + plotH * (1 - value);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+          }
+          drawSeries("#ca7f51", copperAt);
+          drawSeries("#18a2a5", oxygenAt);
+          drawSeries("#4c8fd6", function(time) { return 1 - solutionFadeAt(time); });
+        }
+        function setupChart(ChartCtor) {
+          const ctx = el.chart.getContext("2d");
+          if (!ctx) {
+            state.chartFallback = true;
+            drawFallbackChart();
+            return;
+          }
+          state.chart = new ChartCtor(ctx, {
+            type: "line",
+            data: {
+              datasets: [
+                { label: "Đồng bám ở catot", data: sampleSeries(copperAt), borderColor: "#ca7f51", pointRadius: 0, borderWidth: 3, tension: 0.34 },
+                { label: "Bọt O2 ở anot", data: sampleSeries(oxygenAt), borderColor: "#18a2a5", pointRadius: 0, borderWidth: 3, tension: 0.32 },
+                { label: "Màu Cu2+ còn lại", data: sampleSeries(function(time) { return 1 - solutionFadeAt(time); }), borderColor: "#4c8fd6", pointRadius: 0, borderWidth: 3, tension: 0.28 }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: false,
+              interaction: { mode: "index", intersect: false },
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: {
+                    boxWidth: 14,
+                    color: "#2d455a",
+                    font: { family: "Aptos, Segoe UI, sans-serif", weight: "700" }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) { return context.dataset.label + ": " + Math.round(context.parsed.y * 100) + "%"; }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  type: "linear",
+                  min: 0,
+                  max: state.maxTime,
+                  title: { display: true, text: "Thời gian điện phân (s)", color: "#476179", font: { weight: "700" } },
+                  grid: { color: "rgba(43,71,98,.08)" },
+                  ticks: { color: "#567087" }
+                },
+                y: {
+                  min: 0,
+                  max: 1,
+                  title: { display: true, text: "Mức độ tương đối", color: "#476179", font: { weight: "700" } },
+                  grid: { color: "rgba(43,71,98,.08)" },
+                  ticks: { color: "#567087", callback: function(value) { return Math.round(value * 100) + "%"; } }
+                }
+              }
+            }
+          });
+          state.chartReady = true;
+        }
+        function updateChart() {
+          if (!state.chart) return;
+          state.chart.data.datasets[0].data = sampleSeries(copperAt);
+          state.chart.data.datasets[1].data = sampleSeries(oxygenAt);
+          state.chart.data.datasets[2].data = sampleSeries(function(time) { return 1 - solutionFadeAt(time); });
+          state.chart.update("none");
+        }
+        function gotoTime(target) {
+          state.time = clamp(target, 0, state.maxTime);
+          el.time.value = state.time.toFixed(1);
+          updateReadout();
+        }
+        function startLoop(gsapInstance) {
+          const driver = { value: 0 };
+          state.timeline = gsapInstance.timeline({ repeat: -1, defaults: { ease: "none" } });
+          state.timeline.to(driver, {
+            duration: state.maxTime,
+            value: state.maxTime,
+            onUpdate: function() {
+              state.time = clamp(driver.value, 0, state.maxTime);
+              el.time.value = state.time.toFixed(1);
+              updateReadout();
+            },
+            onRepeat: function() {
+              driver.value = 0;
+              state.time = 0;
+              el.time.value = "0.0";
+              updateReadout();
+            }
+          });
+          state.timeline.timeScale(state.speed);
+        }
+        function bindEvents() {
+          root.querySelectorAll("[data-role='guess-cathode']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              state.guessCathode = button.getAttribute("data-value");
+              updateButtons("guess-cathode", state.guessCathode);
+              updateReadout();
+            });
+          });
+          root.querySelectorAll("[data-role='guess-anode']").forEach(function(button) {
+            button.addEventListener("click", function() {
+              state.guessAnode = button.getAttribute("data-value");
+              updateButtons("guess-anode", state.guessAnode);
+              updateReadout();
+            });
+          });
+          el.toggle.addEventListener("click", function() {
+            state.running = !state.running;
+            el.toggle.textContent = state.running ? "Tạm dừng" : "Tiếp tục";
+            if (state.timeline) {
+              if (state.running) state.timeline.resume();
+              else state.timeline.pause();
+            }
+            updateReadout();
+          });
+          el.run.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            if (state.timeline) state.timeline.resume();
+            updateReadout();
+          });
+          el.reset.addEventListener("click", function() {
+            state.running = true;
+            el.toggle.textContent = "Tạm dừng";
+            gotoTime(0);
+            if (state.timeline) {
+              state.timeline.pause(0);
+              state.timeline.resume();
+            }
+          });
+          el.time.addEventListener("input", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(Number(el.time.value));
+          });
+          el.speed.addEventListener("input", function() {
+            state.speed = Number(el.speed.value);
+            if (state.timeline) state.timeline.timeScale(state.speed);
+            updateReadout();
+          });
+          el.checkpointMid.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(7.5);
+          });
+          el.checkpointEnd.addEventListener("click", function() {
+            state.running = false;
+            el.toggle.textContent = "Tiếp tục";
+            if (state.timeline) state.timeline.pause();
+            gotoTime(state.maxTime);
+          });
+        }
+        Promise.all([
+          loadScript([
+            "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js",
+            "https://unpkg.com/three@0.160.0/build/three.min.js"
+          ], "THREE").catch(function() { return null; }),
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+            "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+          ], "gsap"),
+          loadScript([
+            "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+            "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+          ], "Chart").catch(function() { return null; })
+        ]).then(function(loaded) {
+          const THREE = loaded[0];
+          const gsapInstance = loaded[1];
+          const ChartCtor = loaded[2];
+          if (THREE) setupScene(THREE);
+          else showFallback("Không tải được Three.js.");
+          if (ChartCtor) setupChart(ChartCtor);
+          else {
+            state.chartFallback = true;
+            drawFallbackChart();
+          }
+          startLoop(gsapInstance);
+          bindEvents();
+          updateReadout();
+        }).catch(function(error) {
+          showFallback(error && error.message ? error.message : "Không khởi tạo được mô phỏng.");
+          state.chartFallback = true;
+          drawFallbackChart();
+          bindEvents();
+          updateReadout();
+        });
+      })("chem-exp-dien-phan-cuso4");
+    </script>
+  </div>
+</body>
+</html>

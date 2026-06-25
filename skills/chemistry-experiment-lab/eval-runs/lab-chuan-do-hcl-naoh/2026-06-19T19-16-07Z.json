@@ -1,0 +1,117 @@
+{
+  "slug": "lab-chuan-do-hcl-naoh",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-chuan-do-hcl-naoh.html",
+  "prompt": "Regenerate from scratch with the updated chemistry-experiment-lab skill; old HTML should be ignored.",
+  "experiment": {
+    "title": "Chuẩn độ HCl bằng NaOH",
+    "grade": "Hóa 11",
+    "learning_goal": "Nhận ra điểm đổi màu gần điểm tương đương và liên hệ nó với bước nhảy pH.",
+    "learning_loop": {
+      "predict": "Dự đoán thời điểm dung dịch bắt đầu hồng bền.",
+      "observe": "Quan sát giọt NaOH, đổi màu phenolphthalein và vị trí trên đường cong pH.",
+      "compare": "So sánh các mốc 22,0 mL, 25,0 mL và 28,0 mL.",
+      "explain": "Điểm tương đương đi kèm bước nhảy pH; hồng bền xuất hiện khi bazơ dư nhẹ."
+    },
+    "reaction": "HCl + NaOH -> NaCl + H2O",
+    "notes": "Autoplay timeline with large burette-flask stage; pH curve is a compact supporting panel."
+  },
+  "interaction_pattern": "titration-ph-indicator",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "r128 / 0.137.0 fallback",
+      "role": "render",
+      "rationale": "observable chemistry: sân khấu burette, cốc và giọt rơi là hiện tượng chính",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://unpkg.com/three@0.137.0/build/three.min.js"
+      ]
+    },
+    {
+      "name": "GSAP",
+      "version": "3.12.5",
+      "role": "timeline",
+      "rationale": "timeline: autoplay, pause/resume, reset và đồng bộ nhiều mốc hiện tượng",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js",
+        "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+      ]
+    },
+    {
+      "name": "Chart.js",
+      "version": "4.4.1",
+      "role": "chart",
+      "rationale": "assessment/readout: đường cong pH là phần nội dung học tập chính",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js",
+        "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: inline script extracted and checked with node --check",
+    "risky_globals": "pass: no matches for GK/gkStart/gkLoadThree/unscoped document.querySelector/latest/next in outputs",
+    "cdn_version_pin": "pass: all library URLs are version pinned",
+    "fallbacks": "pass: load failures are routed to visible fallback messages",
+    "autoplay_or_demo": "pass: autoplay timeline plus pause/reset controls",
+    "layout": "pass: stage dominates first viewport; chart and readouts remain compact",
+    "browser_smoke": "pass: verify-widget.sh produced desktop/mobile screenshots and trace artifacts",
+    "mobile_check": "pass: mobile screenshot shows no horizontal overflow and controls remain visible"
+  },
+  "scores": {
+    "chemistry_pedagogy": 19,
+    "visual_dynamism": 14,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 14,
+    "technical_html": 15,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 96
+  },
+  "blockers": [],
+  "warnings": [],
+  "chemistry_review": "Phenolphthalein color change and pH jump are presented at SGK level without overclaiming exact quantitative lab data.",
+  "browser_checks": "Playwright-based verifier passed on desktop and mobile. WebGL ran through SwiftShader fallback in headless Chromium.",
+  "mobile_checks": "Mobile verification passed with no overflow and visible primary controls.",
+  "design_family": "titration",
+  "design_fingerprint": "three-gsap-chart-stage-first-predict-observe-explain",
+  "promoted_as_baseline": false,
+  "verification": {
+    "environment": {
+      "browser": "chromium",
+      "headless": true,
+      "os": "linux",
+      "viewport": "desktop-1280x800 + mobile-iPhone13"
+    },
+    "webgl": {
+      "supported": true,
+      "renderer_type": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+      "fallback_used": true
+    },
+    "invariants": {
+      "stage_present": true,
+      "stage_dominance_pass": true,
+      "autoplay_or_primary_run_pass": true,
+      "mobile_fit_pass": true,
+      "fallback_present": false
+    }
+  },
+  "artifacts": {
+    "desktop_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-chuan-do-hcl-naoh/2026-06-19T19-16-07Z/desktop.png",
+    "mobile_screenshot": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-chuan-do-hcl-naoh/2026-06-19T19-16-07Z/mobile.png",
+    "trace": "/home/ding/debug_mc/material_creator/skills_material_K12/skills/chemistry-experiment-lab/evaluations/artifacts/lab-chuan-do-hcl-naoh/2026-06-19T19-16-07Z"
+  },
+  "improvement_plan": [
+    "Add direct state-based autoplay detection if future widgets rely less on visible controls.",
+    "Promote to baseline only after checking on a real GPU browser in addition to headless SwiftShader."
+  ],
+  "changes_applied": [
+    "Regenerated output from scratch using updated skill rules.",
+    "Added full HTML wrapper with UTF-8 metadata.",
+    "Verified with the new Playwright-based verifier script."
+  ],
+  "final_status": "pass",
+  "created_at": "2026-06-19T19:16:07Z",
+  "tool_model": "gpt-5 codex"
+}

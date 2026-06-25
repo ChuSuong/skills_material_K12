@@ -1,0 +1,72 @@
+{
+  "slug": "lab-chuan-do-hcl-naoh",
+  "output_file": "skills_material_K12/skills/chemistry-experiment-lab/outputs/lab-chuan-do-hcl-naoh.html",
+  "prompt": "GEN LẠI và ghi đè HTML output hiện có bằng skill chemistry-experiment-lab phiên bản mới; chủ đề chuẩn độ HCl bằng NaOH với phenolphthalein và pH curve.",
+  "experiment": {
+    "title": "Chuẩn độ HCl bằng NaOH với phenolphthalein",
+    "grade": "Hóa 11",
+    "learning_goal": "Quan sát vùng nhảy pH và màu phenolphthalein khi chuẩn độ axit mạnh bằng bazơ mạnh.",
+    "reaction": "HCl + NaOH -> NaCl + H2O",
+    "notes": "Mô hình bán định lượng dùng HCl 25.00 mL 0.100 M và NaOH 0.100 M, bỏ qua hoạt độ ion, nhiệt độ và sai số thao tác."
+  },
+  "interaction_pattern": "titration-ph-indicator",
+  "libraries": [
+    {
+      "name": "Three.js",
+      "version": "r128 / 0.137.0 fallback",
+      "role": "Scene 3D buret, bình nón, giọt NaOH, dung dịch và màu phenolphthalein.",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
+        "https://unpkg.com/three@0.137.0/build/three.min.js"
+      ]
+    },
+    {
+      "name": "Chart.js",
+      "version": "4.4.3",
+      "role": "Đường cong pH và marker thể tích hiện tại; có canvas fallback nếu CDN lỗi.",
+      "cdn_urls": [
+        "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.3/chart.umd.min.js",
+        "https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+      ]
+    }
+  ],
+  "model_fidelity": "semi-quantitative",
+  "validation_results": {
+    "js_syntax": "pass: extracted inline JS to /tmp/lab-chuan-do-hcl-naoh.inline.js and ran node --check",
+    "risky_globals": "pass: rg found no var GK, function gk, gkStart, gkLoadThree, or document.querySelector(\".",
+    "cdn_version_pin": "pass: rg latest|next returned no matches; all CDN URLs include pinned versions.",
+    "fallbacks": "pass: Three.js/WebGL fallback message exists; Chart.js falls back to custom canvas drawing.",
+    "autoplay_or_demo": "pass: auto-run starts on load; pause, reset, volume slider, speed slider, one-drop and endpoint controls are present.",
+    "layout": "pass: compact title; stage and pH curve dominate; model note is collapsible; visual layout differs from kinetics file.",
+    "browser_smoke": "pass-with-warning: Chrome headless produced desktop screenshot at /tmp/lab-chuan-do-hcl-naoh-swift.png and fallback screenshot at /tmp/lab-chuan-do-hcl-naoh-desktop.png; environment did not expose WebGL.",
+    "mobile_check": "pass: Chrome headless 390x844 screenshot /tmp/lab-chuan-do-hcl-naoh-mobile2.png showed stacked layout without horizontal overflow."
+  },
+  "scores": {
+    "chemistry_pedagogy": 19,
+    "visual_dynamism": 14,
+    "interaction_autoplay": 15,
+    "lab_first_layout": 15,
+    "technical_html": 14,
+    "performance_mobile": 9,
+    "learning_record": 10,
+    "total": 96
+  },
+  "blockers": [],
+  "warnings": [
+    "Headless Chrome in this environment reported no WebGL, so the validated browser render exercised the designed fallback path rather than the Three.js scene.",
+    "pH curve is an idealized strong acid/strong base model and is labelled as semi-quantitative."
+  ],
+  "chemistry_review": "Neutralization equation, equivalence at 25.00 mL for equal 0.100 M acid/base, pH jump, and phenolphthalein endpoint behavior are represented at a suitable school-model level.",
+  "browser_checks": "Chrome headless opened the local file and wrote screenshots; DBus/GPU warnings were environment-level and did not stop page render.",
+  "mobile_checks": "390x844 layout stacks title, 3D/fallback stage, pH chart, and controls; horizontal overflow was fixed with scoped min-width and overflow rules.",
+  "improvement_plan": [
+    "Nếu cần xác nhận Three.js visual đầy đủ, mở trong browser desktop có WebGL thật thay vì headless môi trường này."
+  ],
+  "changes_applied": [
+    "Regenerated self-contained scoped HTML with a distinct titration-first layout.",
+    "Added auto-run, pause, reset, manual volume/speed controls, one-drop and endpoint actions, fallback UI, and pinned CDN loaders."
+  ],
+  "final_status": "pass-with-warnings",
+  "created_at": "2026-06-19T10:36:08Z",
+  "tool_model": "GPT-5 Codex"
+}

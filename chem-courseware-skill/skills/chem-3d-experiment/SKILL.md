@@ -32,6 +32,17 @@ Prefer direct interaction on the rendered scene itself over panel-driven UI.
 - use `threejs-geometry` only when primitives are too limiting for clear apparatus shapes (tubes, custom vessels)
 - use `threejs-loaders` only when bundling local assets is justified (avoid remote fetch dependencies)
 
+## Effect library reuse
+Build liquids, smoke/steam, and porous/charred masses using `chem-courseware-base`'s effect
+helpers instead of hand-writing inline shaders or canvas gradients per lesson:
+- pour streams / flowing liquids → `chem-courseware-base/effects/liquid-shader.mjs`
+- smoke/steam puffs and bubble glow sprites → `chem-courseware-base/effects/organic-texture.mjs`
+- char/rock/porous surface bumpiness → `chem-courseware-base/effects/jitter-geometry.mjs`
+- particle fade-out near end of life → `chem-courseware-base/effects/particle-pop.mjs`
+
+A fix to one of these helpers should improve every lesson built after it, instead of drifting
+per-file the way the visual theme already has.
+
 ## Chemistry-specific build checklist
 - Identify the apparatus and materials.
 - Define the learner action.
@@ -62,6 +73,12 @@ The output is not complete until:
 - the golden path interaction works
 - reset works
 - the main chemistry state change is observable
+- any automatic rest/trigger position satisfies its own activation-condition function (e.g. an
+  `isXAboveY()`-style check) — verified by running
+  `chem-courseware-base/scripts/pw-capture-checkpoints.mjs` and reviewing the result against
+  `chem-courseware-base/references/visibility-checklist.md`
+- transparent container contents (glass beakers/bottles/vessels) stay legible against the chosen
+  background — confirmed via the same 3-checkpoint screenshots
 - `ui-ux-tester` has reviewed the page
 
 ## Rendering fidelity reminder
