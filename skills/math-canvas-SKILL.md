@@ -575,15 +575,15 @@ Không có test runner tự động cho widget này. Trước khi coi baseline m
 "done", mở `skills/math-canvas-outputs/math-canvas-demo.html` trực tiếp trong browser
 và kiểm tra tay:
 
-- [ ] Load trang: thấy tam giác mẫu (Example) trong Geometry mode, 4 nút mode ở trên
+- [x] Load trang: thấy tam giác mẫu (Example) trong Geometry mode, 4 nút mode ở trên
       toolbar, nút "Geometry" đang active (viền cam).
-- [ ] Kéo 1 điểm của tam giác — tam giác reshape, số đo cạnh cập nhật theo thời gian
+- [x] Kéo 1 điểm của tam giác — tam giác reshape, số đo cạnh cập nhật theo thời gian
       thực (giống hành vi cũ, không regress).
-- [ ] Click "Graphing" — toolbar tool Geometry (Select/Point/Segment/Circle/Polygon)
+- [x] Click "Graphing" — toolbar tool Geometry (Select/Point/Segment/Circle/Polygon)
       biến mất, canvas hiện chữ placeholder màu xám giữa canvas, nút Example/Clear bị
       mờ và không bấm được.
-- [ ] Click "Vector", rồi "Statistics" — mỗi mode hiện đúng câu placeholder tương ứng
+- [x] Click "Vector", rồi "Statistics" — mỗi mode hiện đúng câu placeholder tương ứng
       của mode đó (không phải câu của mode khác).
-- [ ] Click lại "Geometry" — tam giác đã kéo ở bước 2 vẫn còn nguyên đúng vị trí đã kéo
+- [x] Click lại "Geometry" — tam giác đã kéo ở bước 2 vẫn còn nguyên đúng vị trí đã kéo
       (không bị reset về Example ban đầu), Example/Clear hoạt động lại.
-- [ ] Mở DevTools console — không có lỗi JS nào xuất hiện trong toàn bộ quá trình trên.
+- [x] Mở DevTools console — không có lỗi JS nào xuất hiện trong toàn bộ quá trình trên.
