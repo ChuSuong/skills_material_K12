@@ -212,7 +212,6 @@ let dataset=[];
 
 const PLACEHOLDER_MSG={
   vector:'Vector mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
-  statistics:'Statistics mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
 };
 
 const gsx=x=>C.width/2+(x+pX)*Z;
@@ -485,16 +484,19 @@ function setMode(m){
   document.getElementById('m-'+m).classList.add('on');
   const isGeo=m==='geometry';
   document.getElementById('dtb-geo').style.display=isGeo?'flex':'none';
-  const isActive=m==='geometry'||m==='graphing';
+  const isActive=m==='geometry'||m==='graphing'||m==='statistics';
   document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isActive);
   const ph=document.getElementById('dtb-placeholder');
-  ph.style.display=(isGeo||m==='graphing')?'none':'block';
+  ph.style.display=(isGeo||m==='graphing'||m==='statistics')?'none':'block';
   ph.textContent=PLACEHOLDER_MSG[m]||'';
-  const panel=document.getElementById('dgraph-panel');
-  if(m==='graphing'){panel.style.display='flex';if(funcs.length===0)loadExGraphing();}
-  else{panel.style.display='none';}
+  const gPanel=document.getElementById('dgraph-panel');
+  const sPanel=document.getElementById('dstats-panel');
+  if(m==='graphing'){gPanel.style.display='flex';sPanel.style.display='none';if(funcs.length===0)loadExGraphing();}
+  else if(m==='statistics'){sPanel.style.display='flex';gPanel.style.display='none';if(dataset.length===0)loadExStats();}
+  else{gPanel.style.display='none';sPanel.style.display='none';}
   if(isGeo){DST.innerHTML=TMSG[tool]||'';}
   else if(m==='graphing'){DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';}
+  else if(m==='statistics'){DST.innerHTML='Statistics mode — nhập số liệu vào panel trái.';}
   else{DST.innerHTML=PLACEHOLDER_MSG[m]||'';}
   redraw();
 }
@@ -552,6 +554,8 @@ function clearAll(){
   funcs=[];fCnt=0;
   const list=document.getElementById('dgraph-list');if(list)list.innerHTML='';
   const add=document.getElementById('dgraph-add');if(add)add.disabled=false;
+  dataset=[];
+  const inp=document.getElementById('dstats-input');if(inp)inp.value='';
   redraw();DST.innerHTML='Canvas cleared.';
 }
 function resetV(){pX=0;pY=0;Z=55;redraw();}
@@ -562,6 +566,7 @@ function adjZ(f){Z=Math.max(10,Math.min(600,Z*f));redraw();}
    ════════════════════════════════════════════════════ */
 function loadEx(){
   if(mode==='graphing'){loadExGraphing();return;}
+  if(mode==='statistics'){loadExStats();return;}
   clearAll();
   const A=addPt(-3,0),B=addPt(3,0),Cp=addPt(0,3);
   segs.push({a:A.id,b:B.id},{a:B.id,b:Cp.id},{a:Cp.id,b:A.id});
@@ -576,6 +581,13 @@ function loadExGraphing(){
   addFunc('x^2');
   addFunc('sin(x)');
   DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';
+}
+function loadExStats(){
+  const ex='72,68,74,65,71,69,73,70,67,75,72,68,71,69,70,73,66,74,70,71,68,72,69,71,70';
+  const inp=document.getElementById('dstats-input');if(inp)inp.value=ex;
+  dataset=parseDataset(ex);
+  DST.innerHTML=`Statistics mode — ${dataset.length} số mẫu (điểm thi học sinh).`;
+  redraw();
 }
 /* ════════════════════════════════════════════════════ */
 
