@@ -646,7 +646,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&tool==='poly'&&pend.length>=3){polys.push([...pend]);pend=[];redraw();DST.innerHTML='Polygon closed.';}
 });
 
-function resize(){const panel=document.getElementById('dgraph-panel');const panelW=(panel&&getComputedStyle(panel).display!=='none')?panel.offsetWidth:0;const w=(C.parentElement.clientWidth-panelW)||660;C.width=w;C.height=Math.round(w*.54);redraw();}
+function resize(){const gp=document.getElementById('dgraph-panel');const sp=document.getElementById('dstats-panel');const panelW=(gp&&getComputedStyle(gp).display!=='none'?gp.offsetWidth:0)+(sp&&getComputedStyle(sp).display!=='none'?sp.offsetWidth:0);const w=(C.parentElement.clientWidth-panelW)||660;C.width=w;C.height=Math.round(w*.54);redraw();}
 window.addEventListener('resize',resize);
 resize();loadEx();setT('drag');setMode('geometry');
 </script>
