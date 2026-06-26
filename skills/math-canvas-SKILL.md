@@ -404,11 +404,16 @@ function setMode(m){
   document.getElementById('m-'+m).classList.add('on');
   const isGeo=m==='geometry';
   document.getElementById('dtb-geo').style.display=isGeo?'flex':'none';
+  const isActive=m==='geometry'||m==='graphing';
+  document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isActive);
   const ph=document.getElementById('dtb-placeholder');
-  ph.style.display=isGeo?'none':'block';
+  ph.style.display=(isGeo||m==='graphing')?'none':'block';
   ph.textContent=PLACEHOLDER_MSG[m]||'';
-  document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isGeo);
+  const panel=document.getElementById('dgraph-panel');
+  if(m==='graphing'){panel.style.display='flex';if(funcs.length===0)loadExGraphing();}
+  else{panel.style.display='none';}
   if(isGeo){DST.innerHTML=TMSG[tool]||'';}
+  else if(m==='graphing'){DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';}
   else{DST.innerHTML=PLACEHOLDER_MSG[m]||'';}
   redraw();
 }
@@ -461,7 +466,13 @@ function setT(t){
   C.style.cursor=t==='drag'?'grab':'crosshair';
   redraw();
 }
-function clearAll(){pts=[];segs=[];circs=[];polys=[];pCnt=0;pend=[];dragId=null;hovId=null;redraw();DST.innerHTML='Canvas cleared.';}
+function clearAll(){
+  pts=[];segs=[];circs=[];polys=[];pCnt=0;pend=[];dragId=null;hovId=null;
+  funcs=[];fCnt=0;
+  const list=document.getElementById('dgraph-list');if(list)list.innerHTML='';
+  const add=document.getElementById('dgraph-add');if(add)add.disabled=false;
+  redraw();DST.innerHTML='Canvas cleared.';
+}
 function resetV(){pX=0;pY=0;Z=55;redraw();}
 function adjZ(f){Z=Math.max(10,Math.min(600,Z*f));redraw();}
 
@@ -469,12 +480,21 @@ function adjZ(f){Z=Math.max(10,Math.min(600,Z*f));redraw();}
    CUSTOMIZE: thay loadEx() bằng starter state phù hợp
    ════════════════════════════════════════════════════ */
 function loadEx(){
+  if(mode==='graphing'){loadExGraphing();return;}
   clearAll();
   const A=addPt(-3,0),B=addPt(3,0),Cp=addPt(0,3);
   segs.push({a:A.id,b:B.id},{a:B.id,b:Cp.id},{a:Cp.id,b:A.id});
   polys.push([A.id,B.id,Cp.id]);
   DST.innerHTML='<strong>Drag any point</strong> to reshape the triangle.';
   redraw();
+}
+function loadExGraphing(){
+  funcs=[];fCnt=0;
+  const list=document.getElementById('dgraph-list');if(list)list.innerHTML='';
+  const add=document.getElementById('dgraph-add');if(add)add.disabled=false;
+  addFunc('x^2');
+  addFunc('sin(x)');
+  DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';
 }
 /* ════════════════════════════════════════════════════ */
 
