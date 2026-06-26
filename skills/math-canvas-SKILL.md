@@ -26,9 +26,9 @@ và màu Desmos chính xác.
 
 - **Geometry mode** — đầy đủ: Point/Segment/Circle/Polygon, drag-to-reshape, live
   measurements.
-- **Graphing, Vector, Statistics mode** — toolbar/mode switcher đã có, nhưng canvas
-  hiện chỉ hiện placeholder "sắp có". Sẽ được triển khai ở các bản sau (xem
-  `docs/superpowers/specs/2026-06-25-math-canvas-design.md`).
+- **Graphing mode** — đầy đủ: function plotter, implicit multiplication, tối đa 8 hàm đồng thời.
+- **Statistics mode** — đầy đủ: frequency histogram từ comma/space-separated numbers, tự chọn số bins.
+- **Vector mode** — placeholder, sẽ triển khai ở bản sau.
 
 ---
 
@@ -811,3 +811,18 @@ và kiểm tra tay:
 - [x] Clear → xóa hết funcs và DOM rows (0 rows, Add button re-enabled)
 - [x] DevTools console: không có lỗi JS
 - [x] Max cap: 8 funcs → Add button tự disable, không thể thêm thêm
+
+## Manual Verification Checklist (Statistics Mode)
+
+- [ ] Switch to Statistics: panel 180px xuất hiện, canvas hiện placeholder, Example/Clear enabled
+- [ ] Click Example: 25 điểm thi load, histogram vẽ với n/mean/min/max đúng
+- [ ] Nhập `5, 10, 5, 15, 10, 5, 20`: histogram 7 số đúng hình dạng
+- [ ] Nhập `42` (một giá trị): một cột giữa, không crash
+- [x] Nhập `a, b, c`: dataset rỗng, canvas hiện placeholder
+- [x] Nhập `1, 2, abc, 3, 4`: bỏ qua ký tự không hợp lệ, histogram 4 số
+- [x] Thay Bins → 3: histogram redraw ngay với 3 bins
+- [x] Click Clear: textarea cleared, dataset rỗng, canvas hiện placeholder
+- [x] Switch Geometry → vẽ điểm → switch Statistics: dataset còn nguyên trong textarea
+- [x] Switch Graphing → switch Statistics: funcs và dataset cả hai còn nguyên
+- [x] Zoom/pan buttons: không crash, không ảnh hưởng chart
+- [ ] DevTools console: không có lỗi JS
