@@ -235,6 +235,16 @@ function compileExpr(raw){
   return new Function('x',`'use strict';return(${s});`);
 }
 
+function parseDataset(raw){
+  return raw.split(/[\s,;\n]+/).filter(s=>s.trim()).map(Number).filter(n=>isFinite(n));
+}
+function onStatsInput(val){
+  dataset=parseDataset(val);
+  const n=dataset.length;
+  DST.innerHTML=n>0?`Statistics mode — ${n} số.`:'Statistics mode — nhập số liệu vào panel trái.';
+  redraw();
+}
+
 function byId(id){return pts.find(p=>p.id===id);}
 function near(cx,cy,r=16){let b=null,bd=r*r;for(const p of pts){const dx=gsx(p.x)-cx,dy=gsy(p.y)-cy,d=dx*dx+dy*dy;if(d<bd){b=p;bd=d;}}return b;}
 function dist(a,b){return Math.sqrt((b.x-a.x)**2+(b.y-a.y)**2);}
@@ -397,11 +407,68 @@ function drawFuncs(){
   }
 }
 
+function drawChart(){
+  const pad={t:30,r:20,b:40,l:50};
+  const cw=C.width-pad.l-pad.r,ch=C.height-pad.t-pad.b;
+  if(!dataset.length){
+    X.save();X.fillStyle='#999';X.font=`13px ${HF}`;X.textAlign='center';
+    X.fillText('Nhập số liệu vào panel trái để vẽ biểu đồ.',C.width/2,C.height/2);
+    X.restore();return;
+  }
+  const dMin=Math.min(...dataset),dMax=Math.max(...dataset);
+  if(dMin===dMax){
+    X.save();
+    X.fillStyle=DCOLS[0];X.fillRect(pad.l+cw*0.3,pad.t,cw*0.4,ch);
+    X.strokeStyle='#222';X.lineWidth=1;
+    X.beginPath();X.moveTo(pad.l,pad.t);X.lineTo(pad.l,pad.t+ch);X.lineTo(pad.l+cw,pad.t+ch);X.stroke();
+    X.fillStyle='#555';X.font=`11px ${HF}`;X.textAlign='center';
+    X.fillText(dMin,pad.l+cw/2,pad.t+ch+14);
+    X.textAlign='left';X.fillStyle='#888';
+    X.fillText(`n=${dataset.length}  value=${dMin}`,pad.l,pad.t-8);
+    X.restore();return;
+  }
+  const binsEl=document.getElementById('dstats-bins');
+  const bins=Math.max(2,Math.min(50,parseInt(binsEl&&binsEl.value)||10));
+  const binW=(dMax-dMin)/bins;
+  const counts=new Array(bins).fill(0);
+  for(const v of dataset){const bi=Math.min(Math.floor((v-dMin)/binW),bins-1);counts[bi]++;}
+  const maxCount=Math.max(...counts);
+  const bw=cw/bins;
+  X.save();
+  X.fillStyle='#fafafa';X.fillRect(pad.l,pad.t,cw,ch);
+  X.strokeStyle='#e8e8e8';X.lineWidth=0.5;
+  for(let i=0;i<=4;i++){const y=pad.t+ch-(i/4)*ch;X.beginPath();X.moveTo(pad.l,y);X.lineTo(pad.l+cw,y);X.stroke();}
+  for(let i=0;i<bins;i++){
+    const bh=maxCount>0?(counts[i]/maxCount)*ch:0;
+    const bx=pad.l+i*bw,by=pad.t+ch-bh;
+    X.fillStyle=DCOLS[0];X.fillRect(bx+1,by,bw-2,bh);
+  }
+  X.strokeStyle='#222';X.lineWidth=1;
+  X.beginPath();X.moveTo(pad.l,pad.t);X.lineTo(pad.l,pad.t+ch);X.lineTo(pad.l+cw,pad.t+ch);X.stroke();
+  X.fillStyle='#555';X.font=`11px ${HF}`;
+  const xStep=Math.ceil(bins/6);
+  for(let i=0;i<=bins;i+=xStep){
+    const xv=dMin+i*binW;
+    X.textAlign='center';
+    X.fillText(xv%1===0?xv:xv.toFixed(1),pad.l+i*bw,pad.t+ch+14);
+  }
+  X.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const y=pad.t+ch-(i/4)*ch;
+    X.fillText(Math.round((i/4)*maxCount),pad.l-5,y+4);
+  }
+  const mean=(dataset.reduce((a,b)=>a+b,0)/dataset.length).toFixed(2);
+  X.textAlign='left';X.fillStyle='#888';
+  X.fillText(`n=${dataset.length}  mean=${mean}  min=${dMin}  max=${dMax}`,pad.l,pad.t-8);
+  X.restore();
+}
+
 function redraw(){
-  drawBg();drawGrid();
-  if(mode==='geometry'){drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
-  else if(mode==='graphing'){drawFuncs();}
-  else{drawModePlaceholder();}
+  drawBg();
+  if(mode==='geometry'){drawGrid();drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
+  else if(mode==='graphing'){drawGrid();drawFuncs();}
+  else if(mode==='statistics'){drawChart();}
+  else{drawGrid();drawModePlaceholder();}
 }
 
 const TMSG={
