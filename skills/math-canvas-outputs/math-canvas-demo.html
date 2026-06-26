@@ -121,6 +121,7 @@ const gmy=cy=>-(cy-C.height/2)/Z-pY;
 
 function compileExpr(raw){
   let s=raw.trim();if(!s)return null;
+  s=s.replace(/^[yY]\s*=\s*/,'');
   s=s.replace(/\^/g,'**');
   s=s.replace(/(?<![a-zA-Z])(\d)(x|pi|\()/g,'$1*$2');
   s=s.replace(/(x|\))(\d|\(|x)/g,'$1*$2');
