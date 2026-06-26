@@ -121,7 +121,7 @@ tùy context.
 ```html
 <h2 class="sr-only">[MÔ TẢ MỤC ĐÍCH CANVAS NÀY]</h2>
 <style>
-#dw{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#dw{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
 #dtb{display:flex;gap:5px;padding:8px 10px;background:var(--color-background-primary);border-bottom:.5px solid var(--color-border-tertiary);align-items:center;flex-wrap:wrap}
 .dbt{padding:5px 10px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.4}
 .dbt:hover{background:var(--color-background-secondary)}
@@ -131,7 +131,8 @@ tùy context.
 .dbm{padding:5px 12px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
 .dbm:hover{background:var(--color-background-secondary)}
 .dbm.on{border-color:#fa7e19;background:#fff4ea;color:#fa7e19}
-#ggc{display:block;touch-action:none}
+#dw-body{display:flex;flex:1}
+#ggc{display:block;touch-action:none;flex:1;min-width:0}
 #dst{padding:6px 13px;font-size:11.5px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary);min-height:26px;font-family:inherit;line-height:1.5}
 </style>
 
@@ -158,7 +159,9 @@ tùy context.
     <button class="dbt dbt-geoaction" onclick="loadEx()"  style="color:#388c46;border-color:#388c46"><i class="ti ti-refresh" aria-hidden="true"></i> Example</button>
     <button class="dbt dbt-geoaction" onclick="clearAll()" style="color:#c74440;border-color:#c74440" aria-label="Clear"><i class="ti ti-x" aria-hidden="true"></i></button>
   </div>
-  <canvas id="ggc"></canvas>
+  <div id="dw-body">
+    <canvas id="ggc"></canvas>
+  </div>
   <div id="dst">Select a tool and click on the canvas to start building.</div>
 </div>
 
@@ -439,7 +442,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&tool==='poly'&&pend.length>=3){polys.push([...pend]);pend=[];redraw();DST.innerHTML='Polygon closed.';}
 });
 
-function resize(){const w=C.parentElement.clientWidth||660;C.width=w;C.height=Math.round(w*.54);redraw();}
+function resize(){const panel=document.getElementById('dgraph-panel');const panelW=(panel&&panel.style.display!=='none')?panel.offsetWidth:0;const w=(C.parentElement.clientWidth-panelW)||660;C.width=w;C.height=Math.round(w*.54);redraw();}
 window.addEventListener('resize',resize);
 resize();loadEx();setT('drag');setMode('geometry');
 </script>
