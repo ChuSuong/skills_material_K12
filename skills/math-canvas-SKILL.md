@@ -133,6 +133,19 @@ tùy context.
 .dbm.on{border-color:#fa7e19;background:#fff4ea;color:#fa7e19}
 #dw-body{display:flex;flex:1}
 #ggc{display:block;touch-action:none;flex:1;min-width:0}
+#dgraph-panel{width:160px;flex-shrink:0;border-right:.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;background:var(--color-background-primary);overflow-y:auto}
+#dgraph-list{flex:1;padding:6px;display:flex;flex-direction:column;gap:4px}
+#dgraph-add{margin:0 6px 6px;padding:5px 8px;border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-secondary);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}
+#dgraph-add:hover{background:var(--color-background-secondary)}
+#dgraph-add:disabled{opacity:.4;cursor:not-allowed}
+.frow{display:flex;align-items:flex-start;gap:4px}
+.fcolor{width:10px;height:10px;border-radius:2px;flex-shrink:0;margin-top:6px}
+.finput-wrap{flex:1;min-width:0}
+.finput-wrap input{width:100%;box-sizing:border-box;font-size:12px;padding:3px 5px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-family:inherit;background:var(--color-background-primary);color:var(--color-text-secondary)}
+.finput-wrap input.err{border-color:#c74440}
+.ferr{font-size:10px;color:#c74440;margin-top:2px;line-height:1.3;display:none}
+.fdel{padding:2px 5px;border:none;background:none;color:var(--color-text-secondary);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;margin-top:2px}
+.fdel:hover{color:#c74440}
 #dst{padding:6px 13px;font-size:11.5px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary);min-height:26px;font-family:inherit;line-height:1.5}
 </style>
 
@@ -160,6 +173,10 @@ tùy context.
     <button class="dbt dbt-geoaction" onclick="clearAll()" style="color:#c74440;border-color:#c74440" aria-label="Clear"><i class="ti ti-x" aria-hidden="true"></i></button>
   </div>
   <div id="dw-body">
+    <div id="dgraph-panel" style="display:none">
+      <div id="dgraph-list"></div>
+      <button id="dgraph-add" onclick="addFunc()">+ Thêm hàm</button>
+    </div>
     <canvas id="ggc"></canvas>
   </div>
   <div id="dst">Select a tool and click on the canvas to start building.</div>
