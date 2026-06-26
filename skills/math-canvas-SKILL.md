@@ -197,7 +197,6 @@ let pts=[],segs=[],circs=[],polys=[],pCnt=0;
 let funcs=[],fCnt=0,_fTimers={};
 
 const PLACEHOLDER_MSG={
-  graphing:'Graphing mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
   vector:'Vector mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
   statistics:'Statistics mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
 };
