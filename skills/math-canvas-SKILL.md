@@ -702,3 +702,20 @@ và kiểm tra tay:
 - [x] Click lại "Geometry" — tam giác đã kéo ở bước 2 vẫn còn nguyên đúng vị trí đã kéo
       (không bị reset về Example ban đầu), Example/Clear hoạt động lại.
 - [x] Mở DevTools console — không có lỗi JS nào xuất hiện trong toàn bộ quá trình trên.
+
+---
+
+## Manual Verification Checklist (Graphing Mode)
+
+- [x] Switch to Graphing: left panel appears, 2 hàm mẫu (`x^2`, `sin(x)`) plotted
+- [x] Gõ `2x+1` → đường thẳng xuất hiện ngay (implicit multiplication: `compileExpr` trả về f(0)=1, f(1)=3)
+- [x] Gõ `x^3-2x` → cubic curve đúng hình dạng (f(2)=4 ✓)
+- [x] Gõ `x^^2` → border đỏ, error message "Unexpected token '**'", canvas không crash
+- [x] `log(x)` → log(-1)=NaN (gap ở x ≤ 0), log(1)=0, log(10)≈2.303 ✓
+- [x] Xóa hàm bằng × → đường biến mất, hàm còn lại giữ nguyên
+- [x] Switch Geometry → vẽ điểm → switch Graphing lại: funcs còn nguyên (5 funcs preserved)
+- [x] Zoom/pan → đồ thị redraw đúng, không có JS errors
+- [x] Example trong Graphing → reset về 2 hàm mẫu (`x^2`, `sin(x)`)
+- [x] Clear → xóa hết funcs và DOM rows (0 rows, Add button re-enabled)
+- [x] DevTools console: không có lỗi JS
+- [x] Max cap: 8 funcs → Add button tự disable, không thể thêm thêm
