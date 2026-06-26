@@ -210,13 +210,14 @@ const gmy=cy=>-(cy-C.height/2)/Z-pY;
 function compileExpr(raw){
   let s=raw.trim();if(!s)return null;
   s=s.replace(/\^/g,'**');
-  s=s.replace(/(\d)(x|pi|\()/g,'$1*$2');
-  s=s.replace(/(x|\))(\d|\()/g,'$1*$2');
+  s=s.replace(/(?<![a-zA-Z])(\d)(x|pi|\()/g,'$1*$2');
+  s=s.replace(/(x|\))(\d|\(|x)/g,'$1*$2');
   s=s.replace(/(x)\s*(x)/g,'$1*$2');
   s=s.replace(/\bpi\b/g,'Math.PI');
   s=s.replace(/\be\b/g,'Math.E');
-  const fns=['asin','acos','atan','sin','cos','tan','sqrt','abs','log2','log10','log','floor','ceil','round'];
+  const fns=['exp','asin','acos','atan','sin','cos','tan','sqrt','abs','log2','log10','log','floor','ceil','round'];
   for(const f of fns)s=s.replace(new RegExp(`\\b${f}\\b`,'g'),`Math.${f}`);
+  s=s.replace(/(\d)(Math\.)/g,'$1*$2');
   return new Function('x',`'use strict';return(${s});`);
 }
 
