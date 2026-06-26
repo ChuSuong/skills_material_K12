@@ -31,9 +31,9 @@
 </head>
 <body>
 <div class="wrap">
-<h2 class="sr-only">Math Canvas — interactive workspace để vẽ hình học, đồ thị hàm số, vector, thống kê</h2>
+<h2 class="sr-only">[MÔ TẢ MỤC ĐÍCH CANVAS NÀY]</h2>
 <style>
-#dw{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif}
+#dw{border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;display:flex;flex-direction:column}
 #dtb{display:flex;gap:5px;padding:8px 10px;background:var(--color-background-primary);border-bottom:.5px solid var(--color-border-tertiary);align-items:center;flex-wrap:wrap}
 .dbt{padding:5px 10px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;line-height:1.4}
 .dbt:hover{background:var(--color-background-secondary)}
@@ -43,7 +43,21 @@
 .dbm{padding:5px 12px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer}
 .dbm:hover{background:var(--color-background-secondary)}
 .dbm.on{border-color:#fa7e19;background:#fff4ea;color:#fa7e19}
-#ggc{display:block;touch-action:none}
+#dw-body{display:flex;flex:1}
+#ggc{display:block;touch-action:none;flex:1;min-width:0}
+#dgraph-panel{width:160px;flex-shrink:0;border-right:.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;background:var(--color-background-primary);overflow-y:auto}
+#dgraph-list{flex:1;padding:6px;display:flex;flex-direction:column;gap:4px}
+#dgraph-add{margin:0 6px 6px;padding:5px 8px;border:1px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);background:none;color:var(--color-text-secondary);font-size:12px;cursor:pointer;font-family:inherit;text-align:left}
+#dgraph-add:hover{background:var(--color-background-secondary)}
+#dgraph-add:disabled{opacity:.4;cursor:not-allowed}
+.frow{display:flex;align-items:flex-start;gap:4px}
+.fcolor{width:10px;height:10px;border-radius:2px;flex-shrink:0;margin-top:6px}
+.finput-wrap{flex:1;min-width:0}
+.finput-wrap input{width:100%;box-sizing:border-box;font-size:12px;padding:3px 5px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-family:inherit;background:var(--color-background-primary);color:var(--color-text-secondary)}
+.finput-wrap input.err{border-color:#c74440}
+.ferr{font-size:10px;color:#c74440;margin-top:2px;line-height:1.3;display:none}
+.fdel{padding:2px 5px;border:none;background:none;color:var(--color-text-secondary);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;margin-top:2px}
+.fdel:hover{color:#c74440}
 #dst{padding:6px 13px;font-size:11.5px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary);min-height:26px;font-family:inherit;line-height:1.5}
 </style>
 
@@ -70,7 +84,13 @@
     <button class="dbt dbt-geoaction" onclick="loadEx()"  style="color:#388c46;border-color:#388c46"><i class="ti ti-refresh" aria-hidden="true"></i> Example</button>
     <button class="dbt dbt-geoaction" onclick="clearAll()" style="color:#c74440;border-color:#c74440" aria-label="Clear"><i class="ti ti-x" aria-hidden="true"></i></button>
   </div>
-  <canvas id="ggc"></canvas>
+  <div id="dw-body">
+    <div id="dgraph-panel" style="display:none">
+      <div id="dgraph-list"></div>
+      <button id="dgraph-add" onclick="addFunc()">+ Thêm hàm</button>
+    </div>
+    <canvas id="ggc"></canvas>
+  </div>
   <div id="dst">Select a tool and click on the canvas to start building.</div>
 </div>
 
@@ -86,6 +106,7 @@ let mode='geometry';
 let tool='drag',pend=[],dragId=null,hovId=null,panOn=false,panL={};
 let mCX=0,mCY=0;
 let pts=[],segs=[],circs=[],polys=[],pCnt=0;
+let funcs=[],fCnt=0,_fTimers={};
 
 const PLACEHOLDER_MSG={
   graphing:'Graphing mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
@@ -97,6 +118,20 @@ const gsx=x=>C.width/2+(x+pX)*Z;
 const gsy=y=>C.height/2-(y+pY)*Z;
 const gmx=cx=>(cx-C.width/2)/Z-pX;
 const gmy=cy=>-(cy-C.height/2)/Z-pY;
+
+function compileExpr(raw){
+  let s=raw.trim();if(!s)return null;
+  s=s.replace(/\^/g,'**');
+  s=s.replace(/(?<![a-zA-Z])(\d)(x|pi|\()/g,'$1*$2');
+  s=s.replace(/(x|\))(\d|\(|x)/g,'$1*$2');
+  s=s.replace(/(x)\s*(x)/g,'$1*$2');
+  s=s.replace(/\bpi\b/g,'Math.PI');
+  s=s.replace(/\be\b/g,'Math.E');
+  const fns=['exp','asin','acos','atan','sin','cos','tan','sqrt','abs','log2','log10','log','floor','ceil','round'];
+  for(const f of fns)s=s.replace(new RegExp(`\\b${f}\\b`,'g'),`Math.${f}`);
+  s=s.replace(/(\d)(Math\.)/g,'$1*$2');
+  return new Function('x',`'use strict';return(${s});`);
+}
 
 function byId(id){return pts.find(p=>p.id===id);}
 function near(cx,cy,r=16){let b=null,bd=r*r;for(const p of pts){const dx=gsx(p.x)-cx,dy=gsy(p.y)-cy,d=dx*dx+dy*dy;if(d<bd){b=p;bd=d;}}return b;}
@@ -242,9 +277,28 @@ function drawModePlaceholder(){
   X.restore();
 }
 
+function drawFuncs(){
+  for(const fn of funcs){
+    if(!fn.compiled)continue;
+    X.save();
+    X.strokeStyle=fn.color;X.lineWidth=2;X.lineJoin='round';
+    X.beginPath();let penDown=false;
+    const steps=400;
+    for(let i=0;i<=steps;i++){
+      const sx=i/steps*C.width,mx=gmx(sx);
+      let my;try{my=fn.compiled(mx);}catch{penDown=false;continue;}
+      if(!isFinite(my)){penDown=false;continue;}
+      const sy=gsy(my);
+      if(!penDown){X.moveTo(sx,sy);penDown=true;}else X.lineTo(sx,sy);
+    }
+    X.stroke();X.restore();
+  }
+}
+
 function redraw(){
   drawBg();drawGrid();
   if(mode==='geometry'){drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
+  else if(mode==='graphing'){drawFuncs();}
   else{drawModePlaceholder();}
 }
 
@@ -262,13 +316,58 @@ function setMode(m){
   document.getElementById('m-'+m).classList.add('on');
   const isGeo=m==='geometry';
   document.getElementById('dtb-geo').style.display=isGeo?'flex':'none';
+  const isActive=m==='geometry'||m==='graphing';
+  document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isActive);
   const ph=document.getElementById('dtb-placeholder');
-  ph.style.display=isGeo?'none':'block';
+  ph.style.display=(isGeo||m==='graphing')?'none':'block';
   ph.textContent=PLACEHOLDER_MSG[m]||'';
-  document.querySelectorAll('.dbt-geoaction').forEach(b=>b.disabled=!isGeo);
+  const panel=document.getElementById('dgraph-panel');
+  if(m==='graphing'){panel.style.display='flex';if(funcs.length===0)loadExGraphing();}
+  else{panel.style.display='none';}
   if(isGeo){DST.innerHTML=TMSG[tool]||'';}
+  else if(m==='graphing'){DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';}
   else{DST.innerHTML=PLACEHOLDER_MSG[m]||'';}
   redraw();
+}
+
+function addFunc(expr=''){
+  if(funcs.length>=8)return;
+  const id='f'+fCnt;
+  const color=DCOLS[fCnt%DCOLS.length];
+  fCnt++;
+  const fn={id,expr,color,compiled:null,error:null};
+  if(expr.trim()){try{fn.compiled=compileExpr(expr);}catch(e){fn.error=e.message;}}
+  funcs.push(fn);
+  const list=document.getElementById('dgraph-list');
+  const row=document.createElement('div');
+  row.id='frow-'+id;row.className='frow';
+  row.innerHTML=`<div class="fcolor" style="background:${color}"></div><div class="finput-wrap"><input id="finput-${id}" value="${expr.replace(/"/g,'&quot;')}" oninput="onFuncInput('${id}',this.value)"/><div id="ferr-${id}" class="ferr"></div></div><button class="fdel" onclick="removeFunc('${id}')">×</button>`;
+  list.appendChild(row);
+  document.getElementById('dgraph-add').disabled=funcs.length>=8;
+  document.getElementById('finput-'+id).focus();
+  redraw();
+}
+function removeFunc(id){
+  funcs=funcs.filter(f=>f.id!==id);
+  const row=document.getElementById('frow-'+id);if(row)row.remove();
+  document.getElementById('dgraph-add').disabled=funcs.length>=8;
+  clearTimeout(_fTimers[id]);delete _fTimers[id];
+  redraw();
+}
+function onFuncInput(id,val){
+  clearTimeout(_fTimers[id]);
+  _fTimers[id]=setTimeout(()=>{
+    const fn=funcs.find(f=>f.id===id);if(!fn)return;
+    fn.expr=val;
+    const inp=document.getElementById('finput-'+id);
+    const errEl=document.getElementById('ferr-'+id);
+    fn.error=null;fn.compiled=null;
+    if(val.trim()){
+      try{fn.compiled=compileExpr(val);inp.classList.remove('err');errEl.style.display='none';}
+      catch(e){fn.error=e.message;inp.classList.add('err');errEl.textContent=e.message;errEl.style.display='block';}
+    }else{inp.classList.remove('err');errEl.style.display='none';}
+    redraw();
+  },150);
 }
 
 function setT(t){
@@ -279,7 +378,13 @@ function setT(t){
   C.style.cursor=t==='drag'?'grab':'crosshair';
   redraw();
 }
-function clearAll(){pts=[];segs=[];circs=[];polys=[];pCnt=0;pend=[];dragId=null;hovId=null;redraw();DST.innerHTML='Canvas cleared.';}
+function clearAll(){
+  pts=[];segs=[];circs=[];polys=[];pCnt=0;pend=[];dragId=null;hovId=null;
+  funcs=[];fCnt=0;
+  const list=document.getElementById('dgraph-list');if(list)list.innerHTML='';
+  const add=document.getElementById('dgraph-add');if(add)add.disabled=false;
+  redraw();DST.innerHTML='Canvas cleared.';
+}
 function resetV(){pX=0;pY=0;Z=55;redraw();}
 function adjZ(f){Z=Math.max(10,Math.min(600,Z*f));redraw();}
 
@@ -287,12 +392,21 @@ function adjZ(f){Z=Math.max(10,Math.min(600,Z*f));redraw();}
    CUSTOMIZE: thay loadEx() bằng starter state phù hợp
    ════════════════════════════════════════════════════ */
 function loadEx(){
+  if(mode==='graphing'){loadExGraphing();return;}
   clearAll();
   const A=addPt(-3,0),B=addPt(3,0),Cp=addPt(0,3);
   segs.push({a:A.id,b:B.id},{a:B.id,b:Cp.id},{a:Cp.id,b:A.id});
   polys.push([A.id,B.id,Cp.id]);
   DST.innerHTML='<strong>Drag any point</strong> to reshape the triangle.';
   redraw();
+}
+function loadExGraphing(){
+  funcs=[];fCnt=0;
+  const list=document.getElementById('dgraph-list');if(list)list.innerHTML='';
+  const add=document.getElementById('dgraph-add');if(add)add.disabled=false;
+  addFunc('x^2');
+  addFunc('sin(x)');
+  DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';
 }
 /* ════════════════════════════════════════════════════ */
 
@@ -351,7 +465,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&tool==='poly'&&pend.length>=3){polys.push([...pend]);pend=[];redraw();DST.innerHTML='Polygon closed.';}
 });
 
-function resize(){const w=C.parentElement.clientWidth||660;C.width=w;C.height=Math.round(w*.54);redraw();}
+function resize(){const panel=document.getElementById('dgraph-panel');const panelW=(panel&&getComputedStyle(panel).display!=='none')?panel.offsetWidth:0;const w=(C.parentElement.clientWidth-panelW)||660;C.width=w;C.height=Math.round(w*.54);redraw();}
 window.addEventListener('resize',resize);
 resize();loadEx();setT('drag');setMode('geometry');
 </script>
