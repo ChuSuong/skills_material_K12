@@ -147,6 +147,12 @@ tùy context.
 .fdel{padding:2px 5px;border:none;background:none;color:var(--color-text-secondary);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;margin-top:2px}
 .fdel:hover{color:#c74440}
 #dst{padding:6px 13px;font-size:11.5px;color:var(--color-text-secondary);background:var(--color-background-secondary);border-top:.5px solid var(--color-border-tertiary);min-height:26px;font-family:inherit;line-height:1.5}
+#dstats-panel{width:180px;flex-shrink:0;border-right:.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;background:var(--color-background-primary)}
+#dstats-inner{flex:1;display:flex;flex-direction:column;padding:8px;gap:6px;overflow-y:auto}
+#dstats-label{font-size:11.5px;font-weight:600;color:var(--color-text-secondary)}
+#dstats-input{flex:1;resize:none;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:5px;font-size:12px;font-family:inherit;background:var(--color-background-primary);color:var(--color-text-primary);min-height:80px}
+#dstats-binrow{display:flex;align-items:center;font-size:12px;color:var(--color-text-secondary)}
+#dstats-binrow input[type=number]{width:44px;margin-left:6px;padding:2px 4px;border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-family:inherit;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)}
 </style>
 
 <div id="dw">
@@ -195,6 +201,7 @@ let tool='drag',pend=[],dragId=null,hovId=null,panOn=false,panL={};
 let mCX=0,mCY=0;
 let pts=[],segs=[],circs=[],polys=[],pCnt=0;
 let funcs=[],fCnt=0,_fTimers={};
+let dataset=[];
 
 const PLACEHOLDER_MSG={
   vector:'Vector mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
