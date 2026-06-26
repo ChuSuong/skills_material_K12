@@ -496,7 +496,7 @@ function setMode(m){
   else{gPanel.style.display='none';sPanel.style.display='none';}
   if(isGeo){DST.innerHTML=TMSG[tool]||'';}
   else if(m==='graphing'){DST.innerHTML='Graphing mode — gõ biểu thức vào panel trái để vẽ đồ thị.';}
-  else if(m==='statistics'){DST.innerHTML='Statistics mode — nhập số liệu vào panel trái.';}
+  else if(m==='statistics'){DST.innerHTML=dataset.length>0?`Statistics mode — ${dataset.length} số.`:'Statistics mode — nhập số liệu vào panel trái.';}
   else{DST.innerHTML=PLACEHOLDER_MSG[m]||'';}
   redraw();
 }
