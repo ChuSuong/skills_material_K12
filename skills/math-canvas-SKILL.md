@@ -194,6 +194,7 @@ let mode='geometry';
 let tool='drag',pend=[],dragId=null,hovId=null,panOn=false,panL={};
 let mCX=0,mCY=0;
 let pts=[],segs=[],circs=[],polys=[],pCnt=0;
+let funcs=[],fCnt=0,_fTimers={};
 
 const PLACEHOLDER_MSG={
   graphing:'Graphing mode — sắp có. Chuyển sang Geometry để tiếp tục vẽ hình học.',
@@ -205,6 +206,19 @@ const gsx=x=>C.width/2+(x+pX)*Z;
 const gsy=y=>C.height/2-(y+pY)*Z;
 const gmx=cx=>(cx-C.width/2)/Z-pX;
 const gmy=cy=>-(cy-C.height/2)/Z-pY;
+
+function compileExpr(raw){
+  let s=raw.trim();if(!s)return null;
+  s=s.replace(/\^/g,'**');
+  s=s.replace(/(\d)(x|pi|\()/g,'$1*$2');
+  s=s.replace(/(x|\))(\d|\()/g,'$1*$2');
+  s=s.replace(/(x)\s*(x)/g,'$1*$2');
+  s=s.replace(/\bpi\b/g,'Math.PI');
+  s=s.replace(/\be\b/g,'Math.E');
+  const fns=['asin','acos','atan','sin','cos','tan','sqrt','abs','log2','log10','log','floor','ceil','round'];
+  for(const f of fns)s=s.replace(new RegExp(`\\b${f}\\b`,'g'),`Math.${f}`);
+  return new Function('x',`'use strict';return(${s});`);
+}
 
 function byId(id){return pts.find(p=>p.id===id);}
 function near(cx,cy,r=16){let b=null,bd=r*r;for(const p of pts){const dx=gsx(p.x)-cx,dy=gsy(p.y)-cy,d=dx*dx+dy*dy;if(d<bd){b=p;bd=d;}}return b;}
