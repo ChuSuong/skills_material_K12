@@ -365,9 +365,28 @@ function drawModePlaceholder(){
   X.restore();
 }
 
+function drawFuncs(){
+  for(const fn of funcs){
+    if(!fn.compiled)continue;
+    X.save();
+    X.strokeStyle=fn.color;X.lineWidth=2;X.lineJoin='round';
+    X.beginPath();let penDown=false;
+    const steps=400;
+    for(let i=0;i<=steps;i++){
+      const sx=i/steps*C.width,mx=gmx(sx);
+      let my;try{my=fn.compiled(mx);}catch{penDown=false;continue;}
+      if(!isFinite(my)){penDown=false;continue;}
+      const sy=gsy(my);
+      if(!penDown){X.moveTo(sx,sy);penDown=true;}else X.lineTo(sx,sy);
+    }
+    X.stroke();X.restore();
+  }
+}
+
 function redraw(){
   drawBg();drawGrid();
   if(mode==='geometry'){drawPolys();drawCircs();drawSegs();drawPrev();drawPts();}
+  else if(mode==='graphing'){drawFuncs();}
   else{drawModePlaceholder();}
 }
 
@@ -415,6 +434,7 @@ function removeFunc(id){
   funcs=funcs.filter(f=>f.id!==id);
   const row=document.getElementById('frow-'+id);if(row)row.remove();
   document.getElementById('dgraph-add').disabled=funcs.length>=8;
+  clearTimeout(_fTimers[id]);delete _fTimers[id];
   redraw();
 }
 function onFuncInput(id,val){
