@@ -183,6 +183,13 @@ tùy context.
       <div id="dgraph-list"></div>
       <button id="dgraph-add" onclick="addFunc()">+ Thêm hàm</button>
     </div>
+    <div id="dstats-panel" style="display:none">
+      <div id="dstats-inner">
+        <div id="dstats-label">Nhập số liệu</div>
+        <textarea id="dstats-input" oninput="onStatsInput(this.value)" placeholder="VD: 3, 7, 2, 9, 4, 6, 1, 8, 5, 3..."></textarea>
+        <div id="dstats-binrow">Bins <input type="number" id="dstats-bins" value="10" min="2" max="50" oninput="redraw()"></div>
+      </div>
+    </div>
     <canvas id="ggc"></canvas>
   </div>
   <div id="dst">Select a tool and click on the canvas to start building.</div>
