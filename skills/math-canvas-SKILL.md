@@ -393,6 +393,45 @@ function setMode(m){
   redraw();
 }
 
+function addFunc(expr=''){
+  if(funcs.length>=8)return;
+  const id='f'+fCnt;
+  const color=DCOLS[fCnt%DCOLS.length];
+  fCnt++;
+  const fn={id,expr,color,compiled:null,error:null};
+  if(expr.trim()){try{fn.compiled=compileExpr(expr);}catch(e){fn.error=e.message;}}
+  funcs.push(fn);
+  const list=document.getElementById('dgraph-list');
+  const row=document.createElement('div');
+  row.id='frow-'+id;row.className='frow';
+  row.innerHTML=`<div class="fcolor" style="background:${color}"></div><div class="finput-wrap"><input id="finput-${id}" value="${expr.replace(/"/g,'&quot;')}" oninput="onFuncInput('${id}',this.value)"/><div id="ferr-${id}" class="ferr"></div></div><button class="fdel" onclick="removeFunc('${id}')">×</button>`;
+  list.appendChild(row);
+  document.getElementById('dgraph-add').disabled=funcs.length>=8;
+  document.getElementById('finput-'+id).focus();
+  redraw();
+}
+function removeFunc(id){
+  funcs=funcs.filter(f=>f.id!==id);
+  const row=document.getElementById('frow-'+id);if(row)row.remove();
+  document.getElementById('dgraph-add').disabled=funcs.length>=8;
+  redraw();
+}
+function onFuncInput(id,val){
+  clearTimeout(_fTimers[id]);
+  _fTimers[id]=setTimeout(()=>{
+    const fn=funcs.find(f=>f.id===id);if(!fn)return;
+    fn.expr=val;
+    const inp=document.getElementById('finput-'+id);
+    const errEl=document.getElementById('ferr-'+id);
+    fn.error=null;fn.compiled=null;
+    if(val.trim()){
+      try{fn.compiled=compileExpr(val);inp.classList.remove('err');errEl.style.display='none';}
+      catch(e){fn.error=e.message;inp.classList.add('err');errEl.textContent=e.message;errEl.style.display='block';}
+    }else{inp.classList.remove('err');errEl.style.display='none';}
+    redraw();
+  },150);
+}
+
 function setT(t){
   tool=t;pend=[];
   document.querySelectorAll('.dbt[id^="t-"]').forEach(b=>b.classList.remove('on'));
