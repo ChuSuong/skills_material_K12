@@ -10,7 +10,7 @@ if (!htmlPath) {
 const result = await runPlaywrightPage({ htmlPath: path.resolve(htmlPath) });
 const visible = result.canvasFound && result.canvasRect && result.canvasRect.width > 100 && result.canvasRect.height > 100;
 
-if (!visible && !result.webglCreationFailed) {
+if (!visible || result.webglCreationFailed) {
   console.error(JSON.stringify({ ...result, visible }, null, 2));
   process.exit(1);
 }

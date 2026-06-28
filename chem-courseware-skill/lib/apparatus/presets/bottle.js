@@ -5,6 +5,8 @@ import {
   addToParent,
   applyTransform,
   attachCommonLiquidControllers,
+  attachFixedPlaneLabel,
+  attachLabelController,
   buildLiquidMaterials,
   clamp,
   cloneMaterial,
@@ -65,10 +67,14 @@ export function createBottleApparatus({
   liquidSurface.rotation.x = -Math.PI / 2;
   group.add(liquidSurface);
 
+  const mouthY = bodyHeight * 0.5 + neckHeight;
   const anchors = {
     labelAnchor: makeAnchor(group, 0, 0.1, bodyRadiusBottom + 0.18, `${name}:labelAnchor`),
-    mouth: makeAnchor(group, 0, bodyHeight * 0.5 + neckHeight, 0, `${name}:mouth`),
-    nozzle: makeAnchor(group, 0, bodyHeight * 0.5 + neckHeight + 0.04, 0, `${name}:nozzle`),
+    gripAnchor: makeAnchor(group, 0, bodyHeight * 0.08, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, bodyHeight * 0.12, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, mouthY, 0, `${name}:mouth`),
+    pourAlign: makeAnchor(group, 0, mouthY - 0.06, 0, `${name}:pourAlign`),
+    nozzle: makeAnchor(group, 0, mouthY + 0.04, 0, `${name}:nozzle`),
   };
 
   const constraints = {
@@ -121,17 +127,28 @@ export function createBottleApparatus({
     meta: { liquidProfile, basePosition, baseRotation, travel, tilt, appearance: appearance.name },
   });
 
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(0.92, 0.5),
+    role: 'vessel-body-label',
+  });
+
   attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
-  apparatus.controllers.setPourPose = (progress) => {
-    const value = clamp(progress, 0, 1);
-    apparatus.state.pourProgress = value;
-    group.position.copy(basePosition).addScaledVector(travel, value);
-    group.rotation.set(
-      baseRotation.x + tilt[0] * value,
-      baseRotation.y + tilt[1] * value,
-      baseRotation.z + tilt[2] * value
-    );
+  apparatus.controllers = {
+    ...(apparatus.controllers || {}),
+    setPourPose(progress) {
+      const value = clamp(progress, 0, 1);
+      apparatus.state.pourProgress = value;
+      group.position.copy(basePosition).addScaledVector(travel, value);
+      group.rotation.set(
+        baseRotation.x + tilt[0] * value,
+        baseRotation.y + tilt[1] * value,
+        baseRotation.z + tilt[2] * value
+      );
+    },
   };
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   return apparatus;
 }
 

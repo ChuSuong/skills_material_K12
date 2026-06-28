@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Khái niệm tốc độ phản ứng hoá học</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(12, 18, 32, 0.74);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #67d8ff;
+      --warm: #ffce6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2a44 0%, #0b1220 48%, #05070d 100%);
+    }
+
+    canvas.stage {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 380px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .panel p {
+      margin: 0 0 8px;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    .panel .hint {
+      margin-top: 4px;
+      color: #ffd9a0;
+    }
+
+    .charts {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 310px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(10, 14, 26, 0.72);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(16px);
+    }
+
+    .charts h2 {
+      margin: 0 0 6px;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #c3d7ff;
+    }
+
+    .charts .sub {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 10px;
+    }
+
+    .chartRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .chartRow canvas {
+      width: 150px;
+      height: 70px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .chartRow .meta {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.4;
+    }
+
+    .chartRow .meta b { color: #fff; }
+
+    .legendDot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      min-width: 340px;
+      max-width: 460px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(7, 10, 18, 0.74);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .status .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #84d8ff;
+      margin-bottom: 8px;
+    }
+
+    .status .value {
+      font-size: 15.5px;
+      line-height: 1.45;
+      color: #fff;
+    }
+
+    .status .sub {
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    button {
+      border: 0;
+      min-width: 126px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13.5px;
+      color: #08111c;
+      background: linear-gradient(135deg, #8ce3ff, #58c3ff);
+      box-shadow: 0 12px 30px rgba(72, 175, 255, 0.3);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    button.secondary {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: none;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    @media (max-width: 1040px) {
+      .panel, .charts, .status {
+        max-width: calc(100vw - 28px);
+        left: 14px;
+        right: 14px;
+      }
+
+      .charts {
+        top: auto;
+        bottom: 210px;
+        width: auto;
+      }
+
+      .controls {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        justify-content: space-between;
+      }
+
+      button { flex: 1; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <canvas class="stage" id="stageCanvas"></canvas>
+  <div class="hud">
+    <div class="panel">
+      <h1>Khái niệm tốc độ phản ứng hoá học</h1>
+      <p>Khi phản ứng xảy ra, lượng chất đầu giảm dần, lượng chất sản phẩm tăng dần theo thời gian. Tốc độ phản ứng được xác định bằng sự thay đổi lượng chất đầu hoặc sản phẩm trong một đơn vị thời gian.</p>
+      <p class="hint">Bấm vào từng vật mẫu hoặc nhấn nút để bắt đầu, rồi so sánh độ dốc của 3 đồ thị bên phải.</p>
+    </div>
+
+    <div class="charts">
+      <h2>Hình 19.1 — Lượng chất theo thời gian</h2>
+      <div class="sub"><span class="legendDot" style="background:#ff6b5e"></span>Chất đầu &nbsp; <span class="legendDot" style="background:#67d8ff"></span>Chất sản phẩm</div>
+      <div class="chartRow">
+        <canvas id="chartA" width="150" height="70"></canvas>
+        <div class="meta">a) Than cháy<br/><b>Nhanh</b></div>
+      </div>
+      <div class="chartRow">
+        <canvas id="chartB" width="150" height="70"></canvas>
+        <div class="meta">b) Sắt bị gỉ<br/><b>Chậm</b></div>
+      </div>
+      <div class="chartRow">
+        <canvas id="chartC" width="150" height="70"></canvas>
+        <div class="meta">c) Tinh bột lên men rượu<br/><b>Chậm</b></div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="label">Trạng thái</div>
+      <div class="value" id="statusText">Sẵn sàng. Hãy bấm vào một vật mẫu để bắt đầu phản ứng.</div>
+      <div class="sub" id="statusSub">Orbit: kéo nền để xoay góc nhìn. Bấm trực tiếp vào than, sắt hoặc bát cơm rượu.</div>
+    </div>
+
+    <div class="controls">
+      <button class="secondary" id="resetBtn" data-action="reset">Đặt lại</button>
+      <button id="pourBtn" data-action="autoplay">Bắt đầu cả 3 phản ứng</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const stageCanvas = document.getElementById('stageCanvas');
+    const chartCanvases = [document.getElementById('chartA'), document.getElementById('chartB'), document.getElementById('chartC')];
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a111c);
+    scene.fog = new THREE.Fog(0x0a111c, 16, 38);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 6.4, 9.6);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.6, 0);
+    controls.minDistance = 7;
+    controls.maxDistance = 17;
+    controls.maxPolarAngle = 1.3;
+    controls.minPolarAngle = 0.35;
+
+    const ambient = new THREE.HemisphereLight(0xc7defc, 0x1a1208, 1.4);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.4);
+    keyLight.position.set(6, 11, 6);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -10;
+    keyLight.shadow.camera.right = 10;
+    keyLight.shadow.camera.top = 10;
+    keyLight.shadow.camera.bottom = -10;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.PointLight(0x6cb8ff, 12, 24, 2);
+    fillLight.position.set(-6, 5, 4);
+    scene.add(fillLight);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(28, 48, 32),
+      new THREE.MeshBasicMaterial({ color: 0x0d1727, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(16, 64),
+      new THREE.MeshStandardMaterial({ color: 0x16202f, roughness: 0.92, metalness: 0.05 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(11.5, 0.4, 5),
+      new THREE.MeshStandardMaterial({ color: 0x5d4634, roughness: 0.82, metalness: 0.08 })
+    );
+    benchTop.position.y = 1.2;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.4, 2.4, 0.4);
+    for (const [x, z] of [[-5, -2], [5, -2], [-5, 2], [5, 2]]) {
+      const leg = new THREE.Mesh(legGeometry, new THREE.MeshStandardMaterial({ color: 0x2d3647, roughness: 0.75, metalness: 0.35 }));
+      leg.position.set(x, 0.2, z);
+      leg.castShadow = true;
+      leg.receiveShadow = true;
+      bench.add(leg);
+    }
+
+    function makeLabelTexture(lines, width = 320, height = 130) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fffdf8';
+      ctx.fillRect(0, 0, width, height);
+      ctx.strokeStyle = '#154a68';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(6, 6, width - 12, height - 12);
+      ctx.fillStyle = '#123a52';
+      ctx.textAlign = 'center';
+      lines.forEach((line, i) => {
+        ctx.font = i === 0 ? '700 24px sans-serif' : '500 17px sans-serif';
+        ctx.fillText(line, width / 2, 40 + i * 26);
+      });
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // ---------- a) than cháy (charcoal) ----------
+    const charGroup = new THREE.Group();
+    charGroup.position.set(-3.3, 1.4, 0.3);
+    bench.add(charGroup);
+
+    const charPlate = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.95, 1.0, 0.12, 32),
+      new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.6, metalness: 0.3 })
+    );
+    charPlate.position.y = 0.06;
+    charPlate.receiveShadow = true;
+    charGroup.add(charPlate);
+
+    const charLumpMaterials = [];
+    const charLumps = [];
+    for (let i = 0; i < 9; i++) {
+      const material = new THREE.MeshStandardMaterial({ color: 0x262422, roughness: 0.95, emissive: 0x000000, emissiveIntensity: 0 });
+      const lump = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22 + Math.random() * 0.1, 0), material);
+      const angle = (i / 9) * Math.PI * 2;
+      const r = 0.18 + Math.random() * 0.45;
+      lump.position.set(Math.cos(angle) * r, 0.22 + Math.random() * 0.12, Math.sin(angle) * r);
+      lump.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      lump.castShadow = true;
+      lump.receiveShadow = true;
+      charGroup.add(lump);
+      charLumpMaterials.push(material);
+      charLumps.push(lump);
+    }
+
+    const charGlowLight = new THREE.PointLight(0xff6a2e, 0, 4, 2);
+    charGlowLight.position.set(0, 0.6, 0);
+    charGroup.add(charGlowLight);
+
+    const sparkGeometry = new THREE.SphereGeometry(0.035, 8, 8);
+    const charSparks = [];
+    for (let i = 0; i < 14; i++) {
+      const spark = new THREE.Mesh(sparkGeometry, new THREE.MeshBasicMaterial({ color: 0xffb347, transparent: true, opacity: 0 }));
+      charGroup.add(spark);
+      charSparks.push({ mesh: spark, life: 0, phase: Math.random() * Math.PI * 2 });
+    }
+
+    const charLabel = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.62), new THREE.MeshStandardMaterial({ map: makeLabelTexture(['a) Than cháy', 'Phản ứng nhanh']), roughness: 0.8 }));
+    charLabel.position.set(0, 2.0, 0);
+    charGroup.add(charLabel);
+
+    // ---------- b) sắt bị gỉ (rusting iron) ----------
+    const ironGroup = new THREE.Group();
+    ironGroup.position.set(0, 1.4, 0.3);
+    bench.add(ironGroup);
+
+    const ironStandBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.5, 0.55, 0.12, 32),
+      new THREE.MeshStandardMaterial({ color: 0x3d4756, roughness: 0.6, metalness: 0.4 })
+    );
+    ironStandBase.position.y = 0.06;
+    ironStandBase.receiveShadow = true;
+    ironGroup.add(ironStandBase);
+
+    const ironMaterial = new THREE.MeshStandardMaterial({ color: 0x9aa3ad, roughness: 0.4, metalness: 0.75 });
+    const ironBar = new THREE.Mesh(new THREE.BoxGeometry(0.22, 1.5, 0.22), ironMaterial);
+    ironBar.position.y = 0.85;
+    ironBar.castShadow = true;
+    ironBar.receiveShadow = true;
+    ironGroup.add(ironBar);
+
+    const rustCanvas = document.createElement('canvas');
+    rustCanvas.width = 128;
+    rustCanvas.height = 256;
+    const rustCtx = rustCanvas.getContext('2d');
+    const rustTexture = new THREE.CanvasTexture(rustCanvas);
+    ironMaterial.map = rustTexture;
+    rustCtx.fillStyle = '#9aa3ad';
+    rustCtx.fillRect(0, 0, 128, 256);
+    rustTexture.needsUpdate = true;
+    let rustSpotsDrawn = 0;
+
+    const ironLabel = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 0.62), new THREE.MeshStandardMaterial({ map: makeLabelTexture(['b) Sắt bị gỉ', 'Phản ứng chậm']), roughness: 0.8 }));
+    ironLabel.position.set(0, 2.0, 0);
+    ironGroup.add(ironLabel);
+
+    // ---------- c) tinh bột lên men rượu ----------
+    const bowlGroup = new THREE.Group();
+    bowlGroup.position.set(3.3, 1.4, 0.3);
+    bench.add(bowlGroup);
+
+    const bowlOuter = new THREE.Mesh(
+      new THREE.SphereGeometry(0.85, 32, 20, 0, Math.PI * 2, 0, Math.PI / 2.1),
+      new THREE.MeshPhysicalMaterial({ color: 0xeaf4ff, transparent: true, opacity: 0.4, roughness: 0.1, transmission: 0.7, ior: 1.4, side: THREE.DoubleSide })
+    );
+    bowlOuter.rotation.x = Math.PI;
+    bowlOuter.position.y = 0.5;
+    bowlOuter.castShadow = true;
+    bowlGroup.add(bowlOuter);
+
+    const riceMaterialBase = new THREE.MeshStandardMaterial({ color: 0xf3ecd6, roughness: 0.85 });
+    const riceGrains = [];
+    for (let i = 0; i < 16; i++) {
+      const mat = riceMaterialBase.clone();
+      const grain = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), mat);
+      grain.scale.set(1, 0.7, 1);
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.random() * 0.55;
+      grain.position.set(Math.cos(angle) * r, 0.18 + Math.random() * 0.12, Math.sin(angle) * r);
+      grain.castShadow = true;
+      bowlGroup.add(grain);
+      riceGrains.push({ mesh: grain, material: mat });
+    }
+
+    const liquidMaterial = new THREE.MeshPhysicalMaterial({ color: 0xf3ecd6, transparent: true, opacity: 0, roughness: 0.15, transmission: 0.6, ior: 1.33 });
+    const liquid = new THREE.Mesh(new THREE.CylinderGeometry(0.78, 0.5, 0.3, 32), liquidMaterial);
+    liquid.position.y = 0.12;
+    bowlGroup.add(liquid);
+
+    const bowlBubbleGeometry = new THREE.SphereGeometry(0.03, 8, 8);
+    const bowlBubbles = [];
+    for (let i = 0; i < 14; i++) {
+      const bubble = new THREE.Mesh(bowlBubbleGeometry, new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, roughness: 0.1, transmission: 0.5 }));
+      bubble.visible = false;
+      bowlGroup.add(bubble);
+      bowlBubbles.push({ mesh: bubble, phase: Math.random() * Math.PI * 2, radius: 0.1 + Math.random() * 0.4 });
+    }
+
+    const bowlLabel = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.62), new THREE.MeshStandardMaterial({ map: makeLabelTexture(['c) Lên men rượu', 'Phản ứng chậm']), roughness: 0.8 }));
+    bowlLabel.position.set(0, 2.0, 0);
+    bowlGroup.add(bowlLabel);
+
+    // ---------- specimen config ----------
+    const FRESH_RICE = new THREE.Color(0xf3ecd6);
+    const FERMENTED_RICE = new THREE.Color(0xd9c98a);
+    const IRON_COLOR = new THREE.Color(0x9aa3ad);
+    const RUST_COLOR = new THREE.Color(0xb0552a);
+
+    const specimens = [
+      {
+        key: 'a',
+        rate: 1.0,
+        hitTargets: charLumps,
+        started: false,
+        progress: 0,
+        chart: chartCanvases[0],
+        color: '#ff6b5e',
+        nameStart: 'Đang đốt than — phản ứng cháy diễn ra rất nhanh.',
+        nameDone: 'Than đã cháy gần hết — phản ứng xảy ra nhanh, chỉ trong vài giây.'
+      },
+      {
+        key: 'b',
+        rate: 0.045,
+        hitTargets: [ironBar],
+        started: false,
+        progress: 0,
+        chart: chartCanvases[1],
+        color: '#9fd0ff',
+        nameStart: 'Sắt đang bị oxi hoá — phản ứng gỉ sắt diễn ra rất chậm.',
+        nameDone: 'Sắt đã gỉ rõ rệt — nhưng quá trình này diễn ra rất chậm so với than cháy.'
+      },
+      {
+        key: 'c',
+        rate: 0.085,
+        hitTargets: riceGrains.map((g) => g.mesh).concat([bowlOuter]),
+        started: false,
+        progress: 0,
+        chart: chartCanvases[2],
+        color: '#ffce6b',
+        nameStart: 'Tinh bột đang lên men rượu — sủi bọt nhẹ, diễn ra chậm.',
+        nameDone: 'Tinh bột đã lên men rõ — chậm hơn than cháy nhưng nhanh hơn gỉ sắt.'
+      }
+    ];
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function startSpecimen(spec) {
+      if (spec.started) return;
+      spec.started = true;
+      setStatus(spec.nameStart, 'Theo dõi đồ thị bên phải: đường đỏ (chất đầu) đi xuống, đường xanh (chất sản phẩm) đi lên. Đường nào dốc hơn thì phản ứng đó nhanh hơn.');
+    }
+
+    function resetAll() {
+      for (const spec of specimens) {
+        spec.started = false;
+        spec.progress = 0;
+      }
+      for (const mat of charLumpMaterials) {
+        mat.color.set(0x262422);
+        mat.emissive.set(0x000000);
+        mat.emissiveIntensity = 0;
+      }
+      charGlowLight.intensity = 0;
+      for (const spark of charSparks) { spark.life = 0; spark.mesh.material.opacity = 0; }
+
+      ironMaterial.color.set(0xffffff);
+      rustCtx.fillStyle = '#9aa3ad';
+      rustCtx.fillRect(0, 0, 128, 256);
+      rustTexture.needsUpdate = true;
+      rustSpotsDrawn = 0;
+
+      for (const grain of riceGrains) grain.material.color.copy(FRESH_RICE);
+      liquidMaterial.opacity = 0;
+      for (const bubble of bowlBubbles) bubble.mesh.visible = false;
+
+      setStatus('Sẵn sàng. Hãy bấm vào một vật mẫu để bắt đầu phản ứng.', 'Orbit: kéo nền để xoay góc nhìn. Bấm trực tiếp vào than, sắt hoặc bát cơm rượu.');
+      drawAllCharts();
+    }
+
+    function drawChart(canvas, history, color) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+
+      if (history.length < 2) return;
+
+      ctx.strokeStyle = '#ff6b5e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      history.forEach((p, i) => {
+        const x = (i / (history.length - 1)) * w;
+        const y = (1 - p.reactant) * (h - 6) + 3;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      ctx.strokeStyle = '#67d8ff';
+      ctx.beginPath();
+      history.forEach((p, i) => {
+        const x = (i / (history.length - 1)) * w;
+        const y = (1 - p.product) * (h - 6) + 3;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    function drawAllCharts() {
+      specimens.forEach((spec) => drawChart(spec.chart, spec.history || [], spec.color));
+    }
+
+    for (const spec of specimens) spec.history = [];
+
+    const clock = new THREE.Clock();
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    function pickSpecimen(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      for (const spec of specimens) {
+        if (raycaster.intersectObjects(spec.hitTargets, false).length > 0) return spec;
+      }
+      return null;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+      const spec = pickSpecimen(event);
+      if (spec) startSpecimen(spec);
+    });
+
+    pourBtn.addEventListener('click', () => {
+      for (const spec of specimens) startSpecimen(spec);
+      setStatus('Cả 3 phản ứng đang diễn ra cùng lúc.', 'So sánh độ dốc 3 đồ thị: than cháy dốc nhất (nhanh nhất), gỉ sắt gần như nằm ngang (chậm nhất).');
+    });
+
+    resetBtn.addEventListener('click', resetAll);
+
+    function updateCharcoal(dt) {
+      const spec = specimens[0];
+      if (!spec.started) return;
+      spec.progress = Math.min(1, spec.progress + dt * spec.rate * 0.5);
+      const p = spec.progress;
+      for (const mat of charLumpMaterials) {
+        mat.color.lerpColors(new THREE.Color(0x262422), new THREE.Color(0xff5a1f), p);
+        mat.emissive.setRGB(p * 1.0, p * 0.35, 0.02);
+        mat.emissiveIntensity = p * 1.4;
+      }
+      charGlowLight.intensity = p * 3.5;
+
+      for (const spark of charSparks) {
+        spark.life -= dt;
+        if (spark.life <= 0 && p > 0.15) {
+          spark.life = 0.3 + Math.random() * 0.4;
+          const angle = Math.random() * Math.PI * 2;
+          const r = Math.random() * 0.5;
+          spark.mesh.position.set(Math.cos(angle) * r, 0.3, Math.sin(angle) * r);
+        }
+        spark.mesh.position.y += dt * 0.6;
+        spark.mesh.material.opacity = Math.max(0, spark.life) * p;
+      }
+    }
+
+    function updateIron(dt) {
+      const spec = specimens[1];
+      if (!spec.started) return;
+      spec.progress = Math.min(1, spec.progress + dt * spec.rate * 0.5);
+      const p = spec.progress;
+      ironMaterial.color.copy(new THREE.Color(0xffffff));
+
+      const targetSpots = Math.floor(p * 60);
+      if (targetSpots > rustSpotsDrawn) {
+        rustCtx.fillStyle = 'rgba(150,75,30,0.85)';
+        for (let i = rustSpotsDrawn; i < targetSpots; i++) {
+          const x = Math.random() * 128;
+          const y = Math.random() * 256;
+          const r = 4 + Math.random() * 10;
+          rustCtx.beginPath();
+          rustCtx.arc(x, y, r, 0, Math.PI * 2);
+          rustCtx.fill();
+        }
+        rustSpotsDrawn = targetSpots;
+        rustTexture.needsUpdate = true;
+      }
+    }
+
+    function updateRice(dt, elapsed) {
+      const spec = specimens[2];
+      if (!spec.started) return;
+      spec.progress = Math.min(1, spec.progress + dt * spec.rate * 0.5);
+      const p = spec.progress;
+      for (const grain of riceGrains) {
+        grain.material.color.lerpColors(FRESH_RICE, FERMENTED_RICE, p);
+      }
+      liquidMaterial.opacity = p * 0.5;
+
+      const bubbleChance = p > 0.05 && p < 0.97 ? dt * (0.6 + p * 1.2) : 0;
+      for (const bubble of bowlBubbles) {
+        if (!bubble.mesh.visible && Math.random() < bubbleChance) {
+          bubble.mesh.visible = true;
+          bubble.mesh.position.set(Math.cos(bubble.phase) * bubble.radius * 0.4, 0.15, Math.sin(bubble.phase) * bubble.radius * 0.4);
+        }
+        if (bubble.mesh.visible) {
+          bubble.mesh.position.y += dt * 0.3;
+          if (bubble.mesh.position.y > 0.55) bubble.mesh.visible = false;
+        }
+      }
+    }
+
+    let chartTimer = 0;
+
+    function recordHistory() {
+      chartTimer += 1;
+      for (const spec of specimens) {
+        if (!spec.history) spec.history = [];
+        const reactant = spec.started ? 1 - spec.progress : 1;
+        const product = spec.started ? spec.progress : 0;
+        spec.history.push({ reactant, product });
+        if (spec.history.length > 90) spec.history.shift();
+      }
+      drawAllCharts();
+    }
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.033);
+      const elapsed = clock.getElapsedTime();
+      controls.update();
+      updateCharcoal(dt);
+      updateIron(dt);
+      updateRice(dt, elapsed);
+      recordHistory();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    resetAll();
+    animate();
+  </script>
+</body>
+</html>

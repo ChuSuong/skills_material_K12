@@ -9,10 +9,41 @@ const files = [
   path.join(repoRoot, 'lib/apparatus/capabilities.js'),
   path.join(repoRoot, 'lib/apparatus/contract.js'),
   path.join(repoRoot, 'lib/apparatus/registry.js'),
-  path.join(repoRoot, 'lib/apparatus/core.js'),
+
+  // Core implementation files (avoid including lib/apparatus/core.js because it
+  // duplicates constants that are defined in the underlying modules).
+  path.join(repoRoot, 'lib/apparatus/core/anchors.js'),
+  path.join(repoRoot, 'lib/apparatus/core/liquids.js'),
+  path.join(repoRoot, 'lib/apparatus/core/validation.js'),
+
   path.join(repoRoot, 'lib/apparatus/chemicals.js'),
-  path.join(repoRoot, 'lib/apparatus/interactions.js'),
+
+  // Interaction implementations (do not rely on lib/apparatus/interactions.js re-exports
+  // because stripModuleSyntax removes them).
+  path.join(repoRoot, 'lib/apparatus/interactions/shared.js'),
+  path.join(repoRoot, 'lib/apparatus/interactions/pour.js'),
+  path.join(repoRoot, 'lib/apparatus/interactions/drip.js'),
+  path.join(repoRoot, 'lib/apparatus/interactions/heat.js'),
+  path.join(repoRoot, 'lib/apparatus/interactions/steam.js'),
+  path.join(repoRoot, 'lib/apparatus/interactions/overlap-completion.js'),
+
   path.join(repoRoot, 'lib/apparatus/presets.js'),
+
+  // Preset factory implementations imported by lib/apparatus/presets.js
+  path.join(repoRoot, 'lib/apparatus/presets/shared.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/beaker.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/bottle.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/erlenmeyer.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/test-tube.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/dropper.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/funnel.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/alcohol-burner.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/solid-reagent-jar.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/litmus-paper.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/iron-nail.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/copper-piece.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/gas-generator.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/gas-delivery-tube.js'),
 ];
 
 const outputPath = path.join(repoRoot, 'templates/apparatus-inline-snippet.js');
@@ -82,6 +113,10 @@ const ChemApparatusLib = {
   createSolidReagentJarApparatus,
   createLitmusPaperApparatus,
   createFunnelApparatus,
+  createIronNailApparatus,
+  createCopperPieceApparatus,
+  createGasGeneratorApparatus,
+  createGasDeliveryTubeApparatus,
   APPARATUS_PRESET_DEFINITIONS,
   listRegisteredApparatusPresets,
   getRegisteredApparatusPresetDefinition,

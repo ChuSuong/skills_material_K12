@@ -3,6 +3,8 @@ import {
   THREE,
   addToParent,
   applyTransform,
+  attachFixedPlaneLabel,
+  attachLabelController,
   clamp,
   cloneMaterial,
   makeAnchor,
@@ -93,6 +95,13 @@ export function createLitmusPaperApparatus({
     },
   });
 
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(0.92, 0.36),
+    role: 'floating-badge',
+  });
+
   apparatus.controllers = {
     setIndicatorColor(nextColor) {
       const value = new THREE.Color(nextColor);
@@ -118,6 +127,7 @@ export function createLitmusPaperApparatus({
       );
     },
   };
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#7d4fd3' });
   apparatus.validators = [];
   apparatus.controllers.setIndicatorColor(color);
   apparatus.controllers.setWetness(0);

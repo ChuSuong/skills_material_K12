@@ -34,3 +34,44 @@ export function installFlameTestHarness({ state, mapState, getPaths }) {
 
   return window.__flameTestApi;
 }
+
+export function installCoursewareTestHarness({
+  state,
+  mapState,
+  getVerifierMeta,
+  getCapabilities,
+  getStepContract,
+  getGoldenPath,
+  getDragPath,
+  dragFromPageApi,
+  runVerifierStep,
+}) {
+  window.__coursewareTestApi = {
+    getState() {
+      return mapState(state);
+    },
+    getVerifierMeta() {
+      return typeof getVerifierMeta === 'function' ? getVerifierMeta(state) : null;
+    },
+    getCapabilities() {
+      return typeof getCapabilities === 'function' ? getCapabilities(state) : null;
+    },
+    getStepContract() {
+      return typeof getStepContract === 'function' ? getStepContract(state) : null;
+    },
+    getGoldenPath() {
+      return typeof getGoldenPath === 'function' ? getGoldenPath(state) : null;
+    },
+    getDragPath(sampleId) {
+      return typeof getDragPath === 'function' ? getDragPath(sampleId, state) : null;
+    },
+    dragFromPageApi(args) {
+      return typeof dragFromPageApi === 'function' ? dragFromPageApi(args, state) : false;
+    },
+    runVerifierStep(step) {
+      return typeof runVerifierStep === 'function' ? runVerifierStep(step, state) : false;
+    },
+  };
+
+  return window.__coursewareTestApi;
+}

@@ -5,6 +5,8 @@ import {
   addToParent,
   applyTransform,
   attachCommonLiquidControllers,
+  attachFixedPlaneLabel,
+  attachLabelController,
   buildLiquidMaterials,
   cloneMaterial,
   createDefaultGlassMaterial,
@@ -76,7 +78,9 @@ export function createErlenmeyerApparatus({
 
   const mouthY = bodyHeight + neckHeight - 0.12;
   const anchors = {
-    labelAnchor: makeAnchor(group, 0, bodyHeight + neckHeight + 0.44, 0, `${name}:labelAnchor`),
+    labelAnchor: makeAnchor(group, 0, bodyHeight * 0.52, bodyRadiusBottom + 0.075, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, bodyHeight * 0.72, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, mouthY - 0.18, 0, `${name}:interactionZone`),
     mouth: makeAnchor(group, 0, mouthY, 0, `${name}:mouth`),
     pourTarget: makeAnchor(group, 0, mouthY - 0.18, 0, `${name}:pourTarget`),
     effectOrigin: makeAnchor(group, 0, bodyHeight * 0.52, 0, `${name}:effectOrigin`),
@@ -129,6 +133,14 @@ export function createErlenmeyerApparatus({
     meta: { liquidProfile, appearance: appearance.name },
   });
 
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(Math.max(bodyRadiusBottom * 1.28, 0.72), Math.max(bodyHeight * 0.27, 0.48)),
+    role: 'vessel-body-label',
+  });
+
   attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   return apparatus;
 }

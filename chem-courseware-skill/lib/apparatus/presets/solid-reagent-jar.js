@@ -5,6 +5,8 @@ import {
   addToParent,
   applyTransform,
   attachCommonContainerAnchors,
+  attachFixedPlaneLabel,
+  attachLabelController,
   clamp,
   cloneMaterial,
   createDefaultGlassMaterial,
@@ -129,11 +131,14 @@ export function createSolidReagentJarApparatus({
     group,
     name,
     labelY: mouthY + 0.32,
+    labelPosition: [0, bodyHeight * 0.54, radius + 0.055],
     mouthY,
     pourTargetY: bodyHeight + neckHeight * 0.38,
     effectY: baseY + safeFillHeight * 0.7,
     gripY: bodyHeight * 0.62,
     extra: {
+      interactionZone: makeAnchor(group, 0, bodyHeight + neckHeight * 0.38, 0, `${name}:interactionZone`),
+      dropAnchor: makeAnchor(group, 0, bodyHeight + neckHeight * 0.52, 0, `${name}:dropAnchor`),
       scoopTarget: makeAnchor(group, 0, baseY + safeFillHeight * 0.72, 0, `${name}:scoopTarget`),
     },
   });
@@ -201,6 +206,13 @@ export function createSolidReagentJarApparatus({
     },
   });
 
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(Math.max(radius * 2.55, 0.56), Math.max(bodyHeight * 0.34, 0.36)),
+    role: 'vessel-body-label',
+  });
+
   apparatus.controllers = {
     setFillLevel(nextFillRatio) {
       return setSolidLevel(nextFillRatio);
@@ -228,6 +240,7 @@ export function createSolidReagentJarApparatus({
     () => validateFillLevel(apparatus, apparatus.state.fillHeight),
   ];
 
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   setSolidLevel(fillRatio);
   return apparatus;
 }

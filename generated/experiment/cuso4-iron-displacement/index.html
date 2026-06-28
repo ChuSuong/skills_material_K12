@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sắt + đồng(II) sunfat</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(10, 19, 34, 0.78);
+      --panel-soft: rgba(10, 19, 34, 0.58);
+      --border: rgba(255,255,255,0.12);
+      --text: #eef7ff;
+      --muted: rgba(222, 235, 247, 0.76);
+      --accent: #76d4ff;
+      --copper: #d88958;
+      --solution: #4fb6ff;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #1a2948 0%, #0a1222 52%, #05070c 100%);
+      color: var(--text);
+    }
+    canvas#stage {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    .panel, .status, .controls, .prompt {
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 54px rgba(0, 0, 0, 0.26);
+    }
+    .panel {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: min(390px, calc(100vw - 40px));
+      padding: 15px 16px;
+      background: var(--panel);
+    }
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.12;
+    }
+    .panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+    }
+    .panel p + p { margin-top: 7px; }
+    .prompt {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      max-width: min(560px, calc(100vw - 180px));
+      padding: 10px 16px;
+      background: rgba(12, 23, 41, 0.74);
+      color: rgba(237, 246, 255, 0.96);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .status {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      width: min(450px, calc(100vw - 40px));
+      padding: 14px 16px;
+      background: rgba(12, 23, 41, 0.84);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #statusText {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    #statusSub {
+      margin-top: 7px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .controls {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: min(304px, calc(100vw - 40px));
+      padding: 14px;
+      background: var(--panel-soft);
+      pointer-events: auto;
+    }
+    .controls p {
+      margin: 0 0 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.82);
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      flex: 1;
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+    #pourBtn {
+      color: #fff;
+      background: linear-gradient(135deg, #5cc7ff, #2f82ff);
+      box-shadow: 0 12px 28px rgba(47, 130, 255, 0.24);
+    }
+    #resetBtn {
+      color: white;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    .label3d {
+      position: absolute;
+      transform: translate(-50%, 0);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(10, 17, 30, 0.76);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+      font-size: 11px;
+      font-weight: 700;
+      color: #8ee6ff;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #hint {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.56);
+      border: 1px solid rgba(22,48,67,0.08);
+      color: rgba(22,48,67,0.75);
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .panel, .status, .controls {
+        left: 12px;
+        right: 12px;
+        width: auto;
+      }
+      .panel { top: 12px; padding: 12px 14px; }
+      .panel h1 { font-size: 17px; margin-bottom: 6px; }
+      .panel p, .controls p, #statusSub, .prompt { font-size: 12px; }
+      .prompt {
+        left: auto;
+        right: 12px;
+        top: 12px;
+        transform: none;
+        max-width: calc(100vw - 140px);
+        text-align: left;
+        padding: 9px 12px;
+      }
+      .controls { bottom: 12px; padding: 12px; }
+      .status { bottom: 88px; padding: 12px 14px; }
+      #statusText { font-size: 15px; }
+      #hint { display: none; }
+    }
+    @media (max-width: 560px) {
+      .button-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Sắt + đồng(II) sunfat</h1>
+      <p>Mục tiêu học: quan sát phản ứng thế kim loại, khi sắt đẩy đồng ra khỏi dung dịch CuSO₄.</p>
+      <p>Hãy kéo đinh sắt vào cốc dung dịch CuSO₄. Sau đó theo dõi màu xanh của dung dịch nhạt dần và lớp đồng đỏ nâu bám lên bề mặt đinh.</p>
+    </div>
+
+    <div class="prompt">Câu hỏi quan sát: Dấu hiệu nào cho thấy sắt đã đẩy đồng ra khỏi dung dịch đồng(II) sunfat?</div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div id="statusText">Sẵn sàng. Hãy kéo đinh sắt vào cốc CuSO₄.</div>
+      <div id="statusSub">Golden path: đinh sắt → cốc CuSO₄ → chờ phản ứng → quan sát lớp đồng đỏ nâu và màu dung dịch đổi dần.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <p>Bạn có thể kéo trực tiếp vật thể trong không gian 3D. Nút “Chạy tự động” sẽ đặt đinh vào cốc theo đúng chuỗi kiểm tra.</p>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay" type="button">Chạy tự động</button>
+      </div>
+    </div>
+
+    <div id="hint">Kéo nền để xoay góc nhìn, cuộn để phóng to hoặc thu nhỏ.</div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    globalThis.THREE = THREE;
+
+    function updatePointerFromEvent(event, domElement, pointer) {
+      const rect = domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return pointer;
+    }
+
+    function setPointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.setPointerCapture !== 'function') return;
+      domElement.setPointerCapture(pointerId);
+    }
+
+    function releasePointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.releasePointerCapture !== 'function') return;
+      try { domElement.releasePointerCapture(pointerId); } catch {}
+    }
+
+    function setControlsDragging(controls, dragging) {
+      if (!controls) return;
+      controls.enabled = !dragging;
+    }
+
+    function intersectPointerPlane({ raycaster, pointer, camera, plane, out }) {
+      raycaster.setFromCamera(pointer, camera);
+      return raycaster.ray.intersectPlane(plane, out);
+    }
+
+    function getWorldBounds(group, padding = 0) {
+      group.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(group);
+      if (padding > 0) bounds.expandByScalar(padding);
+      return bounds;
+    }
+
+    function modelsOverlapOrNear(sourceGroup, targetGroup, padding = 0.12) {
+      const sourceBounds = getWorldBounds(sourceGroup, padding);
+      const targetBounds = getWorldBounds(targetGroup, padding);
+      return sourceBounds.intersectsBox(targetBounds)
+        || sourceBounds.distanceToPoint(targetGroup.position) <= padding
+        || targetBounds.distanceToPoint(sourceGroup.position) <= padding;
+    }
+
+    function canAttemptOrderedStep(key, order = [], completed = {}) {
+      if (!key) return false;
+      const stepIndex = order.indexOf(key);
+      if (stepIndex === -1) return false;
+      if (completed[key]) return false;
+      for (let index = 0; index < stepIndex; index += 1) {
+        if (!completed[order[index]]) return false;
+      }
+      return true;
+    }
+
+    function hasActiveCompletion(state, key) {
+      return Boolean(state && (state.pendingCompletedStep === key || state.completingStep === key));
+    }
+
+    function isStepBusy(state, key) {
+      return Boolean(state && (state.dragging === key || hasActiveCompletion(state, key)));
+    }
+
+    function lerpObjectPose(object, fromPosition, fromRotation, toPose, t) {
+      object.position.lerpVectors(fromPosition, toPose.position, t);
+      object.rotation.set(
+        fromRotation.x + (toPose.rotation.x - fromRotation.x) * t,
+        fromRotation.y + (toPose.rotation.y - fromRotation.y) * t,
+        fromRotation.z + (toPose.rotation.z - fromRotation.z) * t,
+      );
+    }
+
+    function beginStepCompletion(state, key, object, pose, duration = 0.25) {
+      if (!state || !object || !pose || hasActiveCompletion(state, key)) return false;
+      state.completingStep = key;
+      state.completionT = 0;
+      state.completionDuration = duration;
+      state.completionFromPosition = object.position.clone();
+      state.completionFromRotation = object.rotation.clone();
+      state.pendingCompletedStep = null;
+      state.dragging = null;
+      return true;
+    }
+
+    function clearStepCompletion(state) {
+      if (!state) return;
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+    }
+
+    function clamp01(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function smoothstep01(t) {
+      const value = clamp01(t);
+      return value * value * (3 - 2 * value);
+    }
+
+    function runStepCompletion(state, dt, getCurrent, onComplete) {
+      if (!state?.completingStep) return false;
+      const current = getCurrent?.(state.completingStep);
+      if (!current?.object || !current?.pose || !state.completionFromPosition || !state.completionFromRotation) {
+        clearStepCompletion(state);
+        return false;
+      }
+      state.completionT += dt;
+      const duration = Math.max(0.001, state.completionDuration || current.duration || 0.25);
+      const t = smoothstep01(clamp01(state.completionT / duration));
+      lerpObjectPose(current.object, state.completionFromPosition, state.completionFromRotation, current.pose, t);
+      if (state.completionT >= duration) {
+        const completedKey = state.completingStep;
+        clearStepCompletion(state);
+        onComplete?.(completedKey, current);
+      }
+      return true;
+    }
+
+    function completeOrderedOverlapStep({ key, state, order = [], completed = {}, isReady, getCompletion }) {
+      if (!canAttemptOrderedStep(key, order, completed)) return false;
+      if (typeof isReady === 'function' && !isReady(key)) return false;
+      const current = getCompletion?.(key);
+      if (!current?.object || !current?.pose) return false;
+      return beginStepCompletion(state, key, current.object, current.pose, current.duration);
+    }
+
+    function getCanvasBox(renderer) {
+      return renderer.domElement.getBoundingClientRect();
+    }
+
+    function projectWorldToCanvas(target, camera, renderer, offset = new THREE.Vector3()) {
+      const rect = getCanvasBox(renderer);
+      const anchor = typeof target.getWorldPosition === 'function'
+        ? target.getWorldPosition(new THREE.Vector3())
+        : target.clone();
+      const projected = anchor.add(offset).project(camera);
+      return {
+        x: rect.left + ((projected.x + 1) * 0.5) * rect.width,
+        y: rect.top + ((-projected.y + 1) * 0.5) * rect.height,
+      };
+    }
+
+    function installCoursewareTestHarness({ state, mapState, getVerifierMeta, getGoldenPath, getDragPath, runVerifierStep }) {
+      window.__coursewareTestApi = {
+        getState() {
+          return mapState(state);
+        },
+        getVerifierMeta() {
+          return typeof getVerifierMeta === 'function' ? getVerifierMeta(state) : null;
+        },
+        getGoldenPath() {
+          return typeof getGoldenPath === 'function' ? getGoldenPath(state) : null;
+        },
+        getDragPath(sampleId) {
+          return typeof getDragPath === 'function' ? getDragPath(sampleId, state) : null;
+        },
+        runVerifierStep(step) {
+          return typeof runVerifierStep === 'function' ? runVerifierStep(step, state) : false;
+        },
+      };
+      return window.__coursewareTestApi;
+    }
+
+    Object.assign(globalThis, {
+      updatePointerFromEvent,
+      setPointerCaptureSafe,
+      releasePointerCaptureSafe,
+      setControlsDragging,
+      intersectPointerPlane,
+      modelsOverlapOrNear,
+      canAttemptOrderedStep,
+      hasActiveCompletion,
+      isStepBusy,
+      clearStepCompletion,
+      runStepCompletion,
+      completeOrderedOverlapStep,
+      clamp01,
+      smoothstep01,
+      projectWorldToCanvas,
+      installCoursewareTestHarness,
+    });
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const {
+      updatePointerFromEvent,
+      setPointerCaptureSafe,
+      releasePointerCaptureSafe,
+      setControlsDragging,
+      intersectPointerPlane,
+      modelsOverlapOrNear,
+      canAttemptOrderedStep,
+      hasActiveCompletion,
+      isStepBusy,
+      clearStepCompletion,
+      runStepCompletion,
+      completeOrderedOverlapStep,
+      clamp01,
+      smoothstep01,
+      projectWorldToCanvas,
+      installCoursewareTestHarness,
+    } = globalThis;
+
+    const stageCanvas = document.getElementById('stage');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x0b1220, 18, 38);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0, 7.2, 13.8);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 2.0, 0.05);
+    controls.minDistance = 8;
+    controls.maxDistance = 18;
+    controls.minPolarAngle = 0.42;
+    controls.maxPolarAngle = Math.PI / 2.16;
+
+    scene.add(new THREE.HemisphereLight(0xd8e9ff, 0x071019, 1.18));
+    const keyLight = new THREE.DirectionalLight(0xe8f5ff, 1.95);
+    keyLight.position.set(8, 14, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -16;
+    keyLight.shadow.camera.right = 16;
+    keyLight.shadow.camera.top = 16;
+    keyLight.shadow.camera.bottom = -16;
+    scene.add(keyLight);
+
+    const coolLight = new THREE.PointLight(0x67d8ff, 4.6, 28, 2);
+    coolLight.position.set(-1, 8, -10);
+    scene.add(coolLight);
+
+    const warmLight = new THREE.PointLight(0xffae7c, 2.4, 20, 2);
+    warmLight.position.set(2.6, 5.6, 3.5);
+    scene.add(warmLight);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(40, 42, 28),
+      new THREE.MeshBasicMaterial({ color: 0x0b1220, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(24, 72),
+      new THREE.MeshStandardMaterial({ color: 0x132033, roughness: 0.96, metalness: 0.04 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(12.8, 0.34, 5.8),
+      new THREE.MeshStandardMaterial({ color: 0x2c3546, roughness: 0.86, metalness: 0.06 })
+    );
+    benchTop.position.y = 1.32;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.35, 2.6, 0.35);
+    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x59677a, roughness: 0.72, metalness: 0.24 });
+    for (const [x, z] of [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]]) {
+      const leg = new THREE.Mesh(legGeometry, legMaterial);
+      leg.position.set(x, 0.0, z);
+      leg.castShadow = true;
+      bench.add(leg);
+    }
+
+    const pointer = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -3.35);
+    const dragPoint = new THREE.Vector3();
+
+    const labelDivs = [];
+    function createTextLabel(text) {
+      const div = document.createElement('div');
+      div.className = 'label3d';
+      div.textContent = text;
+      document.body.appendChild(div);
+      labelDivs.push(div);
+      return div;
+    }
+
+    function makeAnchor(parent, x = 0, y = 0, z = 0) {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function screenPointForAnchor(anchor, offset = new THREE.Vector3()) {
+      return projectWorldToCanvas(anchor, camera, renderer, offset);
+    }
+
+    function setObjectPose(object, pose) {
+      if (pose.position) object.position.copy(pose.position);
+      if (pose.rotation) object.rotation.set(pose.rotation.x, pose.rotation.y, pose.rotation.z);
+    }
+
+    function alignAnchorToTarget({ object, sourceAnchor, targetAnchor, pose = null }) {
+      if (pose) setObjectPose(object, pose);
+      object.updateMatrixWorld(true);
+      const sourceWorld = getAnchorWorld(sourceAnchor);
+      const targetWorld = getAnchorWorld(targetAnchor);
+      object.position.add(targetWorld.sub(sourceWorld));
+      object.updateMatrixWorld(true);
+    }
+
+    function createBenchMarker(x, z, color = 0x9fb0c0) {
+      const mesh = new THREE.Mesh(
+        new THREE.CircleGeometry(0.55, 28),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12 })
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, 1.49, z);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function createBeaker() {
+      const group = new THREE.Group();
+      group.position.set(0.12, 1.49, 0.05);
+      scene.add(group);
+
+      const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xf1f9ff,
+        transparent: true,
+        opacity: 0.16,
+        transmission: 0.98,
+        roughness: 0.03,
+        thickness: 0.28,
+        ior: 1.42,
+        clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+
+      const outer = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.2, 1.34, 2.22, 40, 1, true),
+        glassMaterial
+      );
+      outer.position.y = 1.12;
+      outer.castShadow = true;
+      outer.receiveShadow = true;
+      group.add(outer);
+
+      const bottom = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.08, 1.18, 0.12, 36),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xf3f9ff,
+          transparent: true,
+          opacity: 0.18,
+          transmission: 0.96,
+          roughness: 0.04,
+          thickness: 0.22,
+          ior: 1.4,
+          clearcoat: 1,
+          clearcoatRoughness: 0.02,
+          depthWrite: false,
+        })
+      );
+      bottom.position.y = 0.03;
+      group.add(bottom);
+
+      const liquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.02, 1.08, 1.5, 36),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x4ebaff,
+          transparent: true,
+          opacity: 0.72,
+          transmission: 0.18,
+          roughness: 0.08,
+          thickness: 0.18,
+          emissive: 0x0d4a82,
+          emissiveIntensity: 0.16,
+          depthWrite: false,
+        })
+      );
+      liquid.position.y = 0.78;
+      group.add(liquid);
+
+      const liquidSurface = new THREE.Mesh(
+        new THREE.CircleGeometry(1.0, 32),
+        new THREE.MeshPhysicalMaterial({
+          color: 0x93dcff,
+          transparent: true,
+          opacity: 0.35,
+          transmission: 0.78,
+          roughness: 0.02,
+          thickness: 0.05,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      );
+      liquidSurface.rotation.x = -Math.PI / 2;
+      liquidSurface.position.y = 1.54;
+      group.add(liquidSurface);
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(1.38, 32),
+        new THREE.MeshBasicMaterial({ color: 0x97a8b9, transparent: true, opacity: 0.14 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(group.position.x, 1.35, group.position.z);
+      scene.add(shadow);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 2.95, 0),
+        mouth: makeAnchor(group, 0, 2.28, 0),
+        target: makeAnchor(group, 0, 1.7, 0),
+        effectOrigin: makeAnchor(group, 0, 1.2, 0),
+        rimFront: makeAnchor(group, 0.2, 2.04, 0.8),
+      };
+
+      return { group, liquid, liquidSurface, shadow, anchors };
+    }
+
+    function createIronNail() {
+      const group = new THREE.Group();
+      group.position.set(-3.95, 2.06, 0.55);
+      group.rotation.z = -0.28;
+      scene.add(group);
+
+      const shaft = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, 2.5, 18),
+        new THREE.MeshStandardMaterial({ color: 0xa6b2bf, roughness: 0.42, metalness: 0.84 })
+      );
+      shaft.rotation.z = Math.PI / 2;
+      shaft.castShadow = true;
+      shaft.receiveShadow = true;
+      group.add(shaft);
+
+      const head = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.15, 0.15, 0.14, 20),
+        new THREE.MeshStandardMaterial({ color: 0xb3beca, roughness: 0.38, metalness: 0.88 })
+      );
+      head.rotation.z = Math.PI / 2;
+      head.position.x = -1.18;
+      group.add(head);
+
+      const tip = new THREE.Mesh(
+        new THREE.ConeGeometry(0.08, 0.24, 18),
+        new THREE.MeshStandardMaterial({ color: 0x98a5b3, roughness: 0.42, metalness: 0.82 })
+      );
+      tip.rotation.z = -Math.PI / 2;
+      tip.position.x = 1.28;
+      group.add(tip);
+
+      const copperBody = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.084, 0.084, 2.28, 18),
+        new THREE.MeshStandardMaterial({ color: 0xd88958, roughness: 0.56, metalness: 0.44, transparent: true, opacity: 0.0, emissive: 0x4a1d08, emissiveIntensity: 0.12 })
+      );
+      copperBody.rotation.z = Math.PI / 2;
+      copperBody.position.x = 0.02;
+      group.add(copperBody);
+
+      const copperSpecks = [];
+      for (let index = 0; index < 18; index += 1) {
+        const speck = new THREE.Mesh(
+          new THREE.SphereGeometry(0.05 + (index % 3) * 0.015, 12, 12),
+          new THREE.MeshStandardMaterial({ color: 0xcf7b45, roughness: 0.74, metalness: 0.34, transparent: true, opacity: 0.0 })
+        );
+        const t = index / 17;
+        speck.position.set(-0.9 + t * 1.8, (index % 2 ? 0.07 : -0.06), ((index % 4) - 1.5) * 0.035);
+        speck.scale.setScalar(0.001);
+        speck.visible = false;
+        group.add(speck);
+        copperSpecks.push(speck);
+      }
+
+      const shadow = createBenchMarker(group.position.x, group.position.z, 0x99a9b8);
+      shadow.scale.set(0.9, 1, 0.48);
+
+      const anchors = {
+        gripAnchor: makeAnchor(group, -0.1, 0, 0),
+        bodyAnchor: makeAnchor(group, 0, 0, 0),
+        tipAnchor: makeAnchor(group, 1.24, 0, 0),
+        labelAnchor: makeAnchor(group, 0, 0.64, 0),
+      };
+
+      return {
+        group,
+        shaft,
+        copperBody,
+        copperSpecks,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function makeSpriteTexture(draw) {
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      draw(ctx, size);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function createPoints(count, texture, color, size, opacity) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const scales = new Float32Array(count);
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+      const material = new THREE.PointsMaterial({
+        map: texture,
+        color,
+        size,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true,
+      });
+      const points = new THREE.Points(geometry, material);
+      points.frustumCulled = false;
+      scene.add(points);
+      return { geometry, positions, scales, points };
+    }
+
+    const sparkleTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.45);
+      g.addColorStop(0, 'rgba(255,246,224,1)');
+      g.addColorStop(0.35, 'rgba(216,137,88,0.95)');
+      g.addColorStop(1, 'rgba(216,137,88,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    });
+
+    const bubbleTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size * 0.48, size * 0.42, size * 0.06, size * 0.5, size * 0.5, size * 0.48);
+      g.addColorStop(0, 'rgba(255,255,255,0.95)');
+      g.addColorStop(0.4, 'rgba(170,220,255,0.8)');
+      g.addColorStop(1, 'rgba(170,220,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    function createParticlePool(count) {
+      return Array.from({ length: count }, () => ({
+        active: false,
+        life: 0,
+        maxLife: 1,
+        velocity: new THREE.Vector3(),
+        origin: new THREE.Vector3(),
+      }));
+    }
+
+    function spawnParticle(pool, basePosition, spread, velocity, lifetimeRange) {
+      const particle = pool.find((item) => !item.active);
+      if (!particle) return;
+      particle.active = true;
+      particle.life = 0;
+      particle.maxLife = THREE.MathUtils.randFloat(lifetimeRange[0], lifetimeRange[1]);
+      particle.origin.copy(basePosition).add(new THREE.Vector3(
+        THREE.MathUtils.randFloatSpread(spread.x),
+        THREE.MathUtils.randFloatSpread(spread.y),
+        THREE.MathUtils.randFloatSpread(spread.z)
+      ));
+      particle.velocity.set(
+        THREE.MathUtils.randFloatSpread(velocity.x),
+        velocity.y + Math.random() * velocity.y,
+        THREE.MathUtils.randFloatSpread(velocity.z)
+      );
+    }
+
+    function updateParticleSystem(pool, field, dt, behavior) {
+      for (let i = 0; i < pool.length; i += 1) {
+        const particle = pool[i];
+        const index = i * 3;
+        if (!particle.active) {
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          field.scales[i] = 0;
+          continue;
+        }
+        particle.life += dt;
+        const t = particle.life / particle.maxLife;
+        if (t >= 1) {
+          particle.active = false;
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          field.scales[i] = 0;
+          continue;
+        }
+        behavior(particle, t, i);
+        field.positions[index] = particle.origin.x;
+        field.positions[index + 1] = particle.origin.y;
+        field.positions[index + 2] = particle.origin.z;
+      }
+      field.geometry.attributes.position.needsUpdate = true;
+      field.geometry.attributes.aScale.needsUpdate = true;
+    }
+
+    function resetParticleField(field) {
+      field.positions.fill(9999);
+      field.scales.fill(0);
+      field.points.visible = false;
+      field.points.material.opacity = 0;
+      field.geometry.attributes.position.needsUpdate = true;
+      field.geometry.attributes.aScale.needsUpdate = true;
+    }
+
+    function resetParticlePool(pool) {
+      for (const particle of pool) particle.active = false;
+    }
+
+    const beaker = createBeaker();
+    const nail = createIronNail();
+
+    const sparkleField = createPoints(56, sparkleTexture, 0xe49a69, 0.36, 0.66);
+    const bubbleField = createPoints(48, bubbleTexture, 0xd9f5ff, 0.22, 0.62);
+    const sparklePool = createParticlePool(56);
+    const bubblePool = createParticlePool(48);
+
+    const labels = {
+      beaker: createTextLabel('Cốc CuSO₄'),
+      nail: createTextLabel('Đinh sắt'),
+    };
+
+    const nailDropPose = {
+      position: nail.homePosition.clone(),
+      rotation: new THREE.Euler(0.22, 0.1, -0.98),
+    };
+    const nailLoadedPose = {
+      position: nail.homePosition.clone(),
+      rotation: new THREE.Euler(0.3, 0.16, -1.12),
+    };
+    const nailHomePose = {
+      position: nail.homePosition.clone(),
+      rotation: nail.homeRotation.clone(),
+    };
+
+    function snapNailToDropPose() {
+      alignAnchorToTarget({
+        object: nail.group,
+        sourceAnchor: nail.anchors.bodyAnchor,
+        targetAnchor: beaker.anchors.target,
+        pose: nailDropPose,
+      });
+      nail.group.position.y += 0.3;
+      nail.group.updateMatrixWorld(true);
+    }
+
+    function snapNailToLoadedPose() {
+      alignAnchorToTarget({
+        object: nail.group,
+        sourceAnchor: nail.anchors.bodyAnchor,
+        targetAnchor: beaker.anchors.target,
+        pose: nailLoadedPose,
+      });
+      nail.group.position.y += 0.02;
+      nail.group.updateMatrixWorld(true);
+    }
+
+    function getLoadedNailPosition() {
+      snapNailToLoadedPose();
+      return nail.group.position.clone();
+    }
+
+    resetTemporary();
+    function resetTemporary() {
+      nail.group.position.copy(nail.homePosition);
+      nail.group.rotation.copy(nail.homeRotation);
+      nail.group.updateMatrixWorld(true);
+    }
+    snapNailToDropPose();
+    const nailDropPosition = nail.group.position.clone();
+    resetTemporary();
+    const nailLoadedPosition = getLoadedNailPosition();
+    resetTemporary();
+    nailDropPose.position.copy(nailDropPosition);
+    nailLoadedPose.position.copy(nailLoadedPosition);
+
+    const state = {
+      phase: 'ready',
+      dragging: null,
+      hovered: null,
+      autoplay: false,
+      autoplayStep: 0,
+      autoplayT: 0,
+      reactionT: 0,
+      nailAdded: false,
+      reactionDone: false,
+      pointerHeld: false,
+      pointerId: null,
+      pendingCompletedStep: null,
+      completingStep: null,
+      completionT: 0,
+      completionDuration: 0,
+      completionFromPosition: null,
+      completionFromRotation: null,
+      nailDragTarget: nail.homePosition.clone(),
+      nailRotationZ: nail.homeRotation.z,
+      nailAutoReturning: false,
+    };
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function setSolutionState(t) {
+      const clamped = clamp01(t);
+      beaker.liquid.material.color.lerpColors(new THREE.Color(0x4ebaff), new THREE.Color(0xccecff), clamped);
+      beaker.liquid.material.opacity = 0.72 - clamped * 0.1;
+      beaker.liquid.material.emissiveIntensity = 0.16 - clamped * 0.08;
+      beaker.liquid.scale.y = 1 - clamped * 0.03;
+      beaker.liquid.position.y = 0.78 - clamped * 0.02;
+      beaker.liquidSurface.material.color.lerpColors(new THREE.Color(0x93dcff), new THREE.Color(0xe8f9ff), clamped);
+      beaker.liquidSurface.material.opacity = 0.35 - clamped * 0.04;
+    }
+
+    function setCopperDepositState(t) {
+      const clamped = clamp01(t);
+      nail.copperBody.material.opacity = clamped * 0.94;
+      for (let index = 0; index < nail.copperSpecks.length; index += 1) {
+        const speck = nail.copperSpecks[index];
+        const appear = clamp01((clamped - index * 0.03) / 0.25);
+        speck.visible = appear > 0.01;
+        speck.material.opacity = appear * 0.96;
+        speck.scale.setScalar(0.15 + appear * 1.1);
+      }
+    }
+
+    function resetScene() {
+      state.phase = 'ready';
+      state.dragging = null;
+      state.hovered = null;
+      state.autoplay = false;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      state.reactionT = 0;
+      state.nailAdded = false;
+      state.reactionDone = false;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+      state.nailDragTarget.copy(nail.homePosition);
+      state.nailRotationZ = nail.homeRotation.z;
+      state.nailAutoReturning = false;
+      setControlsDragging(controls, false);
+      renderer.domElement.style.cursor = 'default';
+
+      nail.group.position.copy(nail.homePosition);
+      nail.group.rotation.copy(nail.homeRotation);
+      nail.group.updateMatrixWorld(true);
+      nail.shadow.position.set(nail.group.position.x, 1.38, nail.group.position.z);
+      beaker.shadow.position.set(beaker.group.position.x, 1.35, beaker.group.position.z);
+
+      setSolutionState(0);
+      setCopperDepositState(0);
+      resetParticleField(sparkleField);
+      resetParticleField(bubbleField);
+      resetParticlePool(sparklePool);
+      resetParticlePool(bubblePool);
+      warmLight.intensity = 2.4;
+
+      setStatus(
+        'Sẵn sàng. Hãy kéo đinh sắt vào cốc CuSO₄.',
+        'Golden path: đinh sắt → cốc CuSO₄ → chờ phản ứng → quan sát lớp đồng đỏ nâu và màu dung dịch đổi dần.'
+      );
+    }
+
+    resetScene();
+
+    const orderedSteps = ['nail'];
+
+    function getCompletedSteps() {
+      return { nail: state.nailAdded };
+    }
+
+    function canAttemptStep(key) {
+      return canAttemptOrderedStep(key, orderedSteps, getCompletedSteps());
+    }
+
+    function isNailOverlapReady() {
+      if (!canAttemptStep('nail')) return false;
+      return modelsOverlapOrNear(nail.group, beaker.group, 0.28);
+    }
+
+    function getCompletionEntry(key) {
+      if (key !== 'nail') return null;
+      return { object: nail.group, pose: nailLoadedPose, duration: 0.54 };
+    }
+
+    function completeNailStep() {
+      snapNailToLoadedPose();
+      state.nailAdded = true;
+      state.phase = 'reacting';
+      state.reactionT = 0;
+      setStatus('Đinh sắt đã được thả vào dung dịch CuSO₄.', 'Quan sát màu xanh của dung dịch nhạt dần và lớp đồng đỏ nâu bắt đầu bám lên đinh.');
+      return true;
+    }
+
+    function beginCompletionTween(key) {
+      const started = completeOrderedOverlapStep({
+        key,
+        state,
+        order: orderedSteps,
+        completed: getCompletedSteps(),
+        isReady(currentKey) { return currentKey === key; },
+        getCompletion: getCompletionEntry,
+      });
+      if (started) {
+        state.dragging = null;
+        renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      }
+      return started;
+    }
+
+    function completeStepByKey(key) {
+      if (hasActiveCompletion(state, key)) return true;
+      return beginCompletionTween(key);
+    }
+
+    function finalizeStepByKey(key) {
+      if (key === 'nail') return completeNailStep();
+      return false;
+    }
+
+    function runManualCompletion(dt) {
+      runStepCompletion(state, dt, getCompletionEntry, (key) => finalizeStepByKey(key));
+    }
+
+    function clearAllManualCompletionFlags() {
+      clearStepCompletion(state);
+      state.pendingCompletedStep = null;
+    }
+
+    function cancelManualDrag() {
+      state.dragging = null;
+      clearAllManualCompletionFlags();
+      setControlsDragging(controls, false);
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+    }
+
+    function tryAutoCompleteDraggedStep(key) {
+      if (!key || !state.dragging || state.dragging !== key) return false;
+      if (key === 'nail' && isNailOverlapReady()) {
+        state.dragging = null;
+        if (!state.pointerHeld) setControlsDragging(controls, false);
+        return completeStepByKey(key);
+      }
+      return false;
+    }
+
+    function updateShadow(shadow, object, lift = 1.42, scaleBase = 1.0) {
+      shadow.position.x += (object.position.x - shadow.position.x) * 0.2;
+      shadow.position.z += (object.position.z - shadow.position.z) * 0.2;
+      shadow.material.opacity = 0.13 - Math.min(0.06, Math.max(0, (object.position.y - lift) * 0.028));
+      const scale = scaleBase + Math.max(0, (object.position.y - lift) * 0.08);
+      shadow.scale.set(scale, 1, scale * 0.7);
+    }
+
+    function updateLabels() {
+      const beakerPoint = screenPointForAnchor(beaker.anchors.labelAnchor);
+      labels.beaker.style.left = `${beakerPoint.x}px`;
+      labels.beaker.style.top = `${beakerPoint.y}px`;
+      const nailPoint = screenPointForAnchor(nail.anchors.labelAnchor);
+      labels.nail.style.left = `${nailPoint.x}px`;
+      labels.nail.style.top = `${nailPoint.y}px`;
+    }
+
+    function updatePointer(event) {
+      updatePointerFromEvent(event, renderer.domElement, pointer);
+      raycaster.setFromCamera(pointer, camera);
+    }
+
+    function tryPickObject(event) {
+      updatePointer(event);
+      const hits = raycaster.intersectObjects([nail.group], true);
+      return hits.length ? 'nail' : null;
+    }
+
+    function clampDraggedObject() {
+      nail.group.position.clamp(new THREE.Vector3(-5.1, 1.8, -1.8), new THREE.Vector3(1.5, 4.2, 1.8));
+      nail.group.rotation.x += (0.16 - nail.group.rotation.x) * 0.18;
+    }
+
+    function updateDraggedTarget(point) {
+      nail.group.updateMatrixWorld(true);
+      const gripWorld = getAnchorWorld(nail.anchors.gripAnchor);
+      state.nailDragTarget.copy(nail.group.position).add(point.clone().sub(gripWorld));
+      state.nailDragTarget.clamp(new THREE.Vector3(-5.1, 1.8, -1.8), new THREE.Vector3(1.5, 4.2, 1.8));
+      const mouth = getAnchorWorld(beaker.anchors.target);
+      const dx = state.nailDragTarget.x - mouth.x;
+      const closeToBeaker = Math.max(0, 1 - Math.min(Math.abs(dx) / 2.5, 1));
+      state.nailRotationZ = THREE.MathUtils.lerp(nail.homeRotation.z, nailDropPose.rotation.z, closeToBeaker);
+    }
+
+    function syncDraggedObject(dt) {
+      nail.group.position.lerp(state.nailDragTarget, 1 - Math.exp(-dt * 15));
+      nail.group.rotation.x += (0.16 - nail.group.rotation.x) * (1 - Math.exp(-dt * 6));
+      nail.group.rotation.y += (0.06 - nail.group.rotation.y) * (1 - Math.exp(-dt * 6));
+      nail.group.rotation.z += (state.nailRotationZ - nail.group.rotation.z) * (1 - Math.exp(-dt * 8));
+    }
+
+    function relaxNail(dt) {
+      const targetPosition = state.nailAdded ? nailLoadedPose.position : nail.homePosition;
+      const targetRotation = state.nailAdded ? nailLoadedPose.rotation : nail.homeRotation;
+      nail.group.position.lerp(targetPosition, 1 - Math.exp(-dt * 4.2));
+      nail.group.rotation.x += (targetRotation.x - nail.group.rotation.x) * (1 - Math.exp(-dt * 4.2));
+      nail.group.rotation.y += (targetRotation.y - nail.group.rotation.y) * (1 - Math.exp(-dt * 4.2));
+      nail.group.rotation.z += (targetRotation.z - nail.group.rotation.z) * (1 - Math.exp(-dt * 4.2));
+    }
+
+    function onPointerDown(event) {
+      const key = tryPickObject(event);
+      if (!key) return;
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (!canAttemptStep(key)) return;
+      state.pointerHeld = true;
+      state.pointerId = event.pointerId ?? null;
+      state.pendingCompletedStep = null;
+      state.dragging = key;
+      state.autoplay = false;
+      state.nailDragTarget.copy(nail.group.position);
+      state.nailRotationZ = nail.group.rotation.z;
+      setControlsDragging(controls, true);
+      setPointerCaptureSafe(renderer.domElement, event.pointerId);
+      renderer.domElement.style.cursor = 'grabbing';
+      setStatus('Đang cầm đinh sắt.', 'Chỉ cần kéo đinh overlap với cốc dung dịch, scene sẽ tự hoàn tất bước thả đinh vào trong cốc.');
+    }
+
+    function onPointerMove(event) {
+      updatePointer(event);
+      if (!state.dragging) {
+        if (state.completingStep || state.pendingCompletedStep) return;
+        const key = tryPickObject(event);
+        state.hovered = key;
+        renderer.domElement.style.cursor = key ? 'grab' : 'default';
+        return;
+      }
+      if (intersectPointerPlane({ raycaster, pointer, camera, plane: dragPlane, out: dragPoint })) {
+        updateDraggedTarget(dragPoint);
+        tryAutoCompleteDraggedStep(state.dragging);
+      }
+    }
+
+    function onPointerUp(event) {
+      releasePointerCaptureSafe(renderer.domElement, event.pointerId);
+      if (state.pointerId != null && event.pointerId != null && state.pointerId !== event.pointerId) return;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      if (!state.dragging) {
+        setControlsDragging(controls, false);
+        return;
+      }
+      const completed = tryAutoCompleteDraggedStep(state.dragging);
+      if (completed) return;
+      cancelManualDrag();
+      setStatus('Đinh sắt chưa overlap với cốc CuSO₄.', 'Hãy kéo đinh chạm hoặc overlap với cốc để scene tự thả đinh vào trong dung dịch.');
+    }
+
+    function onPointerCancel(event) {
+      releasePointerCaptureSafe(renderer.domElement, event.pointerId);
+      if (state.pointerId != null && event.pointerId != null && state.pointerId !== event.pointerId) return;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      cancelManualDrag();
+    }
+
+    function onLostPointerCapture() {
+      state.pointerHeld = false;
+      state.pointerId = null;
+      cancelManualDrag();
+    }
+
+    function onPointerLeave() {
+      if (!state.pointerHeld) {
+        state.hovered = null;
+        renderer.domElement.style.cursor = 'default';
+      }
+    }
+
+    function onPointerMiss(event) {
+      if (!state.pointerHeld || state.dragging || !controls.enabled) return;
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('pointercancel', onPointerCancel);
+    renderer.domElement.addEventListener('lostpointercapture', onLostPointerCapture);
+    renderer.domElement.addEventListener('pointerleave', onPointerLeave);
+    renderer.domElement.addEventListener('pointerdown', onPointerMiss, { capture: true });
+    renderer.domElement.addEventListener('touchstart', onPointerMiss, { capture: true, passive: false });
+    renderer.domElement.addEventListener('mousedown', onPointerMiss, { capture: true });
+
+    controls.addEventListener('start', () => {
+      if (state.pointerHeld || state.dragging || state.pendingCompletedStep || state.completingStep) controls.enabled = false;
+    });
+    controls.addEventListener('end', () => {
+      if (!state.pointerHeld && !state.dragging && !state.pendingCompletedStep && !state.completingStep) controls.enabled = true;
+    });
+
+    function runAutoplay(dt) {
+      if (!state.autoplay) return;
+      state.autoplayT += dt;
+      if (state.autoplayStep === 0) {
+        state.nailDragTarget.lerp(nailDropPose.position, 1 - Math.exp(-dt * 1.8));
+        state.nailRotationZ = THREE.MathUtils.lerp(state.nailRotationZ, nailDropPose.rotation.z, 1 - Math.exp(-dt * 2.2));
+        if (nail.group.position.distanceTo(nailDropPose.position) < 0.16 && Math.abs(nail.group.rotation.z - nailDropPose.rotation.z) < 0.18) {
+          completeStepByKey('nail');
+          state.autoplayStep = 1;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 1) {
+        if (state.reactionT >= 6.3 || state.reactionDone) {
+          state.autoplay = false;
+          state.autoplayStep = 0;
+          state.autoplayT = 0;
+        }
+      }
+    }
+
+    function updateReactionParticles(dt, time, t) {
+      if (t <= 0.02) {
+        sparkleField.points.visible = false;
+        sparkleField.points.material.opacity = 0;
+        bubbleField.points.visible = false;
+        bubbleField.points.material.opacity = 0;
+        return;
+      }
+      const origin = getAnchorWorld(beaker.anchors.effectOrigin);
+      const sparkleBurst = Math.round((1.5 + t * 8) * dt * 26);
+      for (let i = 0; i < sparkleBurst; i += 1) {
+        spawnParticle(sparklePool, origin, new THREE.Vector3(1.0, 0.8, 1.0), new THREE.Vector3(0.12, 0.18 + t * 0.18, 0.12), [0.6, 1.2]);
+      }
+      const bubbleBurst = Math.round((1 + t * 6) * dt * 18);
+      for (let i = 0; i < bubbleBurst; i += 1) {
+        spawnParticle(bubblePool, origin, new THREE.Vector3(1.2, 0.12, 1.2), new THREE.Vector3(0.08, 0.26 + t * 0.18, 0.08), [0.7, 1.3]);
+      }
+      updateParticleSystem(sparklePool, sparkleField, dt, (particle, lifeT, index) => {
+        particle.origin.addScaledVector(particle.velocity, dt);
+        particle.origin.x += Math.sin(time * 5 + index) * dt * 0.03;
+        particle.origin.z += Math.cos(time * 4 + index * 0.7) * dt * 0.03;
+        sparkleField.scales[index] = (1 - lifeT) * (0.9 + t * 0.8);
+      });
+      updateParticleSystem(bubblePool, bubbleField, dt, (particle, lifeT, index) => {
+        particle.origin.addScaledVector(particle.velocity, dt);
+        bubbleField.scales[index] = (1 - lifeT) * (0.44 + t * 0.32);
+      });
+      sparkleField.points.visible = true;
+      sparkleField.points.material.opacity = 0.46 + t * 0.2;
+      bubbleField.points.visible = true;
+      bubbleField.points.material.opacity = 0.34 + t * 0.16;
+    }
+
+    function updateReaction(dt, time) {
+      if (!state.nailAdded) return;
+      state.reactionT = Math.min(state.reactionT + dt, 8.5);
+      const t = smoothstep01(clamp01(state.reactionT / 6.0));
+      setSolutionState(t);
+      setCopperDepositState(t);
+      updateReactionParticles(dt, time, t);
+      warmLight.intensity = 2.4 + t * 2.6;
+      nail.group.rotation.x = nailLoadedPose.rotation.x + Math.sin(time * 2.4) * 0.02 * (1 - t * 0.5);
+      nail.group.rotation.z = nailLoadedPose.rotation.z + Math.sin(time * 1.8) * 0.02 * (1 - t * 0.4);
+
+      if (state.reactionT > 1.3 && state.reactionT < 4.2) {
+        state.phase = 'depositing';
+        setStatus('Lớp đồng đỏ nâu đang bám dần lên đinh sắt.', 'Dung dịch xanh CuSO₄ đang nhạt dần vì ion đồng(II) bị sắt đẩy ra khỏi dung dịch.');
+      } else if (state.reactionT >= 4.2) {
+        state.phase = 'completed';
+        state.reactionDone = true;
+        setStatus('Phản ứng thế đã hiện rõ: đinh bám đồng đỏ nâu, dung dịch nhạt màu hơn.', 'Kết luận: Fe + CuSO₄ → FeSO₄ + Cu. Sắt hoạt động mạnh hơn đồng nên đã đẩy đồng ra khỏi dung dịch muối.');
+      }
+    }
+
+    function animate(nowMs) {
+      const time = nowMs / 1000;
+      const dt = animate.lastMs == null ? 0 : Math.min(0.05, (nowMs - animate.lastMs) / 1000);
+      animate.lastMs = nowMs;
+
+      controls.update();
+      runAutoplay(dt);
+      runManualCompletion(dt);
+      updateReaction(dt, time);
+
+      if (state.dragging === 'nail') {
+        syncDraggedObject(dt);
+        clampDraggedObject();
+      } else {
+        relaxNail(dt);
+      }
+
+      updateShadow(nail.shadow, nail.group, 1.42, 0.82);
+      beaker.shadow.position.x += (beaker.group.position.x - beaker.shadow.position.x) * 0.2;
+      beaker.shadow.position.z += (beaker.group.position.z - beaker.shadow.position.z) * 0.2;
+
+      renderer.render(scene, camera);
+      updateLabels();
+      requestAnimationFrame(animate);
+    }
+
+    function runVerifierStep(step) {
+      const key = String(step || '').toLowerCase();
+      if (key === 'drop-nail') {
+        clearAllManualCompletionFlags();
+        return completeNailStep();
+      }
+      if (key === 'observe-reaction') {
+        if (!state.nailAdded) runVerifierStep('drop-nail');
+        state.reactionT = Math.max(state.reactionT, 6.6);
+        state.phase = 'completed';
+        state.reactionDone = true;
+        setSolutionState(1);
+        setCopperDepositState(1);
+        setStatus('Phản ứng thế đã hiện rõ: đinh bám đồng đỏ nâu, dung dịch nhạt màu hơn.', 'Kết luận: Fe + CuSO₄ → FeSO₄ + Cu. Sắt hoạt động mạnh hơn đồng nên đã đẩy đồng ra khỏi dung dịch muối.');
+        return true;
+      }
+      return false;
+    }
+
+    function getGripAlignedPosition(object, gripAnchor, targetAnchor, pose = null) {
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      alignAnchorToTarget({ object, sourceAnchor: gripAnchor, targetAnchor, pose });
+      const position = object.position.clone();
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return position;
+    }
+
+    function getAnchorTargetScreenPoint(object, gripAnchor, targetAnchor, pose = null) {
+      const position = getGripAlignedPosition(object, gripAnchor, targetAnchor, pose);
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      if (pose) setObjectPose(object, pose);
+      object.position.copy(position);
+      object.updateMatrixWorld(true);
+      const point = screenPointForAnchor(gripAnchor);
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return point;
+    }
+
+    function getDragPathForKey(key) {
+      if (key === 'drop-nail') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(nail.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(nail.group, nail.anchors.gripAnchor, beaker.anchors.target, nailDropPose),
+          steps: 22,
+          afterMs: 700,
+        };
+      }
+      return null;
+    }
+
+    installCoursewareTestHarness({
+      state,
+      mapState(currentState) {
+        return {
+          phase: currentState.phase,
+          nailAdded: currentState.nailAdded,
+          reactionDone: currentState.reactionDone,
+        };
+      },
+      getVerifierMeta() {
+        return {
+          supportsGoldenPath: true,
+          successPhase: 'completed',
+          failureStatusText: 'Thả chưa đúng vị trí',
+        };
+      },
+      getDragPath(sampleId = 'drop-nail') {
+        return getDragPathForKey(String(sampleId || 'drop-nail').toLowerCase());
+      },
+      getGoldenPath() {
+        return [
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['drop-nail'], afterMs: 300 },
+          { type: 'wait', ms: 2600, afterMs: 200 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['observe-reaction'], afterMs: 400 },
+          { type: 'wait', ms: 500, afterMs: 200 },
+        ];
+      },
+      runVerifierStep(step) {
+        return runVerifierStep(step);
+      },
+    });
+
+    pourBtn.addEventListener('click', () => {
+      state.autoplay = true;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      setStatus('Đang chạy tự động: thả đinh sắt vào cốc CuSO₄.', 'Quan sát lớp đồng đỏ nâu xuất hiện trên đinh và màu xanh của dung dịch nhạt dần.');
+    });
+
+    resetBtn.addEventListener('click', resetScene);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    });
+
+    resetScene();
+    animate();
+  </script>
+</body>
+</html>

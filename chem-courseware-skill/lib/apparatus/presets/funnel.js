@@ -3,6 +3,8 @@ import {
   THREE,
   addToParent,
   applyTransform,
+  attachFixedPlaneLabel,
+  attachLabelController,
   cloneMaterial,
   createDefaultGlassMaterial,
   makeAnchor,
@@ -48,6 +50,8 @@ export function createFunnelApparatus({
     meshes: { cone, stem },
     anchors: {
       labelAnchor: makeAnchor(group, 0, 0.28, 0, `${name}:labelAnchor`),
+      gripAnchor: makeAnchor(group, 0, -coneHeight * 0.18, 0, `${name}:gripAnchor`),
+      interactionZone: makeAnchor(group, 0, -0.04, 0, `${name}:interactionZone`),
       mouth: makeAnchor(group, 0, 0, 0, `${name}:mouth`),
       entry: makeAnchor(group, 0, -0.04, 0, `${name}:entry`),
       exit: makeAnchor(group, 0, -coneHeight - stemLength + 0.08, 0, `${name}:exit`),
@@ -62,7 +66,15 @@ export function createFunnelApparatus({
       },
     },
   });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: apparatus.anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(0.82, 0.32),
+    role: 'floating-badge',
+  });
   apparatus.controllers = {};
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   apparatus.validators = [];
   return apparatus;
 }

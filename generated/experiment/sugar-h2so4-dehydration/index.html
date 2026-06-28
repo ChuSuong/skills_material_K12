@@ -1,0 +1,2469 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhiệt phân đường với H₂SO₄ đặc</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(12, 18, 32, 0.72);
+      --panel-soft: rgba(12, 18, 32, 0.58);
+      --border: rgba(255,255,255,0.12);
+      --text: #eef6ff;
+      --muted: rgba(220, 233, 247, 0.76);
+      --accent: #67d8ff;
+      --warm: #ffb347;
+      --steam: #eef7fb;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #1f2a44 0%, #0b1220 48%, #05070d 100%);
+      color: var(--text);
+    }
+    canvas#stage {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    .panel, .status, .controls, .prompt {
+      border-radius: 18px;
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 54px rgba(0, 0, 0, 0.28);
+    }
+    .panel {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: min(380px, calc(100vw - 40px));
+      padding: 15px 16px;
+      background: var(--panel);
+      color: white;
+    }
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.12;
+    }
+    .panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+    }
+    .panel p + p { margin-top: 7px; }
+    .prompt {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      max-width: min(560px, calc(100vw - 180px));
+      padding: 10px 16px;
+      background: rgba(14, 22, 38, 0.72);
+      color: rgba(237, 246, 255, 0.96);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .status {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      width: min(450px, calc(100vw - 40px));
+      padding: 14px 16px;
+      background: rgba(14, 22, 38, 0.84);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #statusText {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    #statusSub {
+      margin-top: 7px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .controls {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: min(304px, calc(100vw - 40px));
+      padding: 14px;
+      background: var(--panel-soft);
+      color: white;
+      pointer-events: auto;
+    }
+    .controls p {
+      margin: 0 0 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.82);
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      flex: 1;
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+    #pourBtn {
+      color: #fff;
+      background: linear-gradient(135deg, #f0b25a, #e47d3f);
+      box-shadow: 0 12px 28px rgba(228, 125, 63, 0.24);
+    }
+    #resetBtn {
+      color: white;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    .label3d {
+      position: absolute;
+      transform: translate(-50%, 0);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(10, 17, 30, 0.76);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
+      font-size: 11px;
+      font-weight: 700;
+      color: #8ee6ff;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #hint {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.56);
+      border: 1px solid rgba(22,48,67,0.08);
+      color: rgba(22,48,67,0.75);
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .panel, .status, .controls {
+        left: 12px;
+        right: 12px;
+        width: auto;
+      }
+      .panel { top: 12px; padding: 12px 14px; }
+      .panel h1 { font-size: 17px; margin-bottom: 6px; }
+      .panel p, .controls p, #statusSub, .prompt { font-size: 12px; }
+      .prompt {
+        left: auto;
+        right: 12px;
+        top: 12px;
+        transform: none;
+        max-width: calc(100vw - 140px);
+        text-align: left;
+        padding: 9px 12px;
+      }
+      .controls { bottom: 12px; padding: 12px; }
+      .status { bottom: 88px; padding: 12px 14px; }
+      #statusText { font-size: 15px; }
+      #hint { display: none; }
+    }
+    @media (max-width: 560px) {
+      .button-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Nhiệt phân đường với H₂SO₄ đặc</h1>
+      <p>Mục tiêu học: quan sát tính háo nước rất mạnh của axit sulfuric đặc và hiện tượng tạo cột than đen xốp từ đường.</p>
+      <p>Hãy lần lượt đổ đường vào cốc phản ứng, rồi kéo chai H₂SO₄ đặc đến miệng cốc để rót. Sau đó quan sát hỗn hợp chuyển nâu đen, bốc hơi và trương phồng.</p>
+    </div>
+
+    <div class="prompt">Câu hỏi quan sát: Dấu hiệu nào cho thấy H₂SO₄ đặc đã hút nước khỏi đường và làm xuất hiện cột carbon?</div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div id="statusText">Sẵn sàng. Hãy kéo lọ đường vào cốc phản ứng trước.</div>
+      <div id="statusSub">Golden path: đường → H₂SO₄ đặc → quan sát cột than đen phồng lên và hơi nước bốc ra.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <p>Bạn có thể kéo trực tiếp vật thể trong không gian 3D. Nút “Chạy tự động” sẽ thực hiện đúng chuỗi thao tác để tiện kiểm tra.</p>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay" type="button">Chạy tự động</button>
+      </div>
+    </div>
+
+    <div id="hint">Kéo nền để xoay góc nhìn, cuộn để phóng to hoặc thu nhỏ.</div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    globalThis.THREE = THREE;
+
+// Generated by scripts/build-shared-inline-bundle.mjs
+// Paste this inside a <script type="module"> block after importing THREE.
+
+function updatePointerFromEvent(event, domElement, pointer) {
+      const rect = domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return pointer;
+    }
+
+    function setPointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.setPointerCapture !== 'function') {
+        return;
+      }
+      domElement.setPointerCapture(pointerId);
+    }
+
+    function releasePointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.releasePointerCapture !== 'function') {
+        return;
+      }
+      try {
+        domElement.releasePointerCapture(pointerId);
+      } catch {}
+    }
+
+    function setControlsDragging(controls, dragging) {
+      if (!controls) {
+        return;
+      }
+      controls.enabled = !dragging;
+    }
+
+    function intersectPointerPlane({ raycaster, pointer, camera, plane, out }) {
+      raycaster.setFromCamera(pointer, camera);
+      return raycaster.ray.intersectPlane(plane, out);
+    }
+
+    function getWorldBounds(group, padding = 0) {
+      group.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(group);
+      if (padding > 0) {
+        bounds.expandByScalar(padding);
+      }
+      return bounds;
+    }
+
+    function modelsOverlapOrNear(sourceGroup, targetGroup, padding = 0.12) {
+      const sourceBounds = getWorldBounds(sourceGroup, padding);
+      const targetBounds = getWorldBounds(targetGroup, padding);
+      return sourceBounds.intersectsBox(targetBounds)
+        || sourceBounds.distanceToPoint(targetGroup.position) <= padding
+        || targetBounds.distanceToPoint(sourceGroup.position) <= padding;
+    }
+
+    function canAttemptOrderedStep(key, order = [], completed = {}) {
+      if (!key) {
+        return false;
+      }
+      const stepIndex = order.indexOf(key);
+      if (stepIndex === -1) {
+        return false;
+      }
+      if (completed[key]) {
+        return false;
+      }
+      for (let index = 0; index < stepIndex; index += 1) {
+        if (!completed[order[index]]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function hasActiveCompletion(state, key) {
+      return Boolean(state && (state.pendingCompletedStep === key || state.completingStep === key));
+    }
+
+    function isStepBusy(state, key) {
+      return Boolean(state && (state.dragging === key || hasActiveCompletion(state, key)));
+    }
+
+    function lerpObjectPose(object, fromPosition, fromRotation, toPose, t) {
+      object.position.lerpVectors(fromPosition, toPose.position, t);
+      object.rotation.set(
+        fromRotation.x + (toPose.rotation.x - fromRotation.x) * t,
+        fromRotation.y + (toPose.rotation.y - fromRotation.y) * t,
+        fromRotation.z + (toPose.rotation.z - fromRotation.z) * t,
+      );
+    }
+
+    function beginStepCompletion(state, key, object, pose, duration = 0.25) {
+      if (!state || !object || !pose || hasActiveCompletion(state, key)) {
+        return false;
+      }
+      state.completingStep = key;
+      state.completionT = 0;
+      state.completionDuration = duration;
+      state.completionFromPosition = object.position.clone();
+      state.completionFromRotation = object.rotation.clone();
+      state.pendingCompletedStep = null;
+      state.dragging = null;
+      return true;
+    }
+
+    function clearStepCompletion(state) {
+      if (!state) {
+        return;
+      }
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+    }
+
+    function clamp01(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function smoothstep01(t) {
+      const value = clamp01(t);
+      return value * value * (3 - 2 * value);
+    }
+
+    function runStepCompletion(state, dt, getCurrent, onComplete) {
+      if (!state?.completingStep) {
+        return false;
+      }
+      const current = getCurrent?.(state.completingStep);
+      if (!current?.object || !current?.pose || !state.completionFromPosition || !state.completionFromRotation) {
+        clearStepCompletion(state);
+        return false;
+      }
+      state.completionT += dt;
+      const duration = Math.max(0.001, state.completionDuration || current.duration || 0.25);
+      const t = smoothstep01(clamp01(state.completionT / duration));
+      lerpObjectPose(current.object, state.completionFromPosition, state.completionFromRotation, current.pose, t);
+      if (state.completionT >= duration) {
+        const completedKey = state.completingStep;
+        clearStepCompletion(state);
+        onComplete?.(completedKey, current);
+      }
+      return true;
+    }
+
+    function completeOrderedOverlapStep({
+      key,
+      state,
+      order = [],
+      completed = {},
+      isReady,
+      getCompletion,
+    }) {
+      if (!canAttemptOrderedStep(key, order, completed)) {
+        return false;
+      }
+      if (typeof isReady === 'function' && !isReady(key)) {
+        return false;
+      }
+      const current = getCompletion?.(key);
+      if (!current?.object || !current?.pose) {
+        return false;
+      }
+      return beginStepCompletion(state, key, current.object, current.pose, current.duration);
+    }
+
+    function getCanvasBox(renderer) {
+      return renderer.domElement.getBoundingClientRect();
+    }
+
+    function projectWorldToCanvas(target, camera, renderer, offset = new THREE.Vector3()) {
+      const rect = getCanvasBox(renderer);
+      const anchor = typeof target.getWorldPosition === 'function'
+        ? target.getWorldPosition(new THREE.Vector3())
+        : target.clone();
+      const projected = anchor.add(offset).project(camera);
+      return {
+        x: rect.left + ((projected.x + 1) * 0.5) * rect.width,
+        y: rect.top + ((-projected.y + 1) * 0.5) * rect.height,
+      };
+    }
+
+    function installCoursewareTestHarness({
+      state,
+      mapState,
+      getVerifierMeta,
+      getGoldenPath,
+      getDragPath,
+      runVerifierStep,
+    }) {
+      window.__coursewareTestApi = {
+        getState() {
+          return mapState(state);
+        },
+        getVerifierMeta() {
+          return typeof getVerifierMeta === 'function' ? getVerifierMeta(state) : null;
+        },
+        getGoldenPath() {
+          return typeof getGoldenPath === 'function' ? getGoldenPath(state) : null;
+        },
+        getDragPath(sampleId) {
+          return typeof getDragPath === 'function' ? getDragPath(sampleId, state) : null;
+        },
+        runVerifierStep(step) {
+          return typeof runVerifierStep === 'function' ? runVerifierStep(step, state) : false;
+        },
+      };
+
+      return window.__coursewareTestApi;
+    }
+
+    const ChemSharedLib = {
+      THREE,
+      updatePointerFromEvent,
+      setPointerCaptureSafe,
+      releasePointerCaptureSafe,
+      setControlsDragging,
+      intersectPointerPlane,
+      getWorldBounds,
+      modelsOverlapOrNear,
+      canAttemptOrderedStep,
+      hasActiveCompletion,
+      isStepBusy,
+      lerpObjectPose,
+      beginStepCompletion,
+      clearStepCompletion,
+      runStepCompletion,
+      completeOrderedOverlapStep,
+      clamp01,
+      smoothstep01,
+      getCanvasBox,
+      projectWorldToCanvas,
+      installCoursewareTestHarness,
+    };
+
+    globalThis.ChemSharedLib = ChemSharedLib;
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const {
+      updatePointerFromEvent,
+      setPointerCaptureSafe,
+      releasePointerCaptureSafe,
+      setControlsDragging,
+      intersectPointerPlane,
+      modelsOverlapOrNear,
+      canAttemptOrderedStep,
+      hasActiveCompletion,
+      isStepBusy,
+      lerpObjectPose,
+      clearStepCompletion,
+      runStepCompletion,
+      completeOrderedOverlapStep,
+      clamp01,
+      smoothstep01,
+      projectWorldToCanvas,
+      installCoursewareTestHarness,
+    } = globalThis.ChemSharedLib;
+
+    const stageCanvas = document.getElementById('stage');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.03;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x09111d, 18, 38);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0, 7.2, 13.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 2.05, 0.05);
+    controls.minDistance = 8;
+    controls.maxDistance = 18;
+    controls.minPolarAngle = 0.42;
+    controls.maxPolarAngle = Math.PI / 2.15;
+
+    scene.add(new THREE.HemisphereLight(0xd7e6ff, 0x081018, 1.18));
+    const keyLight = new THREE.DirectionalLight(0xe8f5ff, 1.9);
+    keyLight.position.set(8, 14, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -16;
+    keyLight.shadow.camera.right = 16;
+    keyLight.shadow.camera.top = 16;
+    keyLight.shadow.camera.bottom = -16;
+    scene.add(keyLight);
+
+    const warmLight = new THREE.PointLight(0xffb76b, 4.8, 28, 2);
+    warmLight.position.set(-3.5, 5.8, 3.5);
+    scene.add(warmLight);
+
+    const coolRim = new THREE.PointLight(0x67d8ff, 3.7, 28, 2);
+    coolRim.position.set(-1, 8, -10);
+    scene.add(coolRim);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(40, 42, 28),
+      new THREE.MeshBasicMaterial({ color: 0x0b1220, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(24, 72),
+      new THREE.MeshStandardMaterial({ color: 0x121e2f, roughness: 0.96, metalness: 0.04 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(12.8, 0.34, 5.8),
+      new THREE.MeshStandardMaterial({ color: 0x2b3444, roughness: 0.86, metalness: 0.06 })
+    );
+    benchTop.position.y = 1.32;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.35, 2.6, 0.35);
+    const legMaterial = new THREE.MeshStandardMaterial({ color: 0x59677a, roughness: 0.72, metalness: 0.24 });
+    for (const [x, z] of [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]]) {
+      const leg = new THREE.Mesh(legGeometry, legMaterial);
+      leg.position.set(x, 0.0, z);
+      leg.castShadow = true;
+      bench.add(leg);
+    }
+
+    const pointer = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -3.55);
+    const dragPoint = new THREE.Vector3();
+
+    const labelDivs = [];
+    function createTextLabel(text) {
+      const div = document.createElement('div');
+      div.className = 'label3d';
+      div.textContent = text;
+      document.body.appendChild(div);
+      labelDivs.push(div);
+      return div;
+    }
+
+    function makeAnchor(parent, x = 0, y = 0, z = 0) {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function screenPointForAnchor(anchor, offset = new THREE.Vector3()) {
+      return projectWorldToCanvas(anchor, camera, renderer, offset);
+    }
+
+    function setObjectPose(object, pose) {
+      if (pose.position) object.position.copy(pose.position);
+      if (pose.rotation) object.rotation.set(pose.rotation.x, pose.rotation.y, pose.rotation.z);
+    }
+
+    function alignAnchorToTarget({ object, sourceAnchor, targetAnchor, pose = null }) {
+      if (pose) setObjectPose(object, pose);
+      object.updateMatrixWorld(true);
+      const sourceWorld = getAnchorWorld(sourceAnchor);
+      const targetWorld = getAnchorWorld(targetAnchor);
+      object.position.add(targetWorld.sub(sourceWorld));
+      object.updateMatrixWorld(true);
+    }
+
+    function getAnchorDistance(sourceAnchor, targetAnchor) {
+      return getAnchorWorld(sourceAnchor).distanceTo(getAnchorWorld(targetAnchor));
+    }
+
+    function createBenchMarker(x, z, color = 0x9fb0c0) {
+      const mesh = new THREE.Mesh(
+        new THREE.CircleGeometry(0.55, 28),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12 })
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, 1.49, z);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function createReactionBeaker() {
+      const group = new THREE.Group();
+      group.position.set(0.1, 1.49, 0.05);
+      scene.add(group);
+
+      const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xf2faff,
+        transparent: true,
+        opacity: 0.16,
+        transmission: 0.98,
+        roughness: 0.03,
+        thickness: 0.28,
+        ior: 1.42,
+        clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      });
+
+      const outer = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.18, 1.3, 2.2, 40, 1, true),
+        glassMaterial
+      );
+      outer.position.y = 1.12;
+      outer.castShadow = true;
+      outer.receiveShadow = true;
+      outer.renderOrder = 20;
+      group.add(outer);
+
+      const bottom = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.06, 1.14, 0.12, 36),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xf3f9ff,
+          transparent: true,
+          opacity: 0.18,
+          transmission: 0.96,
+          roughness: 0.04,
+          thickness: 0.22,
+          ior: 1.4,
+          clearcoat: 1,
+          clearcoatRoughness: 0.02,
+          depthWrite: false,
+        })
+      );
+      bottom.position.y = 0.03;
+      bottom.renderOrder = 19;
+      group.add(bottom);
+
+      const sugarBase = new THREE.Mesh(
+        new THREE.SphereGeometry(0.94, 30, 22),
+        new THREE.MeshStandardMaterial({ color: 0xf2e2b8, roughness: 0.96, metalness: 0.0, emissive: 0x482c09, emissiveIntensity: 0.0 })
+      );
+      sugarBase.position.y = 0.16;
+      sugarBase.scale.set(1, 0.24, 1);
+      sugarBase.castShadow = true;
+      sugarBase.receiveShadow = true;
+      group.add(sugarBase);
+
+      const sugar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.88, 0.98, 0.6, 32),
+        sugarBase.material
+      );
+      sugar.position.y = 0.46;
+      sugar.castShadow = true;
+      sugar.receiveShadow = true;
+      group.add(sugar);
+
+      const caramel = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.9, 0.98, 0.2, 32),
+        new THREE.MeshStandardMaterial({ color: 0x8f4e1c, roughness: 0.88, transparent: true, opacity: 0.0 })
+      );
+      caramel.position.y = 0.8;
+      group.add(caramel);
+
+      const carbon = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.62, 0.86, 0.3, 34),
+        new THREE.MeshStandardMaterial({ color: 0x15110f, roughness: 1.0, metalness: 0.0, emissive: 0x2b1c0f, emissiveIntensity: 0.08 })
+      );
+      carbon.position.y = 0.5;
+      carbon.scale.set(1, 0.06, 1);
+      carbon.castShadow = true;
+      carbon.receiveShadow = true;
+      group.add(carbon);
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(1.36, 32),
+        new THREE.MeshBasicMaterial({ color: 0x97a8b9, transparent: true, opacity: 0.14 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(group.position.x, 1.35, group.position.z);
+      scene.add(shadow);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 2.95, 0),
+        mouth: makeAnchor(group, 0, 2.28, 0),
+        pourTarget: makeAnchor(group, 0, 2.02, 0),
+        effectOrigin: makeAnchor(group, 0, 0.95, 0),
+        steamOrigin: makeAnchor(group, 0, 2.06, 0),
+        sugarTarget: makeAnchor(group, 0, 1.48, 0),
+      };
+
+      return {
+        group,
+        outer,
+        bottom,
+        sugarBase,
+        sugar,
+        caramel,
+        carbon,
+        shadow,
+        anchors,
+      };
+    }
+
+    function createSugarJar() {
+      const group = new THREE.Group();
+      group.position.set(-3.75, 2.22, 0.85);
+      scene.add(group);
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.48, 0.58, 1.2, 28),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xfafcff,
+          transparent: true,
+          opacity: 0.26,
+          transmission: 0.92,
+          roughness: 0.1,
+          thickness: 0.16,
+        })
+      );
+      body.castShadow = true;
+      group.add(body);
+
+      const lid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.52, 0.52, 0.16, 24),
+        new THREE.MeshStandardMaterial({ color: 0x5f7283, roughness: 0.5, metalness: 0.24 })
+      );
+      lid.position.y = 0.68;
+      group.add(lid);
+
+      const fillGroup = new THREE.Group();
+      group.add(fillGroup);
+
+      const fillBottom = new THREE.Mesh(
+        new THREE.SphereGeometry(0.43, 24, 18),
+        new THREE.MeshStandardMaterial({ color: 0xf4e7c4, roughness: 0.94, metalness: 0.0 })
+      );
+      fillBottom.position.y = -0.45;
+      fillBottom.scale.set(1.0, 0.34, 1.0);
+      fillGroup.add(fillBottom);
+
+      const fill = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.37, 0.43, 0.72, 24),
+        new THREE.MeshStandardMaterial({ color: 0xf4e7c4, roughness: 0.94, metalness: 0.0 })
+      );
+      fill.position.y = -0.09;
+      fillGroup.add(fill);
+
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.54, 0.32),
+        new THREE.MeshBasicMaterial({ color: 0xf5fafc })
+      );
+      label.position.set(0, 0.02, 0.59);
+      group.add(label);
+
+      const band = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.34, 0.1),
+        new THREE.MeshBasicMaterial({ color: 0xd9b46d })
+      );
+      band.position.set(0, 0.1, 0.592);
+      group.add(band);
+
+      const shadow = createBenchMarker(group.position.x, group.position.z, 0x9eb0c0);
+      shadow.scale.set(0.98, 1.0, 0.72);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 0.1, 0.74),
+        gripAnchor: makeAnchor(group, 0, 0.14, 0),
+        pourAlign: makeAnchor(group, 0.08, 0.52, 0),
+        mouth: makeAnchor(group, 0, 0.7, 0),
+      };
+
+      return {
+        group,
+        fillGroup,
+        fill,
+        fillBottom,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function createAcidBottle() {
+      const group = new THREE.Group();
+      group.position.set(3.55, 2.5, 0.7);
+      scene.add(group);
+
+      const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xf3fbff,
+        transparent: true,
+        opacity: 0.18,
+        transmission: 0.97,
+        roughness: 0.04,
+        thickness: 0.22,
+        ior: 1.41,
+        clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        depthWrite: false,
+      });
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.36, 0.44, 1.5, 28),
+        glassMaterial
+      );
+      body.castShadow = true;
+      body.renderOrder = 16;
+      group.add(body);
+
+      const neck = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.12, 0.14, 0.38, 20),
+        glassMaterial
+      );
+      neck.position.y = 0.92;
+      neck.renderOrder = 16;
+      group.add(neck);
+
+      const shoulder = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.34, 0.26, 24),
+        glassMaterial
+      );
+      shoulder.position.y = 0.55;
+      shoulder.renderOrder = 16;
+      group.add(shoulder);
+
+      const bottleBottom = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.34, 0.4, 0.1, 26),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xf3fbff,
+          transparent: true,
+          opacity: 0.22,
+          transmission: 0.95,
+          roughness: 0.04,
+          thickness: 0.2,
+          ior: 1.4,
+          clearcoat: 1,
+          clearcoatRoughness: 0.02,
+          depthWrite: false,
+        })
+      );
+      bottleBottom.position.y = -0.76;
+      bottleBottom.renderOrder = 15;
+      group.add(bottleBottom);
+
+      const liquidMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xe2f5ff,
+        transparent: true,
+        opacity: 0.28,
+        transmission: 0.82,
+        roughness: 0.06,
+        thickness: 0.12,
+        ior: 1.333,
+        depthWrite: false,
+      });
+
+      const shoulderLiquidMaterial = liquidMaterial.clone();
+      shoulderLiquidMaterial.opacity = 0.18;
+      shoulderLiquidMaterial.transmission = 0.88;
+      shoulderLiquidMaterial.thickness = 0.08;
+
+      const bottomLiquidMaterial = liquidMaterial.clone();
+      bottomLiquidMaterial.opacity = 0.34;
+      bottomLiquidMaterial.transmission = 0.74;
+      bottomLiquidMaterial.thickness = 0.16;
+
+      const liquidSurfaceMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xf0fbff,
+        transparent: true,
+        opacity: 0.1,
+        transmission: 0.92,
+        roughness: 0.015,
+        thickness: 0.04,
+        ior: 1.333,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      });
+
+      liquidMaterial.renderOrder = 11;
+      shoulderLiquidMaterial.renderOrder = 11;
+      bottomLiquidMaterial.renderOrder = 10;
+      liquidSurfaceMaterial.renderOrder = 12;
+
+      const liquidSurface = new THREE.Mesh(
+        new THREE.CircleGeometry(0.305, 28),
+        liquidSurfaceMaterial
+      );
+      liquidSurface.rotation.x = -Math.PI / 2;
+      liquidSurface.position.y = 0.16;
+      liquidSurface.renderOrder = 12;
+      liquidSurface.scale.set(0.96, 1, 1.02);
+
+      const cap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.15, 0.15, 0.12, 20),
+        new THREE.MeshStandardMaterial({ color: 0x394a5c, roughness: 0.46, metalness: 0.14 })
+      );
+      cap.position.y = 1.16;
+      group.add(cap);
+
+      const liquidGroup = new THREE.Group();
+      group.add(liquidGroup);
+
+      const liquidBottom = new THREE.Mesh(
+        new THREE.SphereGeometry(0.335, 28, 20),
+        bottomLiquidMaterial
+      );
+      liquidBottom.position.y = -0.655;
+      liquidBottom.scale.set(1.04, 0.42, 1.06);
+      liquidBottom.renderOrder = 10;
+      liquidGroup.add(liquidBottom);
+
+      const liquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.295, 0.335, 1.12, 28),
+        liquidMaterial
+      );
+      liquid.position.y = -0.22;
+      liquid.scale.set(1.0, 1.0, 1.04);
+      liquid.renderOrder = 11;
+      liquidGroup.add(liquid);
+
+      const liquidFoot = new THREE.Mesh(
+        new THREE.SphereGeometry(0.26, 24, 18),
+        bottomLiquidMaterial.clone()
+      );
+      liquidFoot.position.set(0, -0.53, 0);
+      liquidFoot.scale.set(1.08, 0.24, 1.02);
+      liquidFoot.material.opacity = 0.26;
+      liquidFoot.material.transmission = 0.72;
+      liquidFoot.material.thickness = 0.12;
+      liquidFoot.renderOrder = 10;
+      liquidGroup.add(liquidFoot);
+
+      const liquidMeniscus = new THREE.Mesh(
+        new THREE.TorusGeometry(0.255, 0.016, 10, 32),
+        liquidSurfaceMaterial.clone()
+      );
+      liquidMeniscus.rotation.x = Math.PI / 2;
+      liquidMeniscus.position.y = 0.11;
+      liquidMeniscus.scale.set(0.98, 1, 1.04);
+      liquidMeniscus.material.opacity = 0.05;
+      liquidMeniscus.renderOrder = 12;
+      liquidGroup.add(liquidMeniscus);
+
+      const liquidHighlight = new THREE.Mesh(
+        new THREE.CircleGeometry(0.18, 22),
+        liquidSurfaceMaterial.clone()
+      );
+      liquidHighlight.rotation.x = -Math.PI / 2;
+      liquidHighlight.position.set(0.03, 0.07, 0.002);
+      liquidHighlight.scale.set(1.1, 1, 0.8);
+      liquidHighlight.material.opacity = 0.04;
+      liquidHighlight.renderOrder = 12;
+      liquidGroup.add(liquidHighlight);
+
+      const shoulderLiquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.16, 0.22, 0.24, 20),
+        shoulderLiquidMaterial
+      );
+      shoulderLiquid.position.y = 0.44;
+      shoulderLiquid.renderOrder = 11;
+      liquidGroup.add(shoulderLiquid);
+
+      liquidGroup.add(liquidSurface);
+      liquidGroup.position.y = 0;
+      liquidGroup.renderOrder = 10;
+      liquidGroup.updateMatrixWorld(true);
+
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.62, 0.42),
+        new THREE.MeshBasicMaterial({ color: 0xf5fafc })
+      );
+      label.position.set(0, 0.08, 0.45);
+      group.add(label);
+
+      const stripe = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.46, 0.12),
+        new THREE.MeshBasicMaterial({ color: 0xe58a7d })
+      );
+      stripe.position.set(0, 0.14, 0.452);
+      group.add(stripe);
+
+      const shadow = createBenchMarker(group.position.x, group.position.z, 0x9eb0c0);
+      shadow.scale.set(1.04, 1.0, 0.8);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 0.16, 0.64),
+        gripAnchor: makeAnchor(group, 0, 0.26, 0),
+        mouth: makeAnchor(group, 0, 1.1, 0),
+        nozzle: makeAnchor(group, 0, 1.3, 0),
+        pourAlign: makeAnchor(group, 0.12, 1.12, 0),
+      };
+
+      return {
+        group,
+        liquidGroup,
+        liquid,
+        liquidBottom,
+        liquidSurface,
+        liquidFoot,
+        liquidMeniscus,
+        liquidHighlight,
+        shoulderLiquid,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function createPourStream() {
+      const stream = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.06, 0.1, 1.0, 18),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xbcecff,
+          transparent: true,
+          opacity: 0.0,
+          emissive: 0x67d8ff,
+          emissiveIntensity: 0.45,
+          roughness: 0.08,
+          transmission: 0.25,
+        })
+      );
+      stream.visible = false;
+      scene.add(stream);
+      return stream;
+    }
+
+    function makeSpriteTexture(draw) {
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      draw(ctx, size);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function createPoints(count, texture, color, size, opacity) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const scales = new Float32Array(count);
+      const alphas = new Float32Array(count);
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+      geometry.setAttribute('aAlpha', new THREE.BufferAttribute(alphas, 1));
+      const material = new THREE.PointsMaterial({
+        map: texture,
+        color,
+        size,
+        transparent: true,
+        opacity,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        sizeAttenuation: true,
+      });
+      const points = new THREE.Points(geometry, material);
+      points.frustumCulled = false;
+      scene.add(points);
+      return { geometry, positions, scales, alphas, points };
+    }
+
+    const bubbleTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size * 0.48, size * 0.42, size * 0.06, size * 0.5, size * 0.5, size * 0.48);
+      g.addColorStop(0, 'rgba(255,255,255,0.96)');
+      g.addColorStop(0.3, 'rgba(196,239,255,0.9)');
+      g.addColorStop(0.55, 'rgba(127,205,255,0.48)');
+      g.addColorStop(1, 'rgba(127,205,255,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    const steamTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size / 2, size / 2, size * 0.05, size / 2, size / 2, size * 0.48);
+      g.addColorStop(0, 'rgba(255,255,255,0.8)');
+      g.addColorStop(0.3, 'rgba(220,230,235,0.42)');
+      g.addColorStop(1, 'rgba(220,230,235,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    });
+
+    const sparkTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.45);
+      g.addColorStop(0, 'rgba(255,247,212,1)');
+      g.addColorStop(0.3, 'rgba(255,184,79,0.92)');
+      g.addColorStop(1, 'rgba(255,184,79,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    });
+
+    function createParticlePool(count) {
+      return Array.from({ length: count }, () => ({
+        active: false,
+        life: 0,
+        maxLife: 1,
+        velocity: new THREE.Vector3(),
+        origin: new THREE.Vector3(),
+      }));
+    }
+
+    function spawnParticle(pool, field, basePosition, spread, velocity, lifetimeRange) {
+      const particle = pool.find((item) => !item.active);
+      if (!particle) return;
+      particle.active = true;
+      particle.life = 0;
+      particle.maxLife = THREE.MathUtils.randFloat(lifetimeRange[0], lifetimeRange[1]);
+      particle.origin.copy(basePosition).add(new THREE.Vector3(
+        THREE.MathUtils.randFloatSpread(spread.x),
+        THREE.MathUtils.randFloatSpread(spread.y),
+        THREE.MathUtils.randFloatSpread(spread.z)
+      ));
+      particle.velocity.set(
+        THREE.MathUtils.randFloatSpread(velocity.x),
+        velocity.y + Math.random() * velocity.y,
+        THREE.MathUtils.randFloatSpread(velocity.z)
+      );
+    }
+
+    function updateParticleSystem(pool, field, dt, behavior) {
+      for (let i = 0; i < pool.length; i += 1) {
+        const particle = pool[i];
+        const index = i * 3;
+        if (!particle.active) {
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          field.scales[i] = 0;
+          field.alphas[i] = 0;
+          continue;
+        }
+        particle.life += dt;
+        const t = particle.life / particle.maxLife;
+        if (t >= 1) {
+          particle.active = false;
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          field.scales[i] = 0;
+          field.alphas[i] = 0;
+          continue;
+        }
+        behavior(particle, t, i);
+        field.positions[index] = particle.origin.x;
+        field.positions[index + 1] = particle.origin.y;
+        field.positions[index + 2] = particle.origin.z;
+      }
+      field.geometry.attributes.position.needsUpdate = true;
+      field.geometry.attributes.aScale.needsUpdate = true;
+      field.geometry.attributes.aAlpha.needsUpdate = true;
+    }
+
+    function createCarbonLumps(count = 20) {
+      const lumps = [];
+      for (let i = 0; i < count; i += 1) {
+        const lump = new THREE.Mesh(
+          new THREE.SphereGeometry(0.12 + Math.random() * 0.16, 16, 16),
+          new THREE.MeshStandardMaterial({ color: 0x191411, roughness: 1.0, metalness: 0.0, emissive: 0x22170f, emissiveIntensity: 0.08 })
+        );
+        const angle = (i / count) * Math.PI * 2;
+        const radius = 0.22 + Math.random() * 0.46;
+        lump.position.set(Math.cos(angle) * radius, 0.64 + Math.random() * 0.1, Math.sin(angle) * radius);
+        lump.scale.setScalar(0.001);
+        lump.visible = false;
+        lump.castShadow = true;
+        reactionBeaker.group.add(lump);
+        lumps.push({ mesh: lump, phase: Math.random() * Math.PI * 2 });
+      }
+      return lumps;
+    }
+
+    function createSteamField(count = 120) {
+      return createPoints(count, steamTexture, 0xffffff, 1.1, 0.28);
+    }
+
+    function createBubbleField(count = 140) {
+      return createPoints(count, bubbleTexture, 0xd8f5ff, 0.24, 0.88);
+    }
+
+    function createSparkField(count = 45) {
+      return createPoints(count, sparkTexture, 0xffb56a, 0.46, 0.7);
+    }
+
+    function setBottomFillLevel(object, level) {
+      const clamped = clamp01(level);
+      object.fillLevel = clamped;
+      if (object.fill) {
+        object.fill.scale.y = Math.max(0.08, clamped);
+        object.fill.position.y = -0.46 + object.fill.scale.y * 0.3;
+      }
+      if (object.fillBottom) {
+        object.fillBottom.visible = clamped > 0.02;
+        object.fillBottom.scale.y = 0.12 + clamped * 0.16;
+      }
+      if (object.liquid) {
+        object.liquid.scale.set(0.98 + clamped * 0.05, Math.max(0.08, clamped), 1.0 + clamped * 0.06);
+        object.liquid.position.y = -0.68 + object.liquid.scale.y * 0.54;
+      }
+      if (object.liquidBottom) {
+        object.liquidBottom.visible = clamped > 0.02;
+        object.liquidBottom.scale.set(1.0 + clamped * 0.06, 0.22 + clamped * 0.22, 1.02 + clamped * 0.06);
+      }
+      if (object.liquidFoot) {
+        object.liquidFoot.visible = clamped > 0.03;
+        object.liquidFoot.position.y = -0.66 + clamped * 0.12;
+        object.liquidFoot.scale.set(0.9 + clamped * 0.18, 0.12 + clamped * 0.18, 0.9 + clamped * 0.14);
+      }
+      if (object.liquidSurface) {
+        object.liquidSurface.visible = false;
+      }
+      if (object.liquidMeniscus) {
+        object.liquidMeniscus.visible = false;
+      }
+      if (object.liquidHighlight) {
+        object.liquidHighlight.visible = false;
+      }
+      if (object.shoulderLiquid) {
+        object.shoulderLiquid.visible = false;
+      }
+    }
+
+    function updateBottleLiquidSettling(dt) {
+      const fillLevel = acidBottle.fillLevel ?? 1;
+      const tilt = acidBottle.group.rotation.z;
+      const tiltAmount = Math.min(Math.abs(tilt), 1.2);
+      const settleStrength = smoothstep01(tiltAmount / 1.02) * (0.45 + fillLevel * 0.55);
+      const targetRotationZ = -tilt * Math.min(1.0, 0.74 + settleStrength * 0.24);
+      const lowSideOffsetX = Math.sin(tilt) * (0.15 + settleStrength * 0.12);
+      const lowSideOffsetY = -0.02 - settleStrength * 0.12 - tiltAmount * 0.03;
+      const surfaceOffsetX = Math.sin(tilt) * (0.045 + settleStrength * 0.05);
+      const follow = 1 - Math.exp(-dt * 8.5);
+
+      acidBottle.liquidGroup.rotation.z += (targetRotationZ - acidBottle.liquidGroup.rotation.z) * follow;
+      acidBottle.liquidGroup.position.x += (lowSideOffsetX - acidBottle.liquidGroup.position.x) * follow;
+      acidBottle.liquidGroup.position.y += (lowSideOffsetY - acidBottle.liquidGroup.position.y) * follow;
+
+      if (acidBottle.liquidFoot) {
+        acidBottle.liquidFoot.position.x += (Math.sin(tilt) * (0.03 + settleStrength * 0.05) - acidBottle.liquidFoot.position.x) * (1 - Math.exp(-dt * 9));
+        acidBottle.liquidFoot.scale.x += ((0.94 + settleStrength * 0.22) - acidBottle.liquidFoot.scale.x) * (1 - Math.exp(-dt * 8));
+        acidBottle.liquidFoot.scale.y += ((0.14 + settleStrength * 0.18) - acidBottle.liquidFoot.scale.y) * (1 - Math.exp(-dt * 8));
+      }
+      if (acidBottle.liquidSurface) {
+        acidBottle.liquidSurface.rotation.z += (-tilt - acidBottle.liquidSurface.rotation.z) * (1 - Math.exp(-dt * 10));
+        acidBottle.liquidSurface.position.x += (surfaceOffsetX - acidBottle.liquidSurface.position.x) * (1 - Math.exp(-dt * 9));
+      }
+      if (acidBottle.liquidMeniscus) {
+        acidBottle.liquidMeniscus.rotation.z += (-tilt - acidBottle.liquidMeniscus.rotation.z) * (1 - Math.exp(-dt * 10));
+        acidBottle.liquidMeniscus.position.x += ((surfaceOffsetX * 1.05) - acidBottle.liquidMeniscus.position.x) * (1 - Math.exp(-dt * 9));
+      }
+      if (acidBottle.liquidHighlight) {
+        acidBottle.liquidHighlight.rotation.z += (-tilt - acidBottle.liquidHighlight.rotation.z) * (1 - Math.exp(-dt * 10));
+        acidBottle.liquidHighlight.position.x += ((surfaceOffsetX * 0.9 + 0.03) - acidBottle.liquidHighlight.position.x) * (1 - Math.exp(-dt * 9));
+      }
+    }
+
+    function resetBottleLiquidSettling() {
+      acidBottle.liquidGroup.position.set(0, 0, 0);
+      acidBottle.liquidGroup.rotation.set(0, 0, 0);
+      if (acidBottle.liquidFoot) {
+        acidBottle.liquidFoot.position.set(0, -0.54, 0);
+        acidBottle.liquidFoot.scale.set(1.02, 0.2, 0.98);
+      }
+      if (acidBottle.liquidSurface) {
+        acidBottle.liquidSurface.position.x = 0;
+        acidBottle.liquidSurface.rotation.set(-Math.PI / 2, 0, 0);
+      }
+      if (acidBottle.liquidMeniscus) {
+        acidBottle.liquidMeniscus.position.x = 0;
+        acidBottle.liquidMeniscus.rotation.set(Math.PI / 2, 0, 0);
+      }
+      if (acidBottle.liquidHighlight) {
+        acidBottle.liquidHighlight.position.x = 0.03;
+        acidBottle.liquidHighlight.rotation.set(-Math.PI / 2, 0, 0);
+      }
+    }
+
+    function syncBottleLiquidSettling(dt) {
+      updateBottleLiquidSettling(dt);
+    }
+
+    function resetBottleLiquidPose() {
+      resetBottleLiquidSettling();
+    }
+
+    function resetParticlePool(pool) {
+      for (const particle of pool) {
+        particle.active = false;
+      }
+    }
+
+    function applyMotionTarget(group, targetPosition, targetRotationZ, dt, dragging, baseRotationX) {
+      const positionFollow = 1 - Math.exp(-dt * (dragging ? 16 : 4.2));
+      const rotationFollow = 1 - Math.exp(-dt * (dragging ? 9 : 4.2));
+      group.position.lerp(targetPosition, positionFollow);
+      group.rotation.x += (baseRotationX - group.rotation.x) * (1 - Math.exp(-dt * 4.6));
+      group.rotation.y += (0 - group.rotation.y) * (1 - Math.exp(-dt * 4.6));
+      group.rotation.z += (targetRotationZ - group.rotation.z) * rotationFollow;
+    }
+
+    function updateTargetState(currentTarget, currentRotationZ, targetPose, dt, positionSpeed = 2.4, rotationSpeed = 2.8) {
+      currentTarget.lerp(targetPose.position, 1 - Math.exp(-dt * positionSpeed));
+      return THREE.MathUtils.lerp(currentRotationZ, targetPose.rotation.z, 1 - Math.exp(-dt * rotationSpeed));
+    }
+
+    function isPoseReached(group, pose, distanceEpsilon = 0.08, rotationEpsilon = 0.08) {
+      return group.position.distanceTo(pose.position) < distanceEpsilon
+        && Math.abs(group.rotation.z - pose.rotation.z) < rotationEpsilon;
+    }
+
+    function getObjectBaseRotationX(key) {
+      return key === 'sugar' ? 0.16 : 0.12;
+    }
+
+    function getObjectTarget(key) {
+      return key === 'sugar' ? state.sugarDragTarget : state.acidDragTarget;
+    }
+
+    function getObjectRotationTarget(key) {
+      return key === 'sugar' ? state.sugarRotationZ : state.acidRotationZ;
+    }
+
+    function setObjectRotationTarget(key, value) {
+      if (key === 'sugar') {
+        state.sugarRotationZ = value;
+      } else {
+        state.acidRotationZ = value;
+      }
+    }
+
+    function setObjectTargetPose(key, pose) {
+      const target = getObjectTarget(key);
+      target.copy(pose.position);
+      setObjectRotationTarget(key, pose.rotation.z);
+    }
+
+    function setObjectHomeTarget(key) {
+      const object = draggableMap.get(key);
+      if (!object) return;
+      const target = getObjectTarget(key);
+      target.copy(object.homePosition);
+      setObjectRotationTarget(key, object.homeRotation.z);
+    }
+
+    function syncTargetDrivenObject(key, dt, dragging = false) {
+      const object = draggableMap.get(key);
+      if (!object) return;
+      applyMotionTarget(
+        object.group,
+        getObjectTarget(key),
+        getObjectRotationTarget(key),
+        dt,
+        dragging,
+        getObjectBaseRotationX(key)
+      );
+    }
+
+    const reactionBeaker = createReactionBeaker();
+    const sugarJar = createSugarJar();
+    const acidBottle = createAcidBottle();
+    const pourStream = createPourStream();
+    const carbonLumps = createCarbonLumps(18);
+    const steamField = createSteamField(120);
+    const bubbleField = createBubbleField(140);
+    const sparkField = createSparkField(45);
+
+    const bubbleParticles = createParticlePool(140);
+    const steamParticles = createParticlePool(120);
+    const sparkParticles = createParticlePool(45);
+
+    const sugarAutoplayHomePose = {
+      position: sugarJar.homePosition.clone(),
+      rotation: sugarJar.homeRotation.clone(),
+    };
+    const acidAutoplayHomePose = {
+      position: acidBottle.homePosition.clone(),
+      rotation: acidBottle.homeRotation.clone(),
+    };
+
+    const sugarDragBoundsMin = new THREE.Vector3(-5.0, 1.9, -1.9);
+    const sugarDragBoundsMax = new THREE.Vector3(1.3, 4.3, 1.8);
+    const acidDragBoundsMin = new THREE.Vector3(-0.8, 1.95, -1.6);
+    const acidDragBoundsMax = new THREE.Vector3(4.9, 4.8, 1.8);
+
+    const splashGlow = new THREE.Mesh(
+      new THREE.TorusGeometry(1.02, 0.06, 14, 42),
+      new THREE.MeshBasicMaterial({ color: 0xf6b56c, transparent: true, opacity: 0.0 })
+    );
+    splashGlow.rotation.x = Math.PI / 2;
+    splashGlow.position.copy(reactionBeaker.group.position).add(new THREE.Vector3(0, 1.06, 0));
+    scene.add(splashGlow);
+
+    const labels = {
+      beaker: createTextLabel('Cốc phản ứng'),
+      sugar: createTextLabel('Lọ đường'),
+      acid: createTextLabel('H₂SO₄ đặc'),
+    };
+
+    const state = {
+      phase: 'ready',
+      dragging: null,
+      hovered: null,
+      autoplay: false,
+      autoplayStep: 0,
+      autoplayT: 0,
+      reactionT: 0,
+      sugarAdded: false,
+      acidAdded: false,
+      reactionDone: false,
+      pointerHeld: false,
+      pointerId: null,
+      pendingCompletedStep: null,
+      completingStep: null,
+      completionT: 0,
+      completionDuration: 0,
+      completionFromPosition: null,
+      completionFromRotation: null,
+      sugarReturning: false,
+      sugarDragTarget: sugarJar.homePosition.clone(),
+      acidDragTarget: acidBottle.homePosition.clone(),
+      sugarRotationZ: sugarJar.homeRotation.z,
+      acidRotationZ: acidBottle.homeRotation.z,
+      sugarAutoReturning: false,
+      acidAutoPouring: false,
+      acidAutoReturning: false,
+    };
+
+    function isSugarBackHome() {
+      return sugarJar.group.position.distanceTo(sugarJar.homePosition) < 0.08
+        && Math.abs(sugarJar.group.rotation.z - sugarJar.homeRotation.z) < 0.08;
+    }
+
+    function canBeginAcidStep() {
+      return state.sugarAdded && !state.sugarReturning && isSugarBackHome();
+    }
+
+    function resetParticleField(field) {
+      field.positions.fill(9999);
+      field.scales.fill(0);
+      field.alphas.fill(0);
+      field.points.visible = false;
+      field.points.material.opacity = 0;
+      field.geometry.attributes.position.needsUpdate = true;
+      field.geometry.attributes.aScale.needsUpdate = true;
+      field.geometry.attributes.aAlpha.needsUpdate = true;
+    }
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    const sugarPourPose = {
+      position: sugarJar.homePosition.clone(),
+      rotation: new THREE.Euler(0.1, 0.02, 0.94),
+    };
+    const sugarLoadedPose = {
+      position: sugarJar.homePosition.clone(),
+      rotation: new THREE.Euler(0.12, 0.1, 1.04),
+    };
+    const acidPourPose = {
+      position: acidBottle.homePosition.clone(),
+      rotation: new THREE.Euler(0.12, 0.02, -0.98),
+    };
+
+    function snapSugarToPourPose() {
+      alignAnchorToTarget({
+        object: sugarJar.group,
+        sourceAnchor: sugarJar.anchors.pourAlign,
+        targetAnchor: reactionBeaker.anchors.sugarTarget,
+        pose: sugarPourPose,
+      });
+    }
+
+    function snapSugarToLoadedPose() {
+      alignAnchorToTarget({
+        object: sugarJar.group,
+        sourceAnchor: sugarJar.anchors.pourAlign,
+        targetAnchor: reactionBeaker.anchors.sugarTarget,
+        pose: sugarLoadedPose,
+      });
+      sugarJar.group.position.y += 0.12;
+    }
+
+    function snapBottleToPourPose() {
+      alignAnchorToTarget({
+        object: acidBottle.group,
+        sourceAnchor: acidBottle.anchors.pourAlign,
+        targetAnchor: reactionBeaker.anchors.pourTarget,
+        pose: acidPourPose,
+      });
+    }
+
+    function getLoadedSugarPosition() {
+      snapSugarToLoadedPose();
+      return sugarJar.group.position.clone();
+    }
+
+    function getSugarPourPosition() {
+      snapSugarToPourPose();
+      return sugarJar.group.position.clone();
+    }
+
+    function getBottlePourPosition() {
+      snapBottleToPourPose();
+      return acidBottle.group.position.clone();
+    }
+
+    function resetScene() {
+      state.phase = 'ready';
+      state.dragging = null;
+      state.hovered = null;
+      state.autoplay = false;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      state.reactionT = 0;
+      state.sugarAdded = false;
+      state.acidAdded = false;
+      state.reactionDone = false;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+      state.sugarReturning = false;
+      state.sugarAutoReturning = false;
+      state.acidAutoPouring = false;
+      state.acidAutoReturning = false;
+      state.sugarDragTarget.copy(sugarJar.homePosition);
+      state.acidDragTarget.copy(acidBottle.homePosition);
+      state.sugarRotationZ = sugarJar.homeRotation.z;
+      state.acidRotationZ = acidBottle.homeRotation.z;
+      setControlsDragging(controls, false);
+
+      setBottomFillLevel(sugarJar, 1.0);
+      setBottomFillLevel(acidBottle, 1.0);
+
+      sugarJar.group.position.copy(sugarJar.homePosition);
+      sugarJar.group.rotation.copy(sugarJar.homeRotation);
+      acidBottle.group.position.copy(acidBottle.homePosition);
+      acidBottle.group.rotation.copy(acidBottle.homeRotation);
+      resetBottleLiquidSettling();
+
+      sugarJar.shadow.position.set(sugarJar.group.position.x, 1.38, sugarJar.group.position.z);
+      acidBottle.shadow.position.set(acidBottle.group.position.x, 1.45, acidBottle.group.position.z);
+      reactionBeaker.shadow.position.set(reactionBeaker.group.position.x, 1.35, reactionBeaker.group.position.z);
+
+      sugarJar.group.updateMatrixWorld(true);
+      acidBottle.group.updateMatrixWorld(true);
+      reactionBeaker.group.updateMatrixWorld(true);
+
+      reactionBeaker.sugarBase.scale.set(1, 0.24, 1);
+      reactionBeaker.sugarBase.position.y = 0.16;
+      reactionBeaker.sugarBase.material.color.set(0xf2e2b8);
+      reactionBeaker.sugarBase.material.emissiveIntensity = 0.0;
+      reactionBeaker.sugarBase.visible = false;
+      reactionBeaker.sugar.scale.set(1, 0.78, 1);
+      reactionBeaker.sugar.position.y = 0.32;
+      reactionBeaker.sugar.material.color.set(0xf2e2b8);
+      reactionBeaker.sugar.material.emissiveIntensity = 0.0;
+      reactionBeaker.sugar.visible = false;
+      reactionBeaker.caramel.material.opacity = 0.0;
+      reactionBeaker.caramel.visible = false;
+      reactionBeaker.carbon.visible = false;
+      reactionBeaker.carbon.scale.set(1, 0.06, 1);
+      reactionBeaker.carbon.position.y = 0.5;
+
+      pourStream.visible = false;
+      pourStream.material.opacity = 0.0;
+      splashGlow.material.opacity = 0.0;
+      splashGlow.scale.setScalar(1);
+      warmLight.intensity = 5.4;
+
+      for (const lump of carbonLumps) {
+        lump.mesh.visible = false;
+        lump.mesh.scale.setScalar(0.001);
+      }
+      resetParticleField(steamField);
+      resetParticleField(bubbleField);
+      resetParticleField(sparkField);
+      resetParticlePool(bubbleParticles);
+      resetParticlePool(steamParticles);
+      resetParticlePool(sparkParticles);
+
+      setStatus(
+        'Sẵn sàng. Hãy kéo lọ đường vào cốc phản ứng trước.',
+        'Golden path: đường → H₂SO₄ đặc → quan sát cột than đen phồng lên và hơi nước bốc ra.'
+      );
+    }
+
+    resetScene();
+    snapSugarToPourPose();
+    const sugarPourPosition = sugarJar.group.position.clone();
+    resetScene();
+    const sugarLoadedPosition = getLoadedSugarPosition();
+    resetScene();
+    const acidPourPosition = getBottlePourPosition();
+    resetScene();
+    sugarPourPose.position.copy(sugarPourPosition);
+    sugarLoadedPose.position.copy(sugarLoadedPosition);
+    acidPourPose.position.copy(acidPourPosition);
+    resetScene();
+
+    const orderedSteps = ['sugar', 'acid'];
+
+    function getCompletedSteps() {
+      return {
+        sugar: state.sugarAdded,
+        acid: state.acidAdded,
+      };
+    }
+
+    function canAttemptStep(key) {
+      if (key === 'acid' && !canBeginAcidStep()) return false;
+      return canAttemptOrderedStep(key, orderedSteps, getCompletedSteps());
+    }
+
+    function isSugarOverlapReady() {
+      if (!canAttemptStep('sugar')) return false;
+      return modelsOverlapOrNear(sugarJar.group, reactionBeaker.group, 0.28);
+    }
+
+    function isAcidOverlapReady() {
+      if (!canAttemptStep('acid')) return false;
+      return modelsOverlapOrNear(acidBottle.group, reactionBeaker.group, 0.34);
+    }
+
+    function getCompletionPose(key) {
+      if (key === 'sugar') return sugarLoadedPose;
+      if (key === 'acid') return acidPourPose;
+      return null;
+    }
+
+    function getStepCompletionDuration(key) {
+      return key === 'sugar' ? 0.62 : 0.64;
+    }
+
+    function getCompletionEntry(key) {
+      const object = draggableMap.get(key);
+      const pose = getCompletionPose(key);
+      if (!object || !pose) return null;
+      return {
+        object: object.group,
+        pose,
+        duration: getStepCompletionDuration(key),
+      };
+    }
+
+    function completeSugarStep() {
+      snapSugarToLoadedPose();
+      setBottomFillLevel(sugarJar, 0.18);
+      reactionBeaker.sugarBase.visible = true;
+      reactionBeaker.sugar.visible = true;
+      state.sugarAdded = true;
+      state.sugarReturning = true;
+      setObjectHomeTarget('sugar');
+      state.phase = 'sugar-loaded';
+      setStatus('Đã cho đường vào cốc phản ứng.', 'Lọ đường đang trở về vị trí cũ. Khi lọ đã về chỗ, bạn mới có thể kéo chai H₂SO₄ đặc.');
+      return true;
+    }
+
+    function maybeFinishSugarReturn() {
+      if (!state.sugarReturning) return;
+      if (!isSugarBackHome()) return;
+      state.sugarReturning = false;
+      if (!state.acidAdded) {
+        setStatus('Lọ đường đã về vị trí cũ.', 'Bây giờ hãy kéo chai H₂SO₄ đặc đến miệng cốc để rót axit.');
+      }
+    }
+
+    function holdAcidUntilSugarReturns() {
+      return false;
+    }
+
+    function startAcidReaction() {
+      snapBottleToPourPose();
+      state.acidAdded = true;
+      state.phase = 'reacting';
+      state.reactionT = 0;
+      setStatus('H₂SO₄ đặc đã tiếp xúc với đường.', 'Quan sát đường chuyển nâu, bốc hơi nước rồi tạo cột than đen xốp trương phồng.');
+      return true;
+    }
+
+    function completeAcidStep() {
+      if (!state.sugarAdded) {
+        setStatus('Cần cho đường vào cốc trước.', 'Hãy kéo lọ đường overlap với cốc phản ứng rồi mới rót H₂SO₄ đặc.');
+        return false;
+      }
+      if (!canBeginAcidStep()) {
+        setStatus('Chưa thể dùng H₂SO₄ đặc lúc này.', 'Hãy chờ lọ đường quay hẳn về vị trí cũ rồi mới bắt đầu bước rót axit.');
+        return false;
+      }
+      return startAcidReaction();
+    }
+
+    function completeAcidStepInstantly() {
+      if (!state.sugarAdded) {
+        completeSugarStep();
+      }
+      state.sugarReturning = false;
+      sugarJar.group.position.copy(sugarJar.homePosition);
+      sugarJar.group.rotation.copy(sugarJar.homeRotation);
+      state.sugarDragTarget.copy(sugarJar.homePosition);
+      state.sugarRotationZ = sugarJar.homeRotation.z;
+      sugarJar.group.updateMatrixWorld(true);
+      return startAcidReaction();
+    }
+
+    function completeStepInstantly(key) {
+      if (key === 'sugar') return completeSugarStep();
+      if (key === 'acid') return completeAcidStepInstantly();
+      return false;
+    }
+
+    function finalizeStepByKey(key) {
+      return completeStepInstantly(key);
+    }
+
+    function beginCompletionTween(key) {
+      const started = completeOrderedOverlapStep({
+        key,
+        state,
+        order: orderedSteps,
+        completed: getCompletedSteps(),
+        isReady(currentKey) {
+          return currentKey === key;
+        },
+        getCompletion: getCompletionEntry,
+      });
+      if (started) {
+        state.dragging = null;
+        renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      }
+      return started;
+    }
+
+    function completeStepByKey(key) {
+      if (hasActiveCompletion(state, key)) return true;
+      return beginCompletionTween(key);
+    }
+
+    function finishDraggedStep(key) {
+      state.dragging = null;
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      if (!state.pointerHeld) {
+        setControlsDragging(controls, false);
+      }
+      return completeStepByKey(key);
+    }
+
+    function clearAllManualCompletionFlags() {
+      clearStepCompletion(state);
+      state.pendingCompletedStep = null;
+    }
+
+    function cancelManualDrag() {
+      state.dragging = null;
+      clearAllManualCompletionFlags();
+      setControlsDragging(controls, false);
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+    }
+
+    function runManualCompletion(dt) {
+      runStepCompletion(
+        state,
+        dt,
+        getCompletionEntry,
+        (key) => {
+          finalizeStepByKey(key);
+        },
+      );
+    }
+
+    function completeStepForVerifier(key) {
+      clearAllManualCompletionFlags();
+      return completeStepInstantly(key);
+    }
+
+    function tryAutoCompleteDraggedStep(key) {
+      if (!key || !state.dragging || state.dragging !== key) return false;
+      if (key === 'sugar' && isSugarOverlapReady()) return finishDraggedStep(key);
+      if (key === 'acid' && isAcidOverlapReady()) return finishDraggedStep(key);
+      return false;
+    }
+
+    function shouldRelaxObject(key) {
+      if (key === 'sugar' && state.sugarReturning) {
+        return !isStepBusy(state, key);
+      }
+      return !isStepBusy(state, key) && !state.autoplay;
+    }
+
+    function updateShadow(shadow, object, lift = 1.42, scaleBase = 1.0) {
+      shadow.position.x += (object.position.x - shadow.position.x) * 0.2;
+      shadow.position.z += (object.position.z - shadow.position.z) * 0.2;
+      shadow.material.opacity = 0.13 - Math.min(0.06, Math.max(0, (object.position.y - lift) * 0.028));
+      const scale = scaleBase + Math.max(0, (object.position.y - lift) * 0.08);
+      shadow.scale.set(scale, 1, scale * 0.78);
+    }
+
+    const draggableMap = new Map([
+      ['sugar', sugarJar],
+      ['acid', acidBottle],
+    ]);
+
+    function updateLabels() {
+      const beakerPoint = screenPointForAnchor(reactionBeaker.anchors.labelAnchor);
+      labels.beaker.style.left = `${beakerPoint.x}px`;
+      labels.beaker.style.top = `${beakerPoint.y}px`;
+
+      const sugarPoint = screenPointForAnchor(sugarJar.anchors.labelAnchor);
+      labels.sugar.style.left = `${sugarPoint.x}px`;
+      labels.sugar.style.top = `${sugarPoint.y}px`;
+
+      const acidPoint = screenPointForAnchor(acidBottle.anchors.labelAnchor);
+      labels.acid.style.left = `${acidPoint.x}px`;
+      labels.acid.style.top = `${acidPoint.y}px`;
+    }
+
+    function updatePointer(event) {
+      updatePointerFromEvent(event, renderer.domElement, pointer);
+      raycaster.setFromCamera(pointer, camera);
+    }
+
+    function tryPickObject(event) {
+      updatePointer(event);
+      const pickList = [sugarJar.group, acidBottle.group];
+      const hits = raycaster.intersectObjects(pickList, true);
+      if (!hits.length) return null;
+      const mesh = hits[0].object;
+      if (sugarJar.group === mesh || sugarJar.group.children.includes(mesh) || sugarJar.group.children.some((child) => child === mesh || child.children?.includes?.(mesh))) return 'sugar';
+      return 'acid';
+    }
+
+    function getDragState(key) {
+      if (key === 'sugar') {
+        return {
+          object: sugarJar,
+          target: state.sugarDragTarget,
+          boundsMin: sugarDragBoundsMin,
+          boundsMax: sugarDragBoundsMax,
+          baseRotationX: 0.16,
+        };
+      }
+      return {
+        object: acidBottle,
+        target: state.acidDragTarget,
+        boundsMin: acidDragBoundsMin,
+        boundsMax: acidDragBoundsMax,
+        baseRotationX: 0.12,
+      };
+    }
+
+    function clampDragTarget(key) {
+      const dragState = getDragState(key);
+      dragState.target.clamp(dragState.boundsMin, dragState.boundsMax);
+    }
+
+    function updateDragRotationTarget(key) {
+      if (key === 'sugar') {
+        const mouth = getAnchorWorld(reactionBeaker.anchors.sugarTarget);
+        const dx = state.sugarDragTarget.x - mouth.x;
+        const closeToBeaker = Math.max(0, 1 - Math.min(Math.abs(dx) / 2.6, 1));
+        state.sugarRotationZ = THREE.MathUtils.lerp(sugarJar.homeRotation.z, sugarPourPose.rotation.z, closeToBeaker);
+      } else if (key === 'acid') {
+        const mouth = getAnchorWorld(reactionBeaker.anchors.pourTarget);
+        const dx = state.acidDragTarget.x - mouth.x;
+        const closeToBeaker = Math.max(0, 1 - Math.min(Math.abs(dx) / 3.2, 1));
+        state.acidRotationZ = THREE.MathUtils.lerp(acidBottle.homeRotation.z, acidPourPose.rotation.z, closeToBeaker);
+      }
+    }
+
+    function updateDraggedTarget(key, dragPoint) {
+      const dragState = getDragState(key);
+      const gripAnchor = dragState.object.anchors.gripAnchor;
+      dragState.object.group.updateMatrixWorld(true);
+      const gripWorld = getAnchorWorld(gripAnchor);
+      dragState.target.copy(dragState.object.group.position).add(dragPoint.clone().sub(gripWorld));
+      clampDragTarget(key);
+      updateDragRotationTarget(key);
+    }
+
+    function syncDraggedObject(key, dt) {
+      syncTargetDrivenObject(key, dt, true);
+    }
+
+    function clampDraggedObject(key) {
+      const dragState = getDragState(key);
+      dragState.object.group.position.clamp(dragState.boundsMin, dragState.boundsMax);
+    }
+
+    function onPointerDown(event) {
+      const key = tryPickObject(event);
+      if (!key) return;
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+      if (typeof event.stopPropagation === 'function') event.stopPropagation();
+      if (!canAttemptStep(key)) {
+        if (key === 'acid') {
+          if (!state.sugarAdded) {
+            setStatus('Chưa thể hoàn tất bước dùng H₂SO₄ đặc.', 'Bạn vẫn có thể kéo chai tự do, nhưng cần cho đường vào cốc trước.');
+          } else {
+            setStatus('Chưa thể hoàn tất bước dùng H₂SO₄ đặc.', 'Bạn vẫn có thể kéo chai tự do, nhưng hãy chờ lọ đường quay hẳn về vị trí cũ.');
+          }
+        }
+      }
+      state.pointerHeld = true;
+      state.pointerId = event.pointerId ?? null;
+      state.pendingCompletedStep = null;
+      state.dragging = key;
+      state.autoplay = false;
+      if (key === 'sugar') {
+        state.sugarDragTarget.copy(sugarJar.group.position);
+        state.sugarRotationZ = sugarJar.group.rotation.z;
+      } else {
+        state.acidDragTarget.copy(acidBottle.group.position);
+        state.acidRotationZ = acidBottle.group.rotation.z;
+      }
+      setControlsDragging(controls, true);
+      setPointerCaptureSafe(renderer.domElement, event.pointerId);
+      renderer.domElement.style.cursor = 'grabbing';
+      if (key === 'sugar') {
+        setStatus('Đang cầm lọ đường.', 'Chỉ cần kéo lọ đường overlap với cốc phản ứng, scene sẽ tự hoàn tất bước đổ đường vào cốc.');
+      } else {
+        setStatus('Đang cầm chai H₂SO₄ đặc.', 'Chỉ cần đưa chai axit overlap hoặc lại gần toàn bộ cốc, scene sẽ tự căn và rót axit.');
+      }
+    }
+
+    function onPointerMove(event) {
+      updatePointer(event);
+      if (!state.dragging) {
+        if (state.completingStep || state.pendingCompletedStep) return;
+        const key = tryPickObject(event);
+        state.hovered = key;
+        renderer.domElement.style.cursor = key ? 'grab' : 'default';
+        return;
+      }
+      if (intersectPointerPlane({ raycaster, pointer, camera, plane: dragPlane, out: dragPoint })) {
+        updateDraggedTarget(state.dragging, dragPoint);
+        tryAutoCompleteDraggedStep(state.dragging);
+      }
+    }
+
+    function onPointerUp(event) {
+      releasePointerCaptureSafe(renderer.domElement, event.pointerId);
+      if (state.pointerId != null && event.pointerId != null && state.pointerId !== event.pointerId) return;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      if (!state.dragging) {
+        setControlsDragging(controls, false);
+        return;
+      }
+      const key = state.dragging;
+      const completed = tryAutoCompleteDraggedStep(key);
+      if (completed) return;
+      cancelManualDrag();
+      if (key === 'sugar') {
+        setStatus('Lọ đường chưa overlap với cốc.', 'Hãy kéo lọ đường chạm hoặc overlap với cốc phản ứng để scene tự đổ đường vào trong.');
+      } else if (state.sugarAdded) {
+        setStatus('Chai H₂SO₄ đặc chưa đủ gần cốc.', 'Hãy đưa chai axit overlap hoặc lại gần toàn bộ cốc rồi thả ra.');
+      }
+    }
+
+    function onPointerCancel(event) {
+      releasePointerCaptureSafe(renderer.domElement, event.pointerId);
+      if (state.pointerId != null && event.pointerId != null && state.pointerId !== event.pointerId) return;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      cancelManualDrag();
+    }
+
+    function onLostPointerCapture() {
+      state.pointerHeld = false;
+      state.pointerId = null;
+      cancelManualDrag();
+    }
+
+    function onPointerLeave() {
+      if (!state.pointerHeld) {
+        state.hovered = null;
+        renderer.domElement.style.cursor = 'default';
+      }
+    }
+
+    function onPointerMiss(event) {
+      if (!state.pointerHeld || state.dragging || !controls.enabled) return;
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('pointercancel', onPointerCancel);
+    renderer.domElement.addEventListener('lostpointercapture', onLostPointerCapture);
+    renderer.domElement.addEventListener('pointerleave', onPointerLeave);
+    renderer.domElement.addEventListener('pointerdown', onPointerMiss, { capture: true });
+    renderer.domElement.addEventListener('touchstart', onPointerMiss, { capture: true, passive: false });
+    renderer.domElement.addEventListener('mousedown', onPointerMiss, { capture: true });
+    controls.addEventListener('start', () => {
+      if (state.pointerHeld || state.dragging || state.pendingCompletedStep || state.completingStep) {
+        controls.enabled = false;
+      }
+    });
+    controls.addEventListener('end', () => {
+      if (!state.pointerHeld && !state.dragging && !state.pendingCompletedStep && !state.completingStep) {
+        controls.enabled = true;
+      }
+    });
+
+    function runAutoplay(dt) {
+      if (!state.autoplay) return;
+      state.autoplayT += dt;
+
+      if (state.autoplayStep === 0) {
+        state.sugarRotationZ = updateTargetState(state.sugarDragTarget, state.sugarRotationZ, sugarPourPose, dt, 1.55, 1.75);
+        if (isPoseReached(sugarJar.group, sugarPourPose, 0.16, 0.18)) {
+          state.autoplayStep = 1;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 1) {
+        state.sugarRotationZ = updateTargetState(state.sugarDragTarget, state.sugarRotationZ, sugarLoadedPose, dt, 1.55, 1.75);
+        if (isPoseReached(sugarJar.group, sugarLoadedPose, 0.12, 0.12)) {
+          beginCompletionTween('sugar');
+          state.sugarAutoReturning = true;
+          state.autoplayStep = 2;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 2) {
+        state.sugarRotationZ = updateTargetState(state.sugarDragTarget, state.sugarRotationZ, sugarAutoplayHomePose, dt, 1.5, 1.8);
+        if (isSugarBackHome()) {
+          state.sugarReturning = false;
+          state.sugarAutoReturning = false;
+          setObjectHomeTarget('sugar');
+          state.autoplayStep = 3;
+          state.autoplayT = 0;
+          if (!state.acidAdded) {
+            setStatus('Lọ đường đã về vị trí cũ.', 'Bây giờ chai H₂SO₄ đặc sẽ được đưa tới cốc để bắt đầu phản ứng.');
+          }
+        }
+      } else if (state.autoplayStep === 3) {
+        state.acidAutoPouring = true;
+        state.acidRotationZ = updateTargetState(state.acidDragTarget, state.acidRotationZ, acidPourPose, dt, 1.55, 1.75);
+        if (isPoseReached(acidBottle.group, acidPourPose, 0.16, 0.18)) {
+          beginCompletionTween('acid');
+          state.autoplayStep = 4;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 4) {
+        if (state.reactionT >= 1.35) {
+          state.acidAutoPouring = false;
+          state.acidAutoReturning = true;
+          state.autoplayStep = 5;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 5) {
+        state.acidRotationZ = updateTargetState(state.acidDragTarget, state.acidRotationZ, acidAutoplayHomePose, dt, 1.5, 1.8);
+        if (isPoseReached(acidBottle.group, acidAutoplayHomePose, 0.12, 0.12)) {
+          state.acidAutoReturning = false;
+          setObjectHomeTarget('acid');
+          state.autoplayStep = 6;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 6) {
+        if (state.reactionDone || state.reactionT >= 6.8) {
+          state.autoplay = false;
+          state.autoplayStep = 0;
+          state.autoplayT = 0;
+          state.sugarAutoReturning = false;
+          state.acidAutoPouring = false;
+          state.acidAutoReturning = false;
+        }
+      }
+    }
+
+    function isAcidBottleAboveBeaker() {
+      const nozzle = getAnchorWorld(acidBottle.anchors.nozzle);
+      const mouth = getAnchorWorld(reactionBeaker.anchors.mouth);
+      const dx = nozzle.x - mouth.x;
+      const dz = nozzle.z - mouth.z;
+      return Math.hypot(dx, dz) < 0.92 && nozzle.y > mouth.y + 0.25;
+    }
+
+    function updatePourStream() {
+      const shouldPour = state.acidAutoPouring;
+      const pourState = shouldPour ? 1 : 0;
+      if (pourState <= 0.04) {
+        pourStream.visible = false;
+        pourStream.material.opacity = 0.0;
+        return;
+      }
+      const nozzle = getAnchorWorld(acidBottle.anchors.nozzle);
+      const mouth = getAnchorWorld(reactionBeaker.anchors.mouth);
+      const targetStreamLength = Math.max(0, nozzle.y - mouth.y + 0.12);
+      pourStream.visible = targetStreamLength > 0.08;
+      if (!pourStream.visible) return;
+      pourStream.scale.setScalar(1);
+      pourStream.scale.y = targetStreamLength;
+      pourStream.position.copy(nozzle).lerp(mouth, 0.5);
+      pourStream.position.y -= 0.04;
+      pourStream.material.opacity = 0.85;
+    }
+
+    function getReactionPourState() {
+      if (state.acidAutoPouring) return 1;
+      if (!state.acidAdded || state.reactionT > 0.85) return 0;
+      return 1 - smoothstep01(clamp01(state.reactionT / 0.85));
+    }
+
+    function updateParticleMaterials() {
+      const bubbleScales = bubbleField.geometry.attributes.aScale.array;
+      let bubbleMax = 0;
+      for (let i = 0; i < bubbleScales.length; i += 1) {
+        bubbleMax = Math.max(bubbleMax, bubbleScales[i]);
+      }
+      bubbleField.points.material.opacity = bubbleMax > 0 ? 0.88 : 0;
+      bubbleField.points.visible = bubbleMax > 0;
+
+      const steamScales = steamField.geometry.attributes.aScale.array;
+      let steamMax = 0;
+      for (let i = 0; i < steamScales.length; i += 1) {
+        steamMax = Math.max(steamMax, steamScales[i]);
+      }
+      steamField.points.material.opacity = steamMax > 0 ? 0.28 : 0;
+      steamField.points.visible = steamMax > 0;
+
+      const sparkScales = sparkField.geometry.attributes.aScale.array;
+      let sparkMax = 0;
+      for (let i = 0; i < sparkScales.length; i += 1) {
+        sparkMax = Math.max(sparkMax, sparkScales[i]);
+      }
+      sparkField.points.material.opacity = sparkMax > 0 ? 0.7 : 0;
+      sparkField.points.visible = sparkMax > 0;
+    }
+
+    function updateReactionParticles(dt, time, heat, carbonGrowth, pourState) {
+      const bubbleCenter = getAnchorWorld(reactionBeaker.anchors.effectOrigin).add(new THREE.Vector3(0, carbonGrowth * 1.2, 0));
+      const steamCenter = getAnchorWorld(reactionBeaker.anchors.steamOrigin).add(new THREE.Vector3(0, carbonGrowth * 1.6, 0));
+
+      const bubbleBurst = Math.round((3 + heat * 16 + pourState * 12) * dt * 30);
+      for (let i = 0; i < bubbleBurst; i += 1) {
+        spawnParticle(bubbleParticles, bubbleField, bubbleCenter, new THREE.Vector3(1.4, 0.18, 1.4), new THREE.Vector3(0.12, 0.55 + heat * 0.6, 0.12), [0.5, 1.1]);
+      }
+
+      const steamBurst = Math.round((2 + heat * 10) * dt * 26);
+      for (let i = 0; i < steamBurst; i += 1) {
+        spawnParticle(steamParticles, steamField, steamCenter, new THREE.Vector3(1.9, 0.4, 1.9), new THREE.Vector3(0.2, 0.32 + heat * 0.3, 0.2), [1.5, 3.2]);
+      }
+
+      const sparkBurst = Math.round((0.4 + heat * 3.2) * dt * 18);
+      for (let i = 0; i < sparkBurst; i += 1) {
+        spawnParticle(sparkParticles, sparkField, bubbleCenter, new THREE.Vector3(0.8, 0.12, 0.8), new THREE.Vector3(0.35, 0.35 + heat * 0.32, 0.35), [0.25, 0.6]);
+      }
+
+      updateParticleSystem(bubbleParticles, bubbleField, dt, (particle, t, i) => {
+        particle.origin.addScaledVector(particle.velocity, dt);
+        particle.velocity.y += dt * 0.22;
+        particle.velocity.x *= 0.98;
+        particle.velocity.z *= 0.98;
+        bubbleField.scales[i] = (1 - t) * (0.55 + Math.sin((i + time) * 1.7) * 0.08);
+        bubbleField.alphas[i] = 1 - t;
+      });
+
+      updateParticleSystem(steamParticles, steamField, dt, (particle, t, i) => {
+        particle.origin.addScaledVector(particle.velocity, dt);
+        particle.origin.x += Math.sin(time * 0.9 + i) * dt * 0.08;
+        particle.origin.z += Math.cos(time * 0.7 + i * 0.7) * dt * 0.08;
+        steamField.scales[i] = 0.8 + t * 1.8;
+        steamField.alphas[i] = (1 - t) * 0.6;
+      });
+
+      updateParticleSystem(sparkParticles, sparkField, dt, (particle, t, i) => {
+        particle.origin.addScaledVector(particle.velocity, dt);
+        particle.velocity.y -= dt * 0.7;
+        sparkField.scales[i] = (1 - t) * 0.85;
+        sparkField.alphas[i] = (1 - t) * 0.9;
+      });
+    }
+
+    function updateReaction(dt, time) {
+      if (!state.acidAdded) return;
+      reactionBeaker.sugarBase.visible = true;
+      reactionBeaker.sugar.visible = true;
+      reactionBeaker.caramel.visible = true;
+      reactionBeaker.carbon.visible = true;
+      state.reactionT = Math.min(state.reactionT + dt, 9.0);
+      const heat = clamp01(state.reactionT / 3.5);
+      const carbonGrowth = smoothstep01(clamp01((state.reactionT - 0.35) / 6.8));
+      const pulse = Math.sin(time * 16) * 0.045;
+
+      reactionBeaker.sugarBase.scale.y = 0.24 + carbonGrowth * 0.18;
+      reactionBeaker.sugarBase.position.y = 0.16 + carbonGrowth * 0.04;
+      reactionBeaker.sugarBase.material.color.lerpColors(new THREE.Color(0xf2e2b8), new THREE.Color(0x4b2c18), carbonGrowth * 0.92);
+      reactionBeaker.sugarBase.material.emissiveIntensity = 0.1 * heat;
+      reactionBeaker.sugar.scale.y = Math.max(0.08, 0.78 - carbonGrowth * 0.7);
+      reactionBeaker.sugar.position.y = 0.32 - carbonGrowth * 0.16;
+      reactionBeaker.sugar.material.color.lerpColors(new THREE.Color(0xf2e2b8), new THREE.Color(0x352014), carbonGrowth * 0.92);
+      reactionBeaker.sugar.material.emissiveIntensity = 0.14 * heat;
+      reactionBeaker.caramel.material.opacity = 0.14 + heat * 0.38;
+
+      reactionBeaker.carbon.scale.y = 0.06 + carbonGrowth * 8.9 + pulse;
+      reactionBeaker.carbon.scale.x = 1 + carbonGrowth * 0.42;
+      reactionBeaker.carbon.scale.z = 1 + carbonGrowth * 0.36;
+      reactionBeaker.carbon.position.y = 0.48 + reactionBeaker.carbon.scale.y * 0.2;
+
+      splashGlow.material.opacity = 0.12 + Math.sin(time * 6.2) * 0.05 + heat * 0.12;
+      splashGlow.scale.setScalar(1 + heat * 0.1);
+      warmLight.intensity = 5.4 + heat * 6.2;
+
+      for (let i = 0; i < carbonLumps.length; i += 1) {
+        const item = carbonLumps[i];
+        const appear = smoothstep01(clamp01((state.reactionT - (0.9 + i * 0.08)) / 3.8));
+        item.mesh.visible = appear > 0.01;
+        const wobble = Math.sin(time * 3.2 + item.phase) * 0.025;
+        item.mesh.scale.setScalar(0.15 + appear * 1.35 + wobble);
+        item.mesh.position.y = 0.56 + appear * (1.2 + (i % 4) * 0.15);
+      }
+
+      const reactionPourState = getReactionPourState();
+      updateReactionParticles(dt, time, heat, carbonGrowth, reactionPourState);
+
+      setBottomFillLevel(acidBottle, 1 - Math.min(0.45, state.reactionT * 0.034));
+
+      if (state.reactionT > 1.5 && state.reactionT < 5.2) {
+        state.phase = 'carbonizing';
+        setStatus('Đường chuyển nâu rồi đen nhanh, hỗn hợp đang phồng lên.', 'H₂SO₄ đặc hút nước rất mạnh khỏi đường, làm xuất hiện than carbon và hơi nước nóng bốc ra.');
+      } else if (state.reactionT >= 5.2) {
+        state.phase = 'completed';
+        state.reactionDone = true;
+        setStatus('Cột than đen xốp đã trồi lên rõ rệt khỏi cốc.', 'Kết luận: H₂SO₄ đặc háo nước mạnh, tách nước khỏi đường làm hỗn hợp than hóa, bốc hơi và trương phồng thành cột carbon.');
+      }
+    }
+
+    function animate(nowMs) {
+      const time = nowMs / 1000;
+      const dt = animate.lastMs == null ? 0 : Math.min(0.05, (nowMs - animate.lastMs) / 1000);
+      animate.lastMs = nowMs;
+
+      controls.update();
+      runAutoplay(dt);
+      runManualCompletion(dt);
+      updatePourStream();
+      updateReaction(dt, time);
+
+      if (state.dragging === 'sugar') {
+        syncDraggedObject('sugar', dt);
+        clampDraggedObject('sugar');
+      } else if (state.autoplay || state.sugarReturning || state.sugarAutoReturning) {
+        syncTargetDrivenObject('sugar', dt, false);
+      } else if (shouldRelaxObject('sugar')) {
+        setObjectHomeTarget('sugar');
+        syncTargetDrivenObject('sugar', dt, false);
+      }
+      maybeFinishSugarReturn();
+      if (state.dragging === 'acid') {
+        if (holdAcidUntilSugarReturns()) {
+          renderer.domElement.style.cursor = 'default';
+        } else {
+          syncDraggedObject('acid', dt);
+          clampDraggedObject('acid');
+        }
+      } else if (state.autoplay || state.acidAutoPouring || state.acidAutoReturning) {
+        syncTargetDrivenObject('acid', dt, false);
+      } else if (shouldRelaxObject('acid')) {
+        setObjectHomeTarget('acid');
+        syncTargetDrivenObject('acid', dt, false);
+      }
+
+      syncBottleLiquidSettling(dt);
+      updateParticleMaterials();
+
+      if (state.dragging === 'acid' && !canBeginAcidStep()) {
+        // allow free dragging even when the step is gated
+      }
+
+      updateShadow(sugarJar.shadow, sugarJar.group, 1.44, 0.82);
+      updateShadow(acidBottle.shadow, acidBottle.group, 1.45, 0.98);
+      reactionBeaker.shadow.position.x += (reactionBeaker.group.position.x - reactionBeaker.shadow.position.x) * 0.2;
+      reactionBeaker.shadow.position.z += (reactionBeaker.group.position.z - reactionBeaker.shadow.position.z) * 0.2;
+
+      renderer.render(scene, camera);
+      updateLabels();
+      requestAnimationFrame(animate);
+    }
+
+    function runVerifierStep(step) {
+      const key = String(step || '').toLowerCase();
+      if (key === 'load-sugar') {
+        return completeStepForVerifier('sugar');
+      }
+      if (key === 'pour-acid') {
+        if (!state.sugarAdded) runVerifierStep('load-sugar');
+        return completeStepForVerifier('acid');
+      }
+      if (key === 'observe-reaction') {
+        if (!state.acidAdded) runVerifierStep('pour-acid');
+        state.reactionT = Math.max(state.reactionT, 6.6);
+        state.phase = 'completed';
+        state.reactionDone = true;
+        setStatus('Cột than đen xốp đã trồi lên rõ rệt khỏi cốc.', 'Kết luận: H₂SO₄ đặc háo nước mạnh, tách nước khỏi đường làm hỗn hợp than hóa, bốc hơi và trương phồng thành cột carbon.');
+        return true;
+      }
+      return false;
+    }
+
+    function getGripAlignedPosition(object, gripAnchor, targetAnchor, pose = null) {
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      alignAnchorToTarget({ object, sourceAnchor: gripAnchor, targetAnchor, pose });
+      const position = object.position.clone();
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return position;
+    }
+
+    function getAnchorTargetScreenPoint(object, gripAnchor, targetAnchor, pose = null) {
+      const position = getGripAlignedPosition(object, gripAnchor, targetAnchor, pose);
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      if (pose) setObjectPose(object, pose);
+      object.position.copy(position);
+      object.updateMatrixWorld(true);
+      const point = screenPointForAnchor(gripAnchor);
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return point;
+    }
+
+    function getDragPathForKey(key) {
+      if (key === 'load-sugar') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(sugarJar.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(sugarJar.group, sugarJar.anchors.gripAnchor, reactionBeaker.anchors.sugarTarget, sugarPourPose),
+          steps: 22,
+          afterMs: 700,
+        };
+      }
+      if (key === 'pour-acid') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(acidBottle.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(acidBottle.group, acidBottle.anchors.gripAnchor, reactionBeaker.anchors.pourTarget, acidPourPose),
+          steps: 24,
+          afterMs: 900,
+        };
+      }
+      return null;
+    }
+
+    installCoursewareTestHarness({
+      state,
+      mapState(currentState) {
+        return {
+          phase: currentState.phase,
+          sugarAdded: currentState.sugarAdded,
+          acidAdded: currentState.acidAdded,
+          reactionDone: currentState.reactionDone,
+        };
+      },
+      getVerifierMeta() {
+        return {
+          supportsGoldenPath: true,
+          successPhase: 'completed',
+          failureStatusText: 'Thả chưa đúng vị trí',
+        };
+      },
+      getDragPath(sampleId = 'load-sugar') {
+        return getDragPathForKey(String(sampleId || 'load-sugar').toLowerCase());
+      },
+      getGoldenPath() {
+        return [
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['load-sugar'], afterMs: 300 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['pour-acid'], afterMs: 300 },
+          { type: 'wait', ms: 2600, afterMs: 200 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['observe-reaction'], afterMs: 400 },
+          { type: 'wait', ms: 500, afterMs: 200 },
+        ];
+      },
+      runVerifierStep(step) {
+        return runVerifierStep(step);
+      },
+    });
+
+    pourBtn.addEventListener('click', () => {
+      state.autoplay = true;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      setStatus('Đang chạy tự động theo thứ tự đường → H₂SO₄ đặc.', 'Quan sát đường đổi màu, bốc hơi và cột than đen xốp trồi lên khỏi cốc.');
+    });
+
+    resetBtn.addEventListener('click', resetScene);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    });
+
+    resetScene();
+    animate();
+  </script>
+</body>
+</html>

@@ -176,6 +176,22 @@ Nếu apparatus sinh hiệu ứng:
 
 Anchor phải là `Object3D` thật được attach vào `group`, không chỉ là object dữ liệu thuần.
 
+## Label policy
+
+Nhãn phải do apparatus preset cung cấp qua `controllers.setLabel(...)`, không để scene tự tạo hệ thống nhãn riêng cho dụng cụ đã đăng ký.
+
+Với bình, lọ, cốc, ống nghiệm, bình tam giác, và lọ hóa chất rắn:
+
+- `labelAnchor` đặt ở mặt trước thân dụng cụ.
+- `attachFixedPlaneLabel(..., { role: 'vessel-body-label' })` dùng cho nhãn dán thân.
+- Nhãn không được nổi phía trên miệng bình nếu nội dung là tên chất/dung dịch.
+
+Với dụng cụ nhỏ, nguồn nhiệt, và mẫu vật rời như giấy quỳ, ống nhỏ giọt, phễu, đèn cồn, hoặc đinh sắt:
+
+- `labelAnchor` đặt tại vị trí badge dễ đọc nhưng không che vùng thao tác.
+- `attachFixedPlaneLabel(..., { role: 'floating-badge' })` dùng cho nhãn nhận diện.
+- Scene chỉ gọi `controllers.setLabel(...)`; nếu preset chưa hỗ trợ thì cập nhật preset trước.
+
 ### `constraints`
 
 Tối thiểu:
@@ -382,20 +398,20 @@ Khi gọi LLM sinh một chemistry experiment mới, prompt phải yêu cầu r�
 Library apparatus chuẩn hiện được tách thành 4 tầng:
 
 1. Core helpers:
-   - [lib/apparatus/core.js](/home/ding/chem-courseware-skill-base/lib/apparatus/core.js)
+   - `lib/apparatus/core.js`
    - chứa anchor helpers, liquid controllers, validator runners, và apparatus composer
 2. Contract metadata:
-   - [lib/apparatus/contract.js](/home/ding/chem-courseware-skill-base/lib/apparatus/contract.js)
-   - [lib/apparatus/capabilities.js](/home/ding/chem-courseware-skill-base/lib/apparatus/capabilities.js)
-   - [lib/apparatus/registry.js](/home/ding/chem-courseware-skill-base/lib/apparatus/registry.js)
+   - `lib/apparatus/contract.js`
+   - `lib/apparatus/capabilities.js`
+   - `lib/apparatus/registry.js`
    - chuẩn hóa contract metadata, capability matching, và registry query
 3. Preset apparatus:
-   - [lib/apparatus/presets.js](/home/ding/chem-courseware-skill-base/lib/apparatus/presets.js)
+   - `lib/apparatus/presets.js`
    - hiện export các preset factory dùng chung như `createBeakerApparatus`, `createBottleApparatus`, `createReagentBottleApparatus`, `createErlenmeyerApparatus`, `createTestTubeApparatus`, `createDropperApparatus`, `createAlcoholBurnerApparatus`, `createSolidReagentJarApparatus`, `createLitmusPaperApparatus`, và `createFunnelApparatus`
 4. Integration layer:
-   - [lib/apparatus/index.js](/home/ding/chem-courseware-skill-base/lib/apparatus/index.js) là public barrel cho Node/test/browser facade
-   - [templates/apparatus-scaffold.js](/home/ding/chem-courseware-skill-base/templates/apparatus-scaffold.js) là browser module facade để import nhanh
-   - [scripts/build-apparatus-inline-bundle.mjs](/home/ding/chem-courseware-skill-base/scripts/build-apparatus-inline-bundle.mjs) sinh ra [templates/apparatus-inline-snippet.js](/home/ding/chem-courseware-skill-base/templates/apparatus-inline-snippet.js) cho các HTML self-contained
+   - `lib/apparatus/index.js` là public barrel cho Node/test/browser facade
+   - `templates/apparatus-scaffold.js` là browser module facade để import nhanh
+   - `scripts/build-apparatus-inline-bundle.mjs` sinh ra `templates/apparatus-inline-snippet.js` cho các HTML self-contained
    - inline bundle được giữ gần với public surface của apparatus để scene self-contained vẫn dùng được các helper/preset/registry chính, nhưng nếu cần canonical module surface đầy đủ thì ưu tiên import từ barrel hoặc scaffold tùy môi trường dùng thật sự của scene đó.
 
 ## Cách dùng khuyến nghị
@@ -433,10 +449,31 @@ console.log(pourableTargets.length);
 rtk node scripts/build-apparatus-inline-bundle.mjs
 ```
 
-2. Paste nội dung [templates/apparatus-inline-snippet.js](/home/ding/chem-courseware-skill-base/templates/apparatus-inline-snippet.js) vào trong `<script type="module">` sau khi đã import `THREE`.
+2. Paste nội dung `templates/apparatus-inline-snippet.js` vào trong `<script type="module">` sau khi đã import `THREE`.
 
-### 3. Smoke reference
+### 3. Cảnh báo tham số khởi tạo (Initialization Parameters Warning)
+
+- **Tuyệt đối sử dụng `parent: <group>` thay vì `group: <group>`** khi gọi các hàm khởi tạo preset (như `createTestTubeApparatus`, `createReagentBottleApparatus`, v.v.).
+- Apparatus sẽ tự động tạo `group` của riêng nó bên trong và `add` vào `parent` mà bạn truyền vào. Nếu bạn truyền `group: <group>`, đối tượng apparatus sẽ không được đưa vào cảnh 3D và dẫn đến việc không hiển thị gì cả.
+
+Ví dụ đúng:
+```js
+const tubeApparatus = createTestTubeApparatus({
+  parent: tubeGroup, // ĐÚNG
+  radius: 0.18
+});
+```
+
+Ví dụ sai:
+```js
+const tubeApparatus = createTestTubeApparatus({
+  group: tubeGroup, // SAI (apparatus sẽ không được render)
+  radius: 0.18
+});
+```
+
+### 4. Smoke reference
 
 File tham chiếu import-library tối thiểu:
 
-- [examples/apparatus-library-smoke.html](/home/ding/chem-courseware-skill-base/examples/apparatus-library-smoke.html)
+- `examples/apparatus-library-smoke.html`

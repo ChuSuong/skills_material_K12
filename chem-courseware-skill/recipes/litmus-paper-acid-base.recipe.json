@@ -1,0 +1,29 @@
+{
+  "id": "litmus-paper-acid-base",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "wide-compare",
+  "requiredApparatus": ["litmus-paper", "beaker"],
+  "interaction": "free-drag-contact",
+  "reaction": "acid-base-indicator",
+  "effects": ["glow-ring", "color-transition"],
+  "resultSustainEffects": ["glow-ring"],
+  "steps": [
+    {
+      "id": "dip-litmus",
+      "type": "drag-drop-anchor",
+      "source": "litmus-paper.gripAnchor",
+      "sourcePlacementAnchor": "litmus-paper.sampleZone",
+      "target": "beaker.effectOrigin",
+      "targetRadius": 0.62,
+      "overlapPadding": 0.24,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "acid-base-indicator",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

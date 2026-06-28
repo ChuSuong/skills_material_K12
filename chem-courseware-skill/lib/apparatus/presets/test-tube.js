@@ -5,6 +5,8 @@ import {
   addToParent,
   applyTransform,
   attachCommonLiquidControllers,
+  attachFixedPlaneLabel,
+  attachLabelController,
   buildLiquidMaterials,
   cloneMaterial,
   createDefaultGlassMaterial,
@@ -60,7 +62,9 @@ export function createTestTubeApparatus({
   group.add(liquidSurface);
 
   const anchors = {
-    labelAnchor: makeAnchor(group, 0, height + 0.3, 0, `${name}:labelAnchor`),
+    labelAnchor: makeAnchor(group, 0, height * 0.54, radius + 0.055, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, height * 0.62, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, height - 0.12, 0, `${name}:interactionZone`),
     mouth: makeAnchor(group, 0, height, 0, `${name}:mouth`),
     pourTarget: makeAnchor(group, 0, height - 0.12, 0, `${name}:pourTarget`),
     effectOrigin: makeAnchor(group, 0, 0.8, 0, `${name}:effectOrigin`),
@@ -110,6 +114,15 @@ export function createTestTubeApparatus({
     state,
     meta: { liquidProfile, appearance: appearance.name },
   });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(Math.max(radius * 2.65, 0.46), Math.max(height * 0.22, 0.34)),
+    role: 'vessel-body-label',
+  });
+
   attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   return apparatus;
 }

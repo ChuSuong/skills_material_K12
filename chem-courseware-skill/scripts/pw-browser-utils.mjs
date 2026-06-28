@@ -1,6 +1,11 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { startStaticServer } from './local-static-server.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
 
 function trimText(value, max = 600) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
@@ -17,15 +22,46 @@ export function detectWebglFailure(result) {
   return hasWebglFailure([...(result.consoleMessages || []), ...(result.pageErrors || [])]);
 }
 
-export async function runPlaywrightPage({ htmlPath, actions = [], timeoutMs = 20000, viewport = { width: 1440, height: 960 }, screenshotPath = null }) {
+function resolveServerRoot(absoluteHtmlPath, serverRoot) {
+  if (serverRoot) {
+    return path.resolve(serverRoot);
+  }
+  const relativeToRepo = path.relative(repoRoot, absoluteHtmlPath);
+  if (relativeToRepo && !relativeToRepo.startsWith('..') && !path.isAbsolute(relativeToRepo)) {
+    return repoRoot;
+  }
+  return path.dirname(absoluteHtmlPath);
+}
+
+async function runPageVerifierStep(page, step) {
+  const handled = await page.evaluate((verifierStep) => {
+    const api = window.__coursewareTestApi;
+    if (typeof api?.runVerifierStep !== 'function') {
+      return false;
+    }
+    return api.runVerifierStep(verifierStep);
+  }, step);
+  if (!handled) {
+    throw new Error(`Unsupported golden path step: ${JSON.stringify(step)}`);
+  }
+}
+
+export async function runPlaywrightPage({
+  htmlPath,
+  actions = [],
+  timeoutMs = 20000,
+  viewport = { width: 1440, height: 960 },
+  screenshotPath = null,
+  serverRoot = null,
+}) {
   const absoluteHtmlPath = path.resolve(htmlPath);
-  const serverRoot = '/home/ding';
-  const server = await startStaticServer(serverRoot);
-  const relativePath = path.relative(serverRoot, absoluteHtmlPath).replace(/\\/g, '/');
+  const resolvedServerRoot = resolveServerRoot(absoluteHtmlPath, serverRoot);
+  const server = await startStaticServer(resolvedServerRoot);
+  const relativePath = path.relative(resolvedServerRoot, absoluteHtmlPath).replace(/\\/g, '/');
 
   if (!relativePath || relativePath.startsWith('..')) {
     await server.close();
-    throw new Error(`HTML path must be under ${serverRoot}: ${absoluteHtmlPath}`);
+    throw new Error(`HTML path must be under ${resolvedServerRoot}: ${absoluteHtmlPath}`);
   }
 
   const pageUrl = `${server.origin}/${relativePath}`;
@@ -67,6 +103,7 @@ export async function runPlaywrightPage({ htmlPath, actions = [], timeoutMs = 20
     });
   });
   page.on('pageerror', (error) => {
+    console.error('PAGE ERROR STACK:', error.stack || error.message);
     pageErrors.push({ message: trimText(error.message, 1000) });
   });
 
@@ -146,10 +183,12 @@ export async function runPlaywrightPage({ htmlPath, actions = [], timeoutMs = 20
               return fn(...(Array.isArray(args) ? args : []));
             }, { method: step.method, args: step.args || [] });
           } else {
-            throw new Error(`Unsupported golden path step: ${JSON.stringify(step)}`);
+            await runPageVerifierStep(page, step);
           }
           await page.waitForTimeout(step?.afterMs || 400);
         }
+      } else if (action.type === 'runVerifierStep') {
+        await runPageVerifierStep(page, action.step || action);
       } else if (action.type === 'dragWireFromPageApi') {
         const loadPath = await page.evaluate((sampleId) => window.__flameTestApi?.getWireLoadPath?.(sampleId) ?? null, action.sampleId || 'Li');
         if (!loadPath?.from || !loadPath?.to) {
@@ -198,6 +237,8 @@ export async function runPlaywrightPage({ htmlPath, actions = [], timeoutMs = 20
     const statusSubAfter = trimText(await page.locator('#statusSub').innerText().catch(() => ''), 400);
     const pageState = await page.evaluate(() => window.__coursewareTestApi?.getState?.() ?? window.__flameTestApi?.getState?.() ?? null).catch(() => null);
     const coursewareApiMeta = await page.evaluate(() => window.__coursewareTestApi?.getVerifierMeta?.() ?? null).catch(() => null);
+    const coursewareApiCapabilities = await page.evaluate(() => window.__coursewareTestApi?.getCapabilities?.() ?? null).catch(() => null);
+    const coursewareApiStepContract = await page.evaluate(() => window.__coursewareTestApi?.getStepContract?.() ?? null).catch(() => null);
 
     if (screenshotPath) {
       await page.screenshot({ path: path.resolve(screenshotPath), fullPage: true });
@@ -221,6 +262,8 @@ export async function runPlaywrightPage({ htmlPath, actions = [], timeoutMs = 20
       statusSubChanged: statusSubBefore !== statusSubAfter,
       pageState,
       coursewareApiMeta,
+      coursewareApiCapabilities,
+      coursewareApiStepContract,
       buttonSelectors,
       consoleMessages,
       pageErrors,

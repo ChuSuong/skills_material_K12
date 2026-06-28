@@ -1,0 +1,39 @@
+{
+  "id": "sugar-h2so4-dehydration",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["beaker", "reagent-bottle", "solid-reagent-jar"],
+  "interaction": "free-drag-pour",
+  "reaction": "dehydration-carbonization",
+  "effects": ["pour-stream", "bubble-field", "steam-field", "spark-field", "glow-ring"],
+  "resultSustainEffects": ["steam-field", "glow-ring"],
+  "steps": [
+    {
+      "id": "add-sugar",
+      "type": "drag-drop-anchor",
+      "source": "solid-reagent-jar.gripAnchor",
+      "sourcePlacementAnchor": "solid-reagent-jar.dropAnchor",
+      "target": "beaker.mouth",
+      "targetRadius": 0.7,
+      "overlapPadding": 0.3,
+      "onComplete": "stage-solid"
+    },
+    {
+      "id": "pour-acid",
+      "type": "drag-pour-anchor",
+      "source": "reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "reagent-bottle.pourAlign",
+      "target": "beaker.pourTarget",
+      "targetRadius": 0.78,
+      "overlapPadding": 0.32,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "dehydration-carbonization",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

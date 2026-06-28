@@ -14,6 +14,14 @@ Start from the chemistry teaching goal, not from the rendering technology.
 - If no chemistry skill fits, first research or pull a reusable skill, then delegate new skill creation to `chem-skill-builder` only when needed.
 - Require verification and UI review before calling the output done.
 
+## Architecture conventions
+
+- **Skill boundary:** This orchestrator decides the courseware route and verification gates. It must not duplicate detailed 3D apparatus, interaction, effect, or reaction rules; those belong in `chem-3d-experiment`.
+- **Compiler-first pipeline:** Prefer producing a semantic draft and assembling through `scripts/compile-semantic-draft.mjs` + `scripts/assemble-courseware.mjs` before hand-writing standalone HTML. See `docs/semantic-draft-contract.md` and `docs/generated-artifact-contract.md`.
+- **Recipe-builder first experiments:** For common 3D experiments, choose an existing `recipes/*.recipe.json` before writing scene code. If `scripts/build-recipe-scene.mjs` supports the recipe, generate only `semantic-draft.json` and run `rtk node scripts/compile-semantic-draft.mjs <draft-dir>/semantic-draft.json`; do not hand-write `<slug>.scene.js`.
+- **Proposal-first unsupported experiments:** If a lesson maps to a known chemistry pattern but no supported recipe builder exists, create `recipe-proposal.json` from `recipes/pattern-catalog.json` instead of generating HTML. See `docs/recipe-proposal-workflow.md`.
+- **3D implementation contract:** After routing to `chem-3d-experiment`, follow that skill's apparatus, recipe, interaction, effect, and reaction hard gates. Do not restate or override them here.
+
 ## Supported courseware types
 1. **3D experiment simulation**
    - Use `chem-3d-experiment`
@@ -39,6 +47,14 @@ Before picking a route, extract:
 - what the learner must do on screen
 - what evidence proves the output works
 - whether precise placement, camera framing, or motion quality is critical to learning success
+
+## New 3D experiment request flow
+For `chem-3d-experiment` requests:
+- First check whether the request maps to a recipe supported by `scripts/build-recipe-scene.mjs`.
+- If supported, create `semantic-draft.json`, compile, assemble, and verify.
+- If a recipe exists but is not builder-supported, stop before HTML and create a `recipe-proposal.json` or builder backlog item.
+- If no recipe exists but the request matches a pattern in `recipes/pattern-catalog.json`, generate `recipe-proposal.json` using `scripts/propose-recipe-from-pattern.mjs`, then validate with `scripts/validate-recipe-proposal.mjs`.
+- Do not hand-write `<slug>.scene.js` for unsupported or missing recipes.
 
 ## Phenomenon mapping (avoid dry diagrams)
 When the prompt sounds like a graph/table/definition (e.g., rate vs time, amount vs time), **do not default to schematic diagrams**.
@@ -81,67 +97,19 @@ Keep chemistry terminology precise, natural, and easy to read for Vietnamese lea
 ## Common output contract
 All generated chemistry courseware should follow these defaults unless the user explicitly requests otherwise:
 - output a direct-openable self-contained HTML experience
-- keep the scene or learning stage visually dominant
+- keep the learning stage visually dominant
 - prefer a full-screen layout with no accidental page scroll
 - include a visible learner status area
 - include one primary learner action
-- keep the camera stable by default; avoid auto-follow camera motion unless the user or learning objective explicitly requires it
-- for direct-manipulation scenes, still allow normal learner camera orbit/zoom when not dragging an object; disable camera controls only during active object drag when needed
-- default to object-first interaction whenever feasible: learners can pick up, hold, drag/drop freely, and place the important scene objects directly in 3D
-- allow free drag/drop for learner-manipulable objects unless the chemistry requires constraints or exact placement rules
-- when it helps the lesson and remains readable/testable, allow objects to be thrown/tossed via release velocity instead of always snapping back
-- make the primary action happen on the scene objects themselves whenever the learner can reasonably grab, drag, open, tilt, place, touch, or toss something in 3D
-- keep autoplay and button-triggered narration as secondary guidance paths, not the main interaction, unless the user explicitly asks for button-first behavior
 - include a reset path back to a ready state
 - make the chemistry legible through before/during/after state differences
-- if free drag/drop/throw is enabled, still preserve a deterministic golden path for Playwright interaction checks
-- avoid chaotic physics that obscures the chemistry or makes the lesson feel like a toy
-
-## Interaction priority note
-If the user requests free manipulation (grab/drag/drop/throw):
-- route to `chem-3d-experiment` unless another skill is a clearly better fit
-- prioritize scene-object interaction over panel controls
-- keep one obvious primary object to manipulate
-- keep reset strong and deterministic
-- keep the chemistry change observable and reliably triggerable
-
-## Non-interactive objects
-Not every mesh must be movable.
-Default the important learner-facing objects to be movable, but leave background decor static unless interaction directly supports the learning goal.
-
-## Default UI contract
-Prefer these selectors when generating the first pass so test and review steps can interact reliably:
-- `#statusText` for the main learner-facing state
-- `#statusSub` for supporting state or hint text
-- `#pourBtn` or `[data-action="autoplay"]` for the primary action
-- `#resetBtn` or `[data-action="reset"]` for reset
+- preserve a deterministic verification path for the chosen format
 
 ## Reuse rules
 When the chosen path is 3D:
-- use `threejs-fundamentals` for scene, camera, lighting, and renderer setup
-- use `threejs-interaction` for grabbing, holding, drag/drop, release, click, pointer, controls, and interaction flow
-- when the lesson benefits from it and readability stays strong, allow release velocity to create short throw/toss behavior instead of forcing immediate snap-back
-- use `threejs-animation` for reaction motion, transitions, particles, growth, and stateful visual effects
-- default to direct scene interaction for apparatus, tools, containers, doors, lids, specimens, or household objects instead of relying on panel buttons to drive the chemistry
-- for life-application scenes, prefer meaningful object manipulation such as moving a torch, opening a fridge door, touching or rotating a jar, placing an item into position, or briefly tossing a suitable object so the learner causes the observable change in the scene
-- if free movement is enabled, keep one deterministic golden path for Playwright and preserve a stable reset path back to the ready state
-- do not allow free manipulation or throw/toss behavior to break apparatus alignment, reaction anchors, or chemistry legibility
-- for apparatus-driven scenes, require the output to follow `docs/apparatus-standard.md`
-- for apparatus-driven scenes, require anchor-based geometry and validation instead of free-floating physics targets
-- if a common labware/tool is missing, prefer adding a reusable preset module under `lib/apparatus/presets/*.js` and exposing it through `lib/apparatus/presets.js` before patching scene-local world-space coordinates
-- when a 3D chemistry scene repeats generic helpers, prefer reusing `lib/interaction/direct-manipulation.js`, `lib/runtime/timeline.js`, and `lib/testing/harness.js` instead of copying scene-local pointer, timeline, or Playwright harness utilities into each HTML
-- keep those shared helpers thin and scene-agnostic: extract only proven repeated patterns, not a large framework
-
-When visual fidelity matters (flame/smoke/sparks/glow/photons, subtle gradients):
-- prefer `threejs-shaders` + `threejs-textures` for procedural look and believable motion
-- consider `threejs-postprocessing` for mild bloom/glow (avoid heavy cinematic grading)
-
-When scene realism/readability matters:
-- route to `chem-3d-experiment` unless another chemistry skill is a clearly better fit
-- use `threejs-materials` + `threejs-lighting` to keep apparatus and reaction zone legible
-- use `threejs-geometry` for better-shaped apparatus/effects when primitives look too toy-like
-- use `threejs-shaders` + `threejs-textures` when flame, smoke, glow, condensation, bubbles, or subtle surface variation are important to the learning goal
-- use `threejs-loaders` only when importing external models/assets is justified
+- route to `chem-3d-experiment`
+- use the local Three.js skills only as supporting references after `chem-3d-experiment` defines the contract
+- do not copy detailed apparatus, interaction, effect, reaction, label, or verifier rules into this orchestrator
 
 Do not copy large Three.js references into the output prompt. Reuse the existing skills deliberately.
 
@@ -156,6 +124,9 @@ Before reporting completion:
 
 ## Playwright verification order
 Run these checks against the generated HTML output:
+- `node scripts/audit-experiment-scene-contract.mjs <draft-dir>` for apparatus-driven experiments
+- `node scripts/audit-recipe-scene-contract.mjs <draft-dir>` when `semantic-draft.json.recipe` is set
+- `npm run verify:pw:contract` for recipe-builder generated HTML
 - `npm run test:format` with `COURSEWARE_HTML` pointing to the generated file
 - `node scripts/pw-smoke-open-html.mjs <html-path>`
 - `node scripts/pw-assert-canvas-visible.mjs <html-path>`

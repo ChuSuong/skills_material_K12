@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng tạo kết tủa PbI₂</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(10, 16, 28, 0.72);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #7ae3ff;
+      --yellow: #ffd84d;
+      --yellow-soft: rgba(255, 216, 77, 0.22);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #22304f 0%, #0a1120 48%, #05070c 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 360px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .panel p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .panel .hint {
+      margin-top: 12px;
+      color: #dff8ff;
+    }
+
+    .legend {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 272px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(9, 13, 24, 0.68);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(16px);
+    }
+
+    .legend h2 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      color: #c3d7ff;
+    }
+
+    .legend ul {
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      min-width: 320px;
+      max-width: 420px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(7, 10, 18, 0.72);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .status .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #91ddff;
+      margin-bottom: 8px;
+    }
+
+    .status .value {
+      font-size: 17px;
+      line-height: 1.45;
+      color: #fff;
+    }
+
+    .status .sub {
+      margin-top: 8px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    button {
+      border: 0;
+      min-width: 132px;
+      height: 46px;
+      padding: 0 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      color: #101624;
+      background: linear-gradient(135deg, #fff0a4, #ffd34a);
+      box-shadow: 0 12px 30px rgba(255, 216, 77, 0.32);
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    button.secondary {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: none;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    @media (max-width: 900px) {
+      .panel, .legend, .status {
+        max-width: calc(100vw - 28px);
+        left: 14px;
+        right: 14px;
+      }
+
+      .legend {
+        top: auto;
+        bottom: 94px;
+        width: auto;
+      }
+
+      .controls {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        justify-content: space-between;
+      }
+
+      button {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="panel">
+      <h1>Tạo kết tủa vàng PbI₂</h1>
+      <p>Kéo từng chai dung dịch vào đúng vùng rót của beaker trung tâm theo thứ tự. Khi các ion gặp nhau, chất rắn màu vàng sẽ xuất hiện và dần lắng xuống.</p>
+      <p class="hint">Phản ứng mô phỏng: Pb(NO₃)₂(aq) + 2KI(aq) → PbI₂(s) + 2KNO₃(aq).</p>
+    </div>
+
+    <div class="legend">
+      <h2>Điều cần quan sát</h2>
+      <ul>
+        <li>Kéo chai Pb(NO₃)₂ vào trước, rồi mới đến chai KI.</li>
+        <li>Dòng chất lỏng bám theo vị trí chai khi tiến gần beaker.</li>
+        <li>Thả sai vị trí thì chai tự quay về chỗ cũ.</li>
+        <li>Sau khi đủ hai bước, đám mây vàng và kết tủa PbI₂ xuất hiện.</li>
+      </ul>
+    </div>
+
+    <div class="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div class="value" id="statusText">Bước 1/2: Kéo chai Pb(NO₃)₂ đến miệng beaker trung tâm.</div>
+      <div class="sub" id="statusSub">Có thể kéo nền để xoay góc nhìn. Kéo đúng chai và đưa đầu chai vào vùng rót sáng phía trên beaker.</div>
+    </div>
+
+    <div class="controls">
+      <button class="secondary" id="resetBtn" data-action="reset">Đặt lại</button>
+      <button id="pourBtn" data-action="autoplay">Chạy từng bước</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function clamp01(value) {
+      return clamp(value, 0, 1);
+    }
+
+    function smoothstep01(value) {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    }
+
+    function cloneMaterial(material, fallback) {
+      return (material || fallback).clone();
+    }
+
+    function makeAnchor(parent, x = 0, y = 0, z = 0, name = '') {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      if (name) anchor.name = name;
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function getApparatusId(apparatus) {
+      return apparatus?.meta?.id || apparatus?.group?.name || apparatus?.kind || 'apparatus';
+    }
+
+    function getCanvasBox(renderer) {
+      return renderer.domElement.getBoundingClientRect();
+    }
+
+    function projectWorldToCanvas(target, camera, renderer, offset = new THREE.Vector3()) {
+      const rect = getCanvasBox(renderer);
+      const anchor = typeof target?.getWorldPosition === 'function'
+        ? target.getWorldPosition(new THREE.Vector3())
+        : target.clone();
+      const projected = anchor.add(offset).project(camera);
+      return {
+        x: rect.left + ((projected.x + 1) * 0.5) * rect.width,
+        y: rect.top + ((-projected.y + 1) * 0.5) * rect.height,
+      };
+    }
+
+    function projectPoseAnchorToCanvas(object, anchor, pose, camera, renderer) {
+      if (!object || !anchor || !pose) {
+        return null;
+      }
+      const previousPosition = object.position.clone();
+      const previousRotation = object.rotation.clone();
+      object.position.copy(pose.position);
+      object.rotation.copy(pose.rotation);
+      object.updateMatrixWorld(true);
+      const point = projectWorldToCanvas(anchor, camera, renderer);
+      object.position.copy(previousPosition);
+      object.rotation.copy(previousRotation);
+      object.updateMatrixWorld(true);
+      return point;
+    }
+
+    function withTargetCanvasPadding(point, key) {
+      if (!point) {
+        return null;
+      }
+      return {
+        x: point.x,
+        y: point.y + (key === 'lead' ? 8 : 6),
+      };
+    }
+
+    function installCoursewareTestHarness({
+      state,
+      mapState,
+      getVerifierMeta,
+      getGoldenPath,
+      getDragPath,
+      dragFromPageApi,
+      runVerifierStep,
+    }) {
+      window.__coursewareTestApi = {
+        getState() {
+          return mapState(state);
+        },
+        getVerifierMeta() {
+          return typeof getVerifierMeta === 'function' ? getVerifierMeta(state) : null;
+        },
+        getGoldenPath() {
+          return typeof getGoldenPath === 'function' ? getGoldenPath(state) : null;
+        },
+        getDragPath(sampleId) {
+          return typeof getDragPath === 'function' ? getDragPath(sampleId, state) : null;
+        },
+        dragFromPageApi(args) {
+          return typeof dragFromPageApi === 'function' ? dragFromPageApi(args, state) : false;
+        },
+        runVerifierStep(step) {
+          return typeof runVerifierStep === 'function' ? runVerifierStep(step, state) : false;
+        },
+      };
+      return window.__coursewareTestApi;
+    }
+
+    function composeApparatus({ kind, family, group, meshes = {}, anchors = {}, constraints = {}, controllers = {}, validators = [], state = {}, meta = {} }) {
+      return { kind, family, group, meshes, anchors, constraints, controllers, validators, state, meta };
+    }
+
+    function createDefaultGlassMaterial() {
+      return new THREE.MeshPhysicalMaterial({
+        color: 0xe8f7ff,
+        transparent: true,
+        opacity: 0.28,
+        transmission: 0.92,
+        roughness: 0.08,
+        thickness: 0.12,
+        side: THREE.DoubleSide,
+      });
+    }
+
+    function buildAppearance(config) {
+      return {
+        ...config,
+        createLiquidMaterial(overrides = {}) {
+          return new THREE.MeshPhysicalMaterial({
+            color: config.color,
+            transparent: true,
+            opacity: config.opacity,
+            transmission: config.transmission,
+            roughness: config.roughness,
+            thickness: config.thickness,
+            ...overrides,
+          });
+        },
+        createSurfaceMaterial(overrides = {}) {
+          return new THREE.MeshStandardMaterial({
+            color: config.surfaceColor,
+            transparent: true,
+            opacity: config.surfaceOpacity,
+            roughness: config.surfaceRoughness ?? 0.2,
+            ...overrides,
+          });
+        },
+      };
+    }
+
+    function clearWater() {
+      return buildAppearance({
+        name: 'clearWater',
+        color: 0x9ddfff,
+        opacity: 0.38,
+        transmission: 0.72,
+        roughness: 0.1,
+        thickness: 0.18,
+        surfaceColor: 0xe6f8ff,
+        surfaceOpacity: 0.28,
+      });
+    }
+
+    function diluteAcid() {
+      return buildAppearance({
+        name: 'diluteAcid',
+        color: 0xdff5ff,
+        opacity: 0.52,
+        transmission: 0.52,
+        roughness: 0.08,
+        thickness: 0.24,
+        surfaceColor: 0xc9efff,
+        surfaceOpacity: 0.34,
+      });
+    }
+
+    function yellowPrecipitate() {
+      return buildAppearance({
+        name: 'yellowPrecipitate',
+        color: 0xe9d27f,
+        opacity: 0.7,
+        transmission: 0.04,
+        roughness: 0.82,
+        thickness: 0.08,
+        surfaceColor: 0xf3de98,
+        surfaceOpacity: 0.54,
+      });
+    }
+
+    function createLabelTexture({ title = '', subtitle = '', note = '', accent = '#84ddff' } = {}) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640;
+      canvas.height = 320;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fffdf8';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = accent;
+      ctx.lineWidth = 10;
+      ctx.strokeRect(22, 22, canvas.width - 44, canvas.height - 44);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#163246';
+      ctx.font = '700 52px sans-serif';
+      ctx.fillText(title, canvas.width / 2, 96);
+      ctx.fillStyle = '#0f4b6f';
+      ctx.font = '500 30px sans-serif';
+      ctx.fillText(subtitle, canvas.width / 2, 168);
+      ctx.fillStyle = '#4b5968';
+      ctx.font = '500 24px sans-serif';
+      ctx.fillText(note, canvas.width / 2, 232);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function attachFixedPlaneLabel({ labelAnchor, planeGeometry, role = 'floating-badge' } = {}) {
+      const labelPlane = new THREE.Mesh(
+        planeGeometry,
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false })
+      );
+      labelPlane.renderOrder = 10;
+      labelPlane.userData.labelRole = role;
+      labelAnchor.add(labelPlane);
+      return { labelPlane };
+    }
+
+    function attachLabelController(apparatus, labelPlane, { defaultAccent = '#84ddff' } = {}) {
+      apparatus.meshes.labelPlane = labelPlane;
+      labelPlane.visible = false;
+      apparatus.controllers = {
+        ...(apparatus.controllers || {}),
+        setLabel({ title = '', subtitle = '', note = '', accent = defaultAccent } = {}) {
+          const visible = Boolean(title || subtitle || note);
+          labelPlane.visible = visible;
+          if (!visible) return;
+          labelPlane.material.map = createLabelTexture({ title, subtitle, note, accent });
+          labelPlane.material.opacity = 1;
+          labelPlane.material.needsUpdate = true;
+        },
+      };
+    }
+
+    function setCylinderLiquidLevel(solutionMesh, surfaceMesh, profile, fillRatio) {
+      const ratio = clamp(fillRatio, 0, 1);
+      const fillHeight = Math.min(profile.height * ratio, profile.safeFillHeight ?? profile.height);
+      const normalized = profile.height <= 0 ? 0 : fillHeight / profile.height;
+      const surfaceRadius = THREE.MathUtils.lerp(profile.radiusBottom, profile.radiusTop, normalized);
+      solutionMesh.scale.set(1, Math.max(normalized, 0.0001), 1);
+      solutionMesh.position.y = profile.baseY + fillHeight * 0.5;
+      if (surfaceMesh) {
+        surfaceMesh.scale.setScalar(surfaceRadius / profile.surfaceReferenceRadius);
+        surfaceMesh.position.y = profile.baseY + fillHeight;
+      }
+      return { fillRatio: normalized, fillHeight, surfaceY: profile.baseY + fillHeight };
+    }
+
+    function createCylinderLiquidController({ solutionMesh, surfaceMesh, profile, state }) {
+      return {
+        setLiquidLevel(fillRatio) {
+          const metrics = setCylinderLiquidLevel(solutionMesh, surfaceMesh, profile, fillRatio);
+          state.fillRatio = metrics.fillRatio;
+          state.fillHeight = metrics.fillHeight;
+          state.topSurfaceY = metrics.surfaceY;
+          return metrics;
+        },
+      };
+    }
+
+    function validateFillLevel(apparatus, fillHeight) {
+      const maxHeight = apparatus.constraints.safeFillHeight ?? apparatus.constraints.innerHeight;
+      return {
+        ok: fillHeight <= maxHeight,
+        code: 'fill-level',
+        severity: 'blocker',
+        apparatusId: getApparatusId(apparatus),
+        message: fillHeight <= maxHeight ? 'Fill level ok' : 'Liquid top exceeds safe fill height',
+        details: { fillHeight, maxHeight },
+      };
+    }
+
+    function validatePourAlignment(sourceApparatus, targetApparatus) {
+      const nozzle = getAnchorWorld(sourceApparatus.anchors.nozzle);
+      const mouth = getAnchorWorld(targetApparatus.anchors.mouth);
+      const dx = nozzle.x - mouth.x;
+      const dz = nozzle.z - mouth.z;
+      const radialOffset = Math.hypot(dx, dz);
+      const verticalClearance = nozzle.y - mouth.y;
+      const maxRadius = targetApparatus.constraints.safePourRadius ?? 0.25;
+      const minClearance = targetApparatus.constraints.safePourClearance ?? 0.1;
+      return {
+        ok: radialOffset <= maxRadius && verticalClearance >= minClearance,
+        code: 'pour-alignment',
+        severity: 'blocker',
+        apparatusId: `${getApparatusId(sourceApparatus)}->${getApparatusId(targetApparatus)}`,
+        message: radialOffset <= maxRadius && verticalClearance >= minClearance ? 'Pour alignment ok' : 'Bottle nozzle misses target vessel mouth',
+        details: { radialOffset, verticalClearance, maxRadius, minClearance },
+      };
+    }
+
+    function validateEffectContainment(apparatus, anchorNames = ['effectOrigin', 'steamOrigin']) {
+      const bounds = apparatus.constraints.effectBounds;
+      const reports = [];
+      for (const name of anchorNames) {
+        const anchor = apparatus.anchors?.[name];
+        if (!anchor || !bounds) continue;
+        const local = anchor.position;
+        const ok = local.x >= bounds.min.x && local.x <= bounds.max.x && local.y >= bounds.min.y && local.y <= bounds.max.y && local.z >= bounds.min.z && local.z <= bounds.max.z;
+        reports.push({
+          ok,
+          code: 'effect-containment',
+          severity: 'blocker',
+          apparatusId: getApparatusId(apparatus),
+          message: ok ? `${name} remains inside its allowed apparatus zone` : `${name} falls outside its allowed apparatus zone`,
+        });
+      }
+      return reports;
+    }
+
+    function pointIsVisible(camera, point, margin = 0.04) {
+      const projected = point.clone().project(camera);
+      return Number.isFinite(projected.x) && Number.isFinite(projected.y) && Number.isFinite(projected.z)
+        && projected.z >= -1 && projected.z <= 1
+        && projected.x >= -1 + margin && projected.x <= 1 - margin
+        && projected.y >= -1 + margin && projected.y <= 1 - margin;
+    }
+
+    function validateVisibility(camera, points = [], options = {}) {
+      const margin = options.margin ?? 0.04;
+      const failedPoints = points.filter((entry) => entry?.point).filter((entry) => !pointIsVisible(camera, entry.point, margin));
+      return {
+        ok: failedPoints.length === 0,
+        code: 'visibility',
+        severity: 'blocker',
+        message: failedPoints.length === 0 ? 'All critical reaction points are visible' : 'Critical reaction points are outside camera view',
+        details: { margin, failedPoints },
+      };
+    }
+
+    function createSceneValidatorGate({ apparatuses = [], interactions = [], camera, visibilityPoints = [], options = {} } = {}) {
+      return {
+        validate() {
+          const reports = [];
+          for (const apparatus of apparatuses) {
+            if (Array.isArray(apparatus.validators)) {
+              for (const validator of apparatus.validators) reports.push(...[].concat(validator()));
+            }
+            reports.push(...validateEffectContainment(apparatus));
+          }
+          for (const interaction of interactions) {
+            if (typeof interaction.validate === 'function') reports.push(...[].concat(interaction.validate(camera)));
+          }
+          const points = [
+            ...visibilityPoints,
+            ...interactions.flatMap((interaction) => typeof interaction.getVisibilityPoints === 'function' ? interaction.getVisibilityPoints() : []),
+          ];
+          reports.push(validateVisibility(camera, points, options.visibility));
+          const failed = reports.filter((report) => !report.ok);
+          return {
+            ok: failed.filter((report) => report.severity === 'blocker').length === 0,
+            reports,
+            failed,
+            warnings: failed.filter((report) => report.severity !== 'blocker'),
+          };
+        },
+      };
+    }
+
+    function toParentSpace(object3D, worldPoint) {
+      return object3D.parent ? object3D.parent.worldToLocal(worldPoint.clone()) : worldPoint;
+    }
+
+    const WORLD_UP = new THREE.Vector3(0, 1, 0);
+
+    function positionSoftStream(group, origin, targetPoint, progress = 1) {
+      const direction = targetPoint.clone().sub(origin);
+      const length = direction.length();
+      group.visible = length > 0.08;
+      if (!group.visible) {
+        return;
+      }
+      const localTarget = targetPoint.clone();
+      const mid = origin.clone().lerp(localTarget, 0.5);
+      const sagAmount = Math.min(0.44, 0.12 + length * 0.11) * (0.8 + (1 - progress) * 0.3);
+      mid.y -= sagAmount;
+
+      const segments = group.userData.segments || [];
+      const droplets = group.userData.droplets || [];
+      const tangent = new THREE.Vector3();
+      const point = new THREE.Vector3();
+      const nextPoint = new THREE.Vector3();
+
+      function quadraticAt(t, out) {
+        const inv = 1 - t;
+        out.copy(origin).multiplyScalar(inv * inv)
+          .addScaledVector(mid, 2 * inv * t)
+          .addScaledVector(localTarget, t * t);
+        return out;
+      }
+
+      for (let index = 0; index < segments.length; index += 1) {
+        const mesh = segments[index];
+        const t0 = index / segments.length;
+        const t1 = (index + 1) / segments.length;
+        quadraticAt(t0, point);
+        quadraticAt(t1, nextPoint);
+        tangent.subVectors(nextPoint, point);
+        const segmentLength = Math.max(tangent.length(), 0.04);
+        mesh.visible = true;
+        mesh.position.copy(point).lerp(nextPoint, 0.5);
+        mesh.scale.set(1, segmentLength, 1);
+        mesh.quaternion.setFromUnitVectors(WORLD_UP, tangent.normalize());
+      }
+
+      for (let index = 0; index < droplets.length; index += 1) {
+        const mesh = droplets[index];
+        const t = 0.18 + index * 0.24 + Math.sin(progress * Math.PI * 2 + index) * 0.03;
+        quadraticAt(clamp01(t), point);
+        mesh.visible = true;
+        mesh.position.copy(point).add(new THREE.Vector3(
+          Math.sin(index * 1.7 + progress * 4.5) * 0.03,
+          Math.cos(index * 1.4 + progress * 3.2) * 0.035,
+          Math.cos(index * 1.3 + progress * 4.8) * 0.025,
+        ));
+      }
+    }
+
+    function createPourInteraction({ source, target, streamMesh, options = {} }) {
+      const sourceAnchor = source?.anchors?.nozzle;
+      const targetAnchor = target?.anchors?.pourTarget || target?.anchors?.mouth || null;
+      const streamVisibleFrom = options.streamVisibleFrom ?? 0.08;
+      const streamVisibleUntil = options.streamVisibleUntil ?? 0.96;
+      const streamOpacityRange = options.streamOpacityRange ?? [0.22, 0.68];
+      const sourceFillRange = options.sourceFillRange ?? null;
+      const state = { progress: 0 };
+      const id = `pour:${getApparatusId(source)}->${getApparatusId(target)}`;
+
+      return {
+        id,
+        state,
+        source,
+        target,
+        setProgress(progress, runtime = {}) {
+          const value = clamp(progress, 0, 1);
+          state.progress = value;
+          if (options.applySourcePose !== false && source?.controllers?.setPourPose) {
+            source.controllers.setPourPose(value);
+          }
+          if (sourceFillRange && source?.controllers?.setLiquidLevel) {
+            source.controllers.setLiquidLevel(THREE.MathUtils.lerp(sourceFillRange[0], sourceFillRange[1], value));
+          }
+          if (!streamMesh || !sourceAnchor || !targetAnchor) return;
+          const visible = options.getStreamVisible
+            ? !!options.getStreamVisible(value, runtime)
+            : value > streamVisibleFrom && value < streamVisibleUntil;
+          streamMesh.visible = visible;
+          if (!visible) return;
+          const origin = toParentSpace(streamMesh, getAnchorWorld(sourceAnchor));
+          const targetPoint = toParentSpace(streamMesh, getAnchorWorld(targetAnchor));
+          if (typeof options.positionStream === 'function') {
+            options.positionStream(streamMesh, origin, targetPoint, value, runtime);
+          } else {
+            const direction = targetPoint.clone().sub(origin);
+            const length = Math.max(direction.length(), 0.1);
+            streamMesh.position.copy(origin).lerp(targetPoint, 0.5);
+            streamMesh.scale.set(1, length, 1);
+            streamMesh.quaternion.setFromUnitVectors(WORLD_UP, direction.clone().normalize());
+          }
+          streamMesh.traverse((child) => {
+            if (child.material && 'opacity' in child.material) {
+              child.material.opacity = THREE.MathUtils.lerp(streamOpacityRange[0], streamOpacityRange[1], value);
+            }
+          });
+        },
+        reset() {
+          state.progress = 0;
+          if (options.applySourcePose !== false && source?.controllers?.setPourPose) source.controllers.setPourPose(0);
+          if (sourceFillRange && source?.controllers?.setLiquidLevel) source.controllers.setLiquidLevel(sourceFillRange[0]);
+          if (streamMesh) streamMesh.visible = false;
+        },
+        validate(camera) {
+          const validationProgress = clamp(options.validationProgress ?? 1, 0, 1);
+          const previousProgress = state.progress;
+          const previousFillRatio = source?.state?.fillRatio;
+          const previousVisible = streamMesh?.visible;
+          const sourceGroup = source?.group;
+          const previousPosition = sourceGroup?.position.clone() ?? null;
+          const previousRotation = sourceGroup?.rotation.clone() ?? null;
+          if (typeof options.beforeValidate === 'function') {
+            options.beforeValidate(validationProgress);
+          } else {
+            this.setProgress(validationProgress);
+          }
+          const reports = [validatePourAlignment(source, target)];
+          if (camera) reports.push(validateVisibility(camera, this.getVisibilityPoints(), { margin: options.visibilityMargin ?? 0.04 }));
+          if (previousPosition && previousRotation && sourceGroup) {
+            sourceGroup.position.copy(previousPosition);
+            sourceGroup.rotation.copy(previousRotation);
+            sourceGroup.updateMatrixWorld(true);
+          }
+          this.setProgress(previousProgress);
+          if (typeof previousFillRatio === 'number' && source?.controllers?.setLiquidLevel) {
+            source.controllers.setLiquidLevel(previousFillRatio);
+          }
+          if (streamMesh) streamMesh.visible = previousVisible;
+          return reports.map((report) => ({ ...report, interactionId: id }));
+        },
+        getVisibilityPoints() {
+          if (!sourceAnchor || !targetAnchor) return [];
+          return [
+            { label: `${id}:source`, interactionId: id, apparatusId: getApparatusId(source), point: getAnchorWorld(sourceAnchor) },
+            { label: `${id}:target`, interactionId: id, apparatusId: getApparatusId(target), point: getAnchorWorld(targetAnchor) },
+          ];
+        },
+      };
+    }
+
+    function createBeakerApparatus({ parent, position = [0, 0, 0], rotation = [0, 0, 0], radius = 1.62, height = 2.7, wallThickness = 0.08, fillRatio = 0.36, appearance = clearWater(), name = 'beaker' } = {}) {
+      const group = new THREE.Group();
+      group.name = name;
+      group.position.set(...position);
+      group.rotation.set(...rotation);
+      parent.add(group);
+
+      const innerRadius = radius - wallThickness * 1.25;
+      const innerHeight = height - wallThickness * 1.5;
+      const baseY = wallThickness;
+      const safeFillHeight = innerHeight * 0.9;
+      const glassMaterial = createDefaultGlassMaterial();
+      const liquidMaterial = appearance.createLiquidMaterial({ opacity: 0.42, emissive: 0x153761, emissiveIntensity: 0.12 });
+      const surfaceMaterial = appearance.createSurfaceMaterial({ opacity: 0.4 });
+
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, 48, 1, true), glassMaterial);
+      body.position.y = height * 0.5;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      group.add(body);
+
+      const bottom = new THREE.Mesh(new THREE.CylinderGeometry(innerRadius * 0.98, innerRadius * 0.98, wallThickness, 48), glassMaterial.clone());
+      bottom.position.y = wallThickness * 0.5;
+      group.add(bottom);
+
+      const liquid = new THREE.Mesh(new THREE.CylinderGeometry(innerRadius, innerRadius, innerHeight, 40), liquidMaterial);
+      group.add(liquid);
+
+      const liquidSurface = new THREE.Mesh(new THREE.CircleGeometry(innerRadius, 40), surfaceMaterial);
+      liquidSurface.rotation.x = -Math.PI / 2;
+      group.add(liquidSurface);
+
+      const shadowPad = new THREE.Mesh(new THREE.CircleGeometry(radius * 1.34, 36), new THREE.MeshBasicMaterial({ color: 0x08111f, transparent: true, opacity: 0.12 }));
+      shadowPad.rotation.x = -Math.PI / 2;
+      shadowPad.position.y = 0.003;
+      group.add(shadowPad);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, height * 0.62, radius + 0.08, `${name}:labelAnchor`),
+        mouth: makeAnchor(group, 0, height, 0, `${name}:mouth`),
+        pourTarget: makeAnchor(group, 0, height - 0.08, 0, `${name}:pourTarget`),
+        effectOrigin: makeAnchor(group, 0, baseY + safeFillHeight * 0.48, 0, `${name}:effectOrigin`),
+        steamOrigin: makeAnchor(group, 0, height - 0.06, 0, `${name}:steamOrigin`),
+        heatZone: makeAnchor(group, 0, 0.2, 0, `${name}:heatZone`),
+        interactionZone: makeAnchor(group, 0, height - 0.08, 0, `${name}:interactionZone`),
+      };
+
+      const state = { fillRatio: 0, fillHeight: 0, topSurfaceY: 0 };
+      const liquidProfile = { baseY, height: innerHeight, radiusBottom: innerRadius, radiusTop: innerRadius, safeFillHeight, surfaceReferenceRadius: innerRadius };
+      const liquidController = createCylinderLiquidController({ solutionMesh: liquid, surfaceMesh: liquidSurface, profile: liquidProfile, state });
+      liquidController.setLiquidLevel(fillRatio);
+
+      const apparatus = composeApparatus({
+        kind: 'beaker',
+        family: 'open-vessel',
+        group,
+        meshes: { body, bottom, liquid, liquidSurface, shadowPad },
+        anchors,
+        constraints: {
+          innerRadius,
+          innerHeight,
+          safeFillHeight,
+          safePourRadius: innerRadius * 0.72,
+          safePourClearance: 0.06,
+          effectBounds: { min: new THREE.Vector3(-innerRadius, 0, -innerRadius), max: new THREE.Vector3(innerRadius, height + 0.2, innerRadius) },
+        },
+        state,
+        meta: { liquidProfile, appearance: appearance.name },
+      });
+
+      const { labelPlane } = attachFixedPlaneLabel({ labelAnchor: anchors.labelAnchor, planeGeometry: new THREE.PlaneGeometry(2.2, 0.72), role: 'vessel-body-label' });
+      apparatus.controllers = {
+        setLiquidLevel(fillRatioValue) {
+          return liquidController.setLiquidLevel(fillRatioValue);
+        },
+        setLiquidOpacity(alpha) {
+          liquid.material.opacity = clamp(alpha, 0, 1);
+          liquidSurface.material.opacity = clamp(alpha - 0.02, 0, 1);
+        },
+      };
+      apparatus.validators = [() => validateFillLevel(apparatus, apparatus.state.fillHeight)];
+      attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+      return apparatus;
+    }
+
+    function createBottleApparatus({ parent, position = [0, 0, 0], rotation = [0, 0, 0], bodyRadiusTop = 0.58, bodyRadiusBottom = 0.74, bodyHeight = 2.45, neckRadius = 0.2, neckHeight = 0.72, fillRatio = 0.82, pourPose = {}, appearance = diluteAcid(), name = 'bottle' } = {}) {
+      const group = new THREE.Group();
+      group.name = name;
+      group.position.set(...position);
+      group.rotation.set(...rotation);
+      parent.add(group);
+
+      const glassMaterial = createDefaultGlassMaterial();
+      glassMaterial.opacity = 0.34;
+      glassMaterial.thickness = 0.36;
+      const liquidMaterial = appearance.createLiquidMaterial({ opacity: 0.74, emissive: 0x80d8ff, emissiveIntensity: 0.08 });
+      const surfaceMaterial = appearance.createSurfaceMaterial({ opacity: 0.44 });
+
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyRadiusTop, bodyRadiusBottom, bodyHeight, 48), glassMaterial);
+      body.castShadow = true;
+      group.add(body);
+
+      const shoulder = new THREE.Mesh(new THREE.CylinderGeometry(bodyRadiusTop * 0.62, bodyRadiusTop, 0.5, 32), glassMaterial.clone());
+      shoulder.position.y = bodyHeight * 0.6;
+      group.add(shoulder);
+
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(neckRadius, neckRadius * 1.18, neckHeight, 24), glassMaterial.clone());
+      neck.position.y = bodyHeight * 0.5 + neckHeight * 0.5 + 0.2;
+      group.add(neck);
+
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(neckRadius * 1.32, neckRadius * 1.32, 0.18, 24), new THREE.MeshStandardMaterial({ color: 0xf0f6ff, roughness: 0.38, metalness: 0.1 }));
+      cap.position.y = bodyHeight * 0.5 + neckHeight + 0.28;
+      group.add(cap);
+
+      const liquidHeight = bodyHeight * 0.84;
+      const liquid = new THREE.Mesh(new THREE.CylinderGeometry(bodyRadiusTop * 0.82, bodyRadiusBottom * 0.82, liquidHeight, 36), liquidMaterial);
+      liquid.position.y = -bodyHeight * 0.08;
+      group.add(liquid);
+
+      const liquidSurface = new THREE.Mesh(new THREE.CircleGeometry(bodyRadiusTop * 0.82, 28), surfaceMaterial);
+      liquidSurface.rotation.x = -Math.PI / 2;
+      group.add(liquidSurface);
+
+      const mouthY = bodyHeight * 0.5 + neckHeight + 0.2;
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 0.2, bodyRadiusBottom + 0.06, `${name}:labelAnchor`),
+        gripAnchor: makeAnchor(group, 0, bodyHeight * 0.1, 0, `${name}:gripAnchor`),
+        interactionZone: makeAnchor(group, 0, bodyHeight * 0.12, 0, `${name}:interactionZone`),
+        mouth: makeAnchor(group, 0, mouthY, 0, `${name}:mouth`),
+        pourAlign: makeAnchor(group, 0, mouthY - 0.1, 0, `${name}:pourAlign`),
+        nozzle: makeAnchor(group, 0, mouthY + 0.04, 0, `${name}:nozzle`),
+      };
+
+      const state = { fillRatio: 0, fillHeight: 0, topSurfaceY: 0, pourProgress: 0 };
+      const safeFillHeight = liquidHeight * 0.96;
+      const liquidProfile = { baseY: -bodyHeight * 0.08 - liquidHeight * 0.5, height: liquidHeight, radiusBottom: bodyRadiusBottom * 0.82, radiusTop: bodyRadiusTop * 0.82, safeFillHeight, surfaceReferenceRadius: bodyRadiusTop * 0.82 };
+      const liquidController = createCylinderLiquidController({ solutionMesh: liquid, surfaceMesh: liquidSurface, profile: liquidProfile, state });
+      liquidController.setLiquidLevel(fillRatio);
+
+      const basePosition = new THREE.Vector3(...position);
+      const baseRotation = new THREE.Euler(...rotation);
+      const travel = new THREE.Vector3(...(pourPose.travel ?? [0, 0, 0]));
+      const tilt = pourPose.tilt ?? [0, 0, 0];
+
+      const apparatus = composeApparatus({
+        kind: 'reagent-bottle',
+        family: 'transfer-tool',
+        group,
+        meshes: { body, shoulder, neck, cap, liquid, liquidSurface },
+        anchors,
+        constraints: {
+          innerRadius: Math.min(bodyRadiusTop, bodyRadiusBottom) * 0.82,
+          innerHeight: liquidHeight,
+          safeFillHeight,
+          tiltLimit: pourPose.tiltLimit ?? 1.15,
+          effectBounds: { min: new THREE.Vector3(-bodyRadiusBottom, -bodyHeight * 0.5, -bodyRadiusBottom), max: new THREE.Vector3(bodyRadiusBottom, bodyHeight + neckHeight + 0.3, bodyRadiusBottom) },
+        },
+        state,
+        meta: { liquidProfile, basePosition, baseRotation, travel, tilt, appearance: appearance.name },
+      });
+
+      const { labelPlane } = attachFixedPlaneLabel({ labelAnchor: anchors.labelAnchor, planeGeometry: new THREE.PlaneGeometry(1.1, 0.56), role: 'vessel-body-label' });
+      apparatus.controllers = {
+        setLiquidLevel(fillRatioValue) {
+          return liquidController.setLiquidLevel(fillRatioValue);
+        },
+        setLiquidOpacity(alpha) {
+          liquid.material.opacity = clamp(alpha, 0, 1);
+          liquidSurface.material.opacity = clamp(alpha + 0.05, 0, 1);
+        },
+        setPourPose(progress) {
+          const value = clamp(progress, 0, 1);
+          state.pourProgress = value;
+          group.position.copy(basePosition).addScaledVector(travel, value);
+          group.rotation.set(baseRotation.x + tilt[0] * value, baseRotation.y + tilt[1] * value, baseRotation.z + tilt[2] * value);
+        },
+      };
+      apparatus.validators = [() => validateFillLevel(apparatus, apparatus.state.fillHeight)];
+      attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+      return apparatus;
+    }
+
+    function createReagentBottleApparatus(options = {}) {
+      return createBottleApparatus({ appearance: diluteAcid(), ...options });
+    }
+
+    function updatePointerFromEvent(event, domElement, pointer) {
+      const rect = domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return pointer;
+    }
+
+    function setPointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.setPointerCapture !== 'function') {
+        return;
+      }
+      domElement.setPointerCapture(pointerId);
+    }
+
+    function releasePointerCaptureSafe(domElement, pointerId) {
+      if (pointerId == null || typeof domElement.releasePointerCapture !== 'function') {
+        return;
+      }
+      try {
+        domElement.releasePointerCapture(pointerId);
+      } catch {}
+    }
+
+    function setControlsDragging(controls, dragging) {
+      if (!controls) {
+        return;
+      }
+      controls.enabled = !dragging;
+    }
+
+    function canAttemptOrderedStep(key, order = [], completed = {}) {
+      if (!key) {
+        return false;
+      }
+      const stepIndex = order.indexOf(key);
+      if (stepIndex === -1 || completed[key]) {
+        return false;
+      }
+      for (let index = 0; index < stepIndex; index += 1) {
+        if (!completed[order[index]]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function hasActiveCompletion(state, key) {
+      return Boolean(state && (state.pendingCompletedStep === key || state.completingStep === key));
+    }
+
+    function lerpObjectPose(object, fromPosition, fromRotation, toPose, t) {
+      object.position.lerpVectors(fromPosition, toPose.position, t);
+      object.rotation.set(
+        fromRotation.x + (toPose.rotation.x - fromRotation.x) * t,
+        fromRotation.y + (toPose.rotation.y - fromRotation.y) * t,
+        fromRotation.z + (toPose.rotation.z - fromRotation.z) * t,
+      );
+    }
+
+    function beginStepCompletion(state, key, object, pose, duration = 0.25) {
+      if (!state || !object || !pose || hasActiveCompletion(state, key)) {
+        return false;
+      }
+      state.completingStep = key;
+      state.completionT = 0;
+      state.completionDuration = duration;
+      state.completionFromPosition = object.position.clone();
+      state.completionFromRotation = object.rotation.clone();
+      state.pendingCompletedStep = null;
+      state.dragging = null;
+      return true;
+    }
+
+    function clearStepCompletion(state) {
+      if (!state) {
+        return;
+      }
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+    }
+
+    function runStepCompletion(state, dt, getCurrent, onComplete) {
+      if (!state?.completingStep) {
+        return false;
+      }
+      const current = getCurrent?.(state.completingStep);
+      if (!current?.object || !current?.pose || !state.completionFromPosition || !state.completionFromRotation) {
+        clearStepCompletion(state);
+        return false;
+      }
+      state.completionT += dt;
+      const duration = Math.max(0.001, state.completionDuration || current.duration || 0.25);
+      const t = smoothstep01(clamp01(state.completionT / duration));
+      lerpObjectPose(current.object, state.completionFromPosition, state.completionFromRotation, current.pose, t);
+      if (state.completionT >= duration) {
+        const completedKey = state.completingStep;
+        clearStepCompletion(state);
+        onComplete?.(completedKey, current);
+      }
+      return true;
+    }
+
+    function completeOrderedOverlapStep({ key, state, order = [], completed = {}, isReady, getCompletion }) {
+      if (!canAttemptOrderedStep(key, order, completed)) {
+        return false;
+      }
+      if (typeof isReady === 'function' && !isReady(key)) {
+        return false;
+      }
+      const current = getCompletion?.(key);
+      if (!current?.object || !current?.pose) {
+        return false;
+      }
+      return beginStepCompletion(state, key, current.object, current.pose, current.duration);
+    }
+
+    function getWorldPosition(target, out = new THREE.Vector3()) {
+      if (typeof target?.getWorldPosition === 'function') {
+        return target.getWorldPosition(out);
+      }
+      if (target?.isVector3) {
+        return out.copy(target);
+      }
+      return out.set(0, 0, 0);
+    }
+
+    function clonePose(object) {
+      return { position: object.position.clone(), rotation: object.rotation.clone() };
+    }
+
+    function applyPose(object, pose) {
+      object.position.copy(pose.position);
+      object.rotation.copy(pose.rotation);
+    }
+
+    function normalizeTarget(target, fallbackRadius = 0.35) {
+      if (!target) {
+        return null;
+      }
+      if (typeof target.getWorldPosition === 'function' || target.isVector3) {
+        return { id: target.name || 'target', anchor: target, radius: fallbackRadius };
+      }
+      return {
+        id: target.id || target.key || target.anchor?.name || 'target',
+        anchor: target.anchor || target.object || target,
+        radius: target.radius ?? fallbackRadius,
+        onNearTarget: target.onNearTarget,
+        onDropTarget: target.onDropTarget,
+      };
+    }
+
+    function findClosestTarget(entry, position = new THREE.Vector3()) {
+      const dragAnchor = entry.dragAnchor || entry.anchors?.gripAnchor || entry.object;
+      getWorldPosition(dragAnchor, position);
+      let closest = null;
+      const targetPosition = new THREE.Vector3();
+      for (const target of entry.validTargets) {
+        getWorldPosition(target.anchor, targetPosition);
+        const distance = position.distanceTo(targetPosition);
+        const withinRange = distance <= target.radius;
+        if (!closest || distance < closest.distance) {
+          closest = { ...target, distance, withinRange, position: targetPosition.clone() };
+        }
+      }
+      return closest;
+    }
+
+    function easeToPose(object, pose, dt, speed) {
+      const alpha = 1 - Math.exp(-Math.max(dt, 0) * speed);
+      object.position.lerp(pose.position, alpha);
+      object.rotation.x = THREE.MathUtils.lerp(object.rotation.x, pose.rotation.x, alpha);
+      object.rotation.y = THREE.MathUtils.lerp(object.rotation.y, pose.rotation.y, alpha);
+      object.rotation.z = THREE.MathUtils.lerp(object.rotation.z, pose.rotation.z, alpha);
+      return object.position.distanceTo(pose.position) < 0.015
+        && Math.abs(object.rotation.x - pose.rotation.x) < 0.01
+        && Math.abs(object.rotation.y - pose.rotation.y) < 0.01
+        && Math.abs(object.rotation.z - pose.rotation.z) < 0.01;
+    }
+
+    function createManipulationController({ camera, renderer, controls, defaultDragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), defaultBounds = null } = {}) {
+      const domElement = renderer?.domElement;
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      const dragPoint = new THREE.Vector3();
+      const anchorWorld = new THREE.Vector3();
+      const entries = new Map();
+      const rootToId = new Map();
+
+      const state = {
+        enabled: true,
+        hovered: null,
+        dragging: null,
+        pointerHeld: false,
+        pointerId: null,
+      };
+
+      function pick(event) {
+        if (!camera || !domElement) {
+          return null;
+        }
+        updatePointerFromEvent(event, domElement, pointer);
+        raycaster.setFromCamera(pointer, camera);
+        const roots = Array.from(rootToId.keys());
+        if (!roots.length) {
+          return null;
+        }
+        const hits = raycaster.intersectObjects(roots, true);
+        if (!hits.length) {
+          return null;
+        }
+        let node = hits[0].object;
+        while (node) {
+          const id = rootToId.get(node);
+          if (id) {
+            return id;
+          }
+          node = node.parent;
+        }
+        return null;
+      }
+
+      function clampObjectPosition(entry) {
+        const bounds = entry.bounds ?? defaultBounds;
+        if (!bounds?.min || !bounds?.max) {
+          return;
+        }
+        entry.object.position.clamp(bounds.min, bounds.max);
+      }
+
+      function updateDraggedObject(entry, point) {
+        const dragAnchor = entry.dragAnchor || entry.anchors?.gripAnchor || entry.object;
+        entry.object.updateMatrixWorld(true);
+        getWorldPosition(dragAnchor, anchorWorld);
+        entry.object.position.add(point.clone().sub(anchorWorld));
+        clampObjectPosition(entry);
+      }
+
+      function setHovered(id) {
+        state.hovered = id;
+        if (!domElement) {
+          return;
+        }
+        if (state.dragging) {
+          domElement.style.cursor = 'grabbing';
+          return;
+        }
+        domElement.style.cursor = id ? 'grab' : 'default';
+      }
+
+      function onPointerDown(event) {
+        if (!state.enabled || state.dragging || !domElement) {
+          return;
+        }
+        const id = pick(event);
+        if (!id) {
+          return;
+        }
+        const entry = entries.get(id);
+        if (!entry || entry.draggable === false) {
+          return;
+        }
+        if (entry.canDragStart?.({ id, entry, event, state }) === false) {
+          setHovered(id);
+          return;
+        }
+        if (typeof event.preventDefault === 'function') event.preventDefault();
+        if (typeof event.stopPropagation === 'function') event.stopPropagation();
+
+        state.pointerHeld = true;
+        state.pointerId = event.pointerId ?? null;
+        state.dragging = id;
+
+        setControlsDragging(controls, true);
+        setPointerCaptureSafe(domElement, event.pointerId);
+        setHovered(id);
+        entry.onDragStart?.({ id, entry, event });
+      }
+
+      function onPointerMove(event) {
+        if (!state.enabled || !domElement) {
+          return;
+        }
+        updatePointerFromEvent(event, domElement, pointer);
+        raycaster.setFromCamera(pointer, camera);
+
+        if (!state.dragging) {
+          if (!state.pointerHeld) {
+            setHovered(pick(event));
+          }
+          return;
+        }
+
+        if (state.pointerHeld && event?.buttons === 0) {
+          endDrag(event, false);
+          return;
+        }
+
+        const id = state.dragging;
+        const entry = entries.get(id);
+        if (!entry) {
+          return;
+        }
+
+        const plane = entry.dragPlane ?? defaultDragPlane;
+        if (!raycaster.ray.intersectPlane(plane, dragPoint)) {
+          return;
+        }
+
+        updateDraggedObject(entry, dragPoint);
+        entry.onDrag?.({ id, entry, event, point: dragPoint.clone() });
+      }
+
+      function endDrag(event, canceled = false) {
+        releasePointerCaptureSafe(domElement, event?.pointerId);
+        if (state.pointerId != null && event?.pointerId != null && state.pointerId !== event.pointerId) {
+          return;
+        }
+        state.pointerHeld = false;
+        state.pointerId = null;
+        if (!state.dragging) {
+          setControlsDragging(controls, false);
+          setHovered(state.hovered);
+          return;
+        }
+        const id = state.dragging;
+        state.dragging = null;
+        setControlsDragging(controls, false);
+        setHovered(event ? pick(event) : null);
+        const entry = entries.get(id);
+        entry?.onDragEnd?.({ id, entry, event, canceled });
+      }
+
+      function onPointerUp(event) {
+        if (!state.enabled || !domElement) return;
+        endDrag(event, false);
+      }
+
+      function onMouseUp(event) {
+        if (!state.enabled || !domElement || !state.dragging) return;
+        endDrag(event, false);
+      }
+
+      function onPointerCancel(event) {
+        if (!state.enabled || !domElement) return;
+        endDrag(event, true);
+      }
+
+      function onLostPointerCapture() {
+        if (!state.enabled || !domElement) return;
+        endDrag(null, true);
+      }
+
+      function onPointerLeave() {
+        if (!state.pointerHeld && !state.dragging) {
+          setHovered(null);
+        }
+      }
+
+      if (domElement) {
+        domElement.addEventListener('pointerdown', onPointerDown);
+        domElement.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointermove', onPointerMove);
+        domElement.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointerup', onPointerUp);
+        domElement.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('mouseup', onMouseUp);
+        domElement.addEventListener('pointercancel', onPointerCancel);
+        window.addEventListener('pointercancel', onPointerCancel);
+        domElement.addEventListener('lostpointercapture', onLostPointerCapture);
+        domElement.addEventListener('pointerleave', onPointerLeave);
+      }
+
+      return {
+        state,
+        register({ id, object, pickObjects = null, anchors = null, dragAnchor = null, dragPlane = null, bounds = null, draggable = true, canDragStart, onDragStart, onDrag, onDragEnd }) {
+          if (!id || !object) {
+            return null;
+          }
+          const entry = {
+            id,
+            object,
+            pickObjects: Array.isArray(pickObjects) && pickObjects.length ? pickObjects : [object],
+            anchors,
+            dragAnchor,
+            dragPlane,
+            bounds,
+            draggable,
+            canDragStart,
+            onDragStart,
+            onDrag,
+            onDragEnd,
+          };
+          entries.set(id, entry);
+          for (const pickObject of entry.pickObjects) {
+            rootToId.set(pickObject, id);
+          }
+          return entry;
+        },
+        dispose() {
+          if (!domElement) return;
+          domElement.removeEventListener('pointerdown', onPointerDown);
+          domElement.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointermove', onPointerMove);
+          domElement.removeEventListener('pointerup', onPointerUp);
+          window.removeEventListener('pointerup', onPointerUp);
+          domElement.removeEventListener('mouseup', onMouseUp);
+          window.removeEventListener('mouseup', onMouseUp);
+          domElement.removeEventListener('pointercancel', onPointerCancel);
+          window.removeEventListener('pointercancel', onPointerCancel);
+          domElement.removeEventListener('lostpointercapture', onLostPointerCapture);
+          domElement.removeEventListener('pointerleave', onPointerLeave);
+        },
+        setEnabled(enabled) {
+          state.enabled = Boolean(enabled);
+          if (!state.enabled && domElement) {
+            domElement.style.cursor = 'default';
+            setControlsDragging(controls, false);
+          }
+        },
+      };
+    }
+
+    function createFreeDragController({ camera, renderer, controls, dragPlane, bounds, returnSpeed = 8, targetRadius = 0.35 } = {}) {
+      const manipulation = createManipulationController({
+        camera,
+        renderer,
+        controls,
+        defaultDragPlane: dragPlane,
+        defaultBounds: bounds,
+      });
+
+      const entries = new Map();
+      const returning = new Set();
+
+      function registerDraggable({ id, object, pickObjects = null, anchors = null, dragAnchor = null, homePose = null, validTargets = [], autoTiltTarget = null, autoTiltRange = [-0.32, -1.18], autoTiltAxis = 'z', onNearTarget, onDropTarget, onReturnHome, onDragStart, onDrag, onDragEnd, canDragStart } = {}) {
+        if (!id || !object) {
+          return null;
+        }
+
+        const entry = {
+          id,
+          object,
+          pickObjects,
+          anchors,
+          dragAnchor,
+          homePose: homePose || clonePose(object),
+          validTargets: validTargets.map((target) => normalizeTarget(target, targetRadius)).filter(Boolean),
+          autoTiltTarget: normalizeTarget(autoTiltTarget, Number.POSITIVE_INFINITY),
+          autoTiltRange,
+          autoTiltAxis,
+          onNearTarget,
+          onDropTarget,
+          onReturnHome,
+          canDragStart,
+          lastClosestTarget: null,
+        };
+        const resolveDropTarget = () => entry.lastClosestTarget || findClosestTarget(entry);
+        entries.set(id, entry);
+
+        const registered = manipulation.register({
+          id,
+          object,
+          pickObjects,
+          anchors,
+          dragAnchor,
+          bounds,
+          dragPlane,
+          canDragStart,
+          onDragStart(args) {
+            returning.delete(id);
+            onDragStart?.({ ...args, freeDragEntry: entry });
+          },
+          onDrag(args) {
+            const closest = findClosestTarget(entry);
+            entry.lastClosestTarget = closest;
+            if (closest?.withinRange) {
+              entry.onNearTarget?.({ ...args, target: closest, freeDragEntry: entry });
+              closest.onNearTarget?.({ ...args, target: closest, freeDragEntry: entry });
+            }
+            if (entry.autoTiltTarget?.anchor) {
+              const target = getWorldPosition(entry.autoTiltTarget.anchor, new THREE.Vector3());
+              const current = getWorldPosition(entry.dragAnchor || entry.object, new THREE.Vector3());
+              const distance = Math.abs(current.x - target.x);
+              const closeness = 1 - Math.min(distance / 3.2, 1);
+              object.rotation[entry.autoTiltAxis] = THREE.MathUtils.lerp(entry.autoTiltRange[0], entry.autoTiltRange[1], closeness);
+            }
+            onDrag?.({ ...args, target: closest, freeDragEntry: entry });
+          },
+          onDragEnd(args) {
+            const closest = resolveDropTarget();
+            entry.lastClosestTarget = null;
+            if (closest?.withinRange) {
+              const payload = { ...args, target: closest, freeDragEntry: entry };
+              entry.onDropTarget?.(payload);
+              closest.onDropTarget?.(payload);
+            } else {
+              returning.add(id);
+            }
+            onDragEnd?.({ ...args, target: closest, freeDragEntry: entry });
+          },
+        });
+
+        return { ...registered, freeDragEntry: entry };
+      }
+
+      function update(dt = 1 / 60) {
+        for (const id of Array.from(returning)) {
+          const entry = entries.get(id);
+          if (!entry) {
+            returning.delete(id);
+            continue;
+          }
+          const complete = easeToPose(entry.object, entry.homePose, dt, returnSpeed);
+          if (complete) {
+            applyPose(entry.object, entry.homePose);
+            returning.delete(id);
+            entry.onReturnHome?.({ id, entry });
+          }
+        }
+      }
+
+      function reset(id = null) {
+        const targetEntries = id ? [[id, entries.get(id)]] : Array.from(entries.entries());
+        for (const [entryId, entry] of targetEntries) {
+          if (!entry) continue;
+          applyPose(entry.object, entry.homePose);
+          returning.delete(entryId);
+        }
+      }
+
+      function sendHome(id) {
+        if (entries.has(id)) {
+          returning.add(id);
+          return true;
+        }
+        return false;
+      }
+
+      function isReturning(id) {
+        return returning.has(id);
+      }
+
+      return {
+        state: manipulation.state,
+        registerDraggable,
+        update,
+        reset,
+        sendHome,
+        isReturning,
+        dispose: manipulation.dispose,
+        setEnabled: manipulation.setEnabled,
+      };
+    }
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x09111d);
+    scene.fog = new THREE.Fog(0x09111d, 16, 36);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 6.1, 14.8);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 2.1, 0);
+    controls.minDistance = 9;
+    controls.maxDistance = 22;
+    controls.maxPolarAngle = Math.PI / 2.04;
+    controls.minPolarAngle = 0.45;
+
+    const ambient = new THREE.HemisphereLight(0xb9d8ff, 0x20160b, 1.35);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(7, 11, 7);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -12;
+    keyLight.shadow.camera.right = 12;
+    keyLight.shadow.camera.top = 12;
+    keyLight.shadow.camera.bottom = -12;
+    scene.add(keyLight);
+
+    const yellowGlow = new THREE.PointLight(0xffd84d, 12, 20, 2);
+    yellowGlow.position.set(0, 4.6, 1.2);
+    scene.add(yellowGlow);
+
+    const backLight = new THREE.PointLight(0x68b7ff, 14, 28, 2);
+    backLight.position.set(0, 8, -9);
+    scene.add(backLight);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(34, 48, 32),
+      new THREE.MeshBasicMaterial({ color: 0x0d1728, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(20, 64),
+      new THREE.MeshStandardMaterial({ color: 0x162335, roughness: 0.94, metalness: 0.05 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(12.6, 0.45, 6.2),
+      new THREE.MeshStandardMaterial({ color: 0x5c4735, roughness: 0.84, metalness: 0.08 })
+    );
+    benchTop.position.y = 1.4;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.48, 2.8, 0.48);
+    for (const [x, z] of [[-5.5, -2.5], [5.5, -2.5], [-5.5, 2.5], [5.5, 2.5]]) {
+      const leg = new THREE.Mesh(
+        legGeometry,
+        new THREE.MeshStandardMaterial({ color: 0x2d3647, roughness: 0.75, metalness: 0.35 })
+      );
+      leg.position.set(x, 0.15, z);
+      leg.castShadow = true;
+      leg.receiveShadow = true;
+      bench.add(leg);
+    }
+
+    const tray = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.1, 3.22, 0.18, 48),
+      new THREE.MeshStandardMaterial({ color: 0x6b7589, roughness: 0.4, metalness: 0.74 })
+    );
+    tray.position.set(0, 1.72, 0);
+    tray.castShadow = true;
+    tray.receiveShadow = true;
+    scene.add(tray);
+
+    function createNaturalStream(color, emissive) {
+      const group = new THREE.Group();
+      const makeMat = (opacity) => new THREE.MeshPhysicalMaterial({
+        color,
+        transparent: true,
+        opacity,
+        emissive,
+        emissiveIntensity: 0.16,
+        roughness: 0.14,
+        transmission: 0.18,
+      });
+      const segments = [];
+      for (let index = 0; index < 7; index += 1) {
+        const mesh = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.028 + index * 0.001, 0.045 + index * 0.002, 0.18, 10),
+          makeMat(0.42 - index * 0.03)
+        );
+        mesh.visible = false;
+        segments.push(mesh);
+        group.add(mesh);
+      }
+      const droplets = [];
+      for (let index = 0; index < 3; index += 1) {
+        const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.05 + index * 0.01, 14, 10), makeMat(0.34 - index * 0.04));
+        mesh.visible = false;
+        droplets.push(mesh);
+        group.add(mesh);
+      }
+      group.userData.segments = segments;
+      group.userData.droplets = droplets;
+      group.visible = false;
+      return group;
+    }
+
+    const apparatusRoot = new THREE.Group();
+    apparatusRoot.position.y = 1.82;
+    scene.add(apparatusRoot);
+
+    const leadBottle = createReagentBottleApparatus({
+      parent: apparatusRoot,
+      name: 'lead-bottle',
+      position: [-4.15, 0.42, 1.0],
+      appearance: diluteAcid(),
+      fillRatio: 0.82,
+      pourPose: { travel: [2.54, 1.78, -0.24], tilt: [0, 0.2, -1.04] },
+    });
+    leadBottle.controllers.setLabel({ title: 'Pb(NO₃)₂', subtitle: 'Chì(II) nitrat', note: 'Bước 1' });
+
+    const iodideBottle = createReagentBottleApparatus({
+      parent: apparatusRoot,
+      name: 'iodide-bottle',
+      position: [4.15, 0.42, 1.0],
+      appearance: diluteAcid(),
+      fillRatio: 0.82,
+      pourPose: { travel: [-2.54, 1.78, -0.24], tilt: [0, -0.2, 1.04] },
+    });
+    iodideBottle.controllers.setLabel({ title: 'KI', subtitle: 'Kali iodua', note: 'Bước 2' });
+
+    const beaker = createBeakerApparatus({
+      parent: apparatusRoot,
+      name: 'reaction-beaker',
+      position: [0, 0, 0],
+      radius: 1.62,
+      height: 2.7,
+      fillRatio: 0.34,
+      appearance: clearWater(),
+    });
+    beaker.controllers.setLabel({ title: 'Beaker phản ứng', subtitle: 'Vùng trộn Pb²⁺ + I⁻', note: 'Quan sát kết tủa vàng' });
+
+    const leftStream = createNaturalStream(0xb9e8ff, 0x63cbff);
+    const rightStream = createNaturalStream(0xd0dcff, 0x9dacff);
+    scene.add(leftStream, rightStream);
+
+    const precipitateAppearance = yellowPrecipitate();
+    const precipitateLayer = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.18, 1.28, 0.12, 40),
+      precipitateAppearance.createSurfaceMaterial({ color: 0xffd53d, roughness: 0.98, opacity: 0.96 })
+    );
+    precipitateLayer.castShadow = true;
+    precipitateLayer.receiveShadow = true;
+    beaker.group.add(precipitateLayer);
+
+    const cloud = new THREE.Mesh(
+      new THREE.SphereGeometry(0.96, 38, 28),
+      new THREE.MeshPhysicalMaterial({
+        color: 0xffdf5d,
+        transparent: true,
+        opacity: 0,
+        roughness: 0.28,
+        transmission: 0.14,
+        emissive: 0xffd22c,
+        emissiveIntensity: 0.18,
+      })
+    );
+    cloud.scale.set(1.12, 0.74, 1.12);
+    beaker.group.add(cloud);
+
+    const swirl = new THREE.Mesh(
+      new THREE.TorusGeometry(0.88, 0.07, 18, 70),
+      new THREE.MeshBasicMaterial({ color: 0xffd84d, transparent: true, opacity: 0 })
+    );
+    swirl.rotation.x = Math.PI / 2;
+    beaker.group.add(swirl);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.22, 0.05, 14, 70),
+      new THREE.MeshBasicMaterial({ color: 0xffd84d, transparent: true, opacity: 0 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    scene.add(ring);
+
+    const stirRod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.05, 3.1, 16),
+      new THREE.MeshStandardMaterial({ color: 0xcad2dd, roughness: 0.24, metalness: 0.9 })
+    );
+    stirRod.position.set(2.6, 3.3, -0.6);
+    stirRod.rotation.z = -0.42;
+    stirRod.castShadow = true;
+    scene.add(stirRod);
+
+    function makeSpriteTexture(draw) {
+      const size = 128;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      draw(ctx, size);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    const precipitateTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size / 2, size / 2, size * 0.06, size / 2, size / 2, size * 0.46);
+      g.addColorStop(0, 'rgba(255,247,182,1)');
+      g.addColorStop(0.35, 'rgba(255,220,91,0.94)');
+      g.addColorStop(1, 'rgba(255,220,91,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    });
+
+    const sparkleTexture = makeSpriteTexture((ctx, size) => {
+      const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.45);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.28, 'rgba(255,243,178,0.95)');
+      g.addColorStop(1, 'rgba(255,243,178,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, size, size);
+    });
+
+    function createPoints(count, texture, color, size, opacity) {
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(count * 3);
+      const material = new THREE.PointsMaterial({ map: texture, color, size, transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+      const points = new THREE.Points(geometry, material);
+      points.frustumCulled = false;
+      scene.add(points);
+      return { geometry, positions, points };
+    }
+
+    const precipitateField = createPoints(180, precipitateTexture, 0xffd84d, 0.22, 0.88);
+    const sparkleField = createPoints(48, sparkleTexture, 0xfff1a8, 0.34, 0.65);
+
+    const precipitateParticles = Array.from({ length: 180 }, () => ({ active: false, life: 0, maxLife: 1, position: new THREE.Vector3(), velocity: new THREE.Vector3() }));
+    const sparkleParticles = Array.from({ length: 48 }, () => ({ active: false, life: 0, maxLife: 1, position: new THREE.Vector3(), velocity: new THREE.Vector3() }));
+
+    const leftStepTarget = {
+      id: 'lead-step-target',
+      anchor: beaker.anchors.pourTarget,
+      radius: 1.0,
+    };
+    const rightStepTarget = {
+      id: 'iodide-step-target',
+      anchor: beaker.anchors.pourTarget,
+      radius: 1.0,
+    };
+
+    function buildStepPose(apparatus) {
+      return {
+        position: apparatus.meta.basePosition.clone().add(apparatus.meta.travel),
+        rotation: new THREE.Euler(
+          apparatus.meta.baseRotation.x + apparatus.meta.tilt[0],
+          apparatus.meta.baseRotation.y + apparatus.meta.tilt[1],
+          apparatus.meta.baseRotation.z + apparatus.meta.tilt[2],
+        ),
+      };
+    }
+
+    const stepConfig = {
+      lead: {
+        key: 'lead',
+        id: 'lead-bottle',
+        sampleId: 'Pb',
+        apparatus: leadBottle,
+        pour: null,
+        duration: 0.42,
+        pourDuration: 1.05,
+        target: leftStepTarget,
+        idleStatus: ['Bước 1/2: Kéo chai Pb(NO₃)₂ đến miệng beaker trung tâm.', 'Đưa đầu chai vào vùng rót sáng ở giữa beaker để hoàn tất bước đầu tiên.'],
+        wrongStatus: ['Chai Pb(NO₃)₂ chưa vào đúng vùng rót.', 'Hãy đưa đầu chai vào ngay trên miệng beaker rồi thả ra để hoàn tất bước 1.'],
+        nearStatus: ['Chai Pb(NO₃)₂ đã vào vùng rót.', 'Thả chuột để rót bước 1 rồi chai sẽ tự quay về vị trí ban đầu.'],
+        nextStatus: ['Bước 2/2: Kéo chai KI đến miệng beaker.', 'Bước Pb(NO₃)₂ đã xong. Tiếp tục với chai KI để tạo kết tủa vàng.'],
+        completionPose: buildStepPose(leadBottle),
+      },
+      iodide: {
+        key: 'iodide',
+        id: 'iodide-bottle',
+        sampleId: 'KI',
+        apparatus: iodideBottle,
+        pour: null,
+        duration: 0.42,
+        pourDuration: 1.05,
+        target: rightStepTarget,
+        idleStatus: ['Bước 2/2: Kéo chai KI đến miệng beaker.', 'Đưa đầu chai KI vào vùng rót để trộn hai dung dịch và bắt đầu tạo PbI₂.'],
+        wrongStatus: ['Chai KI chưa vào đúng vùng rót.', 'Hãy đặt đầu chai KI vào vùng sáng ngay trên beaker rồi thả ra để hoàn tất bước 2.'],
+        nearStatus: ['Chai KI đã vào vùng rót.', 'Thả chuột để rót bước 2 và kích hoạt phản ứng tạo kết tủa vàng.'],
+        completionStatus: ['Hai dung dịch đang được rót theo đúng thứ tự.', 'Pb²⁺ và I⁻ vừa gặp nhau trong beaker, chuẩn bị xuất hiện đám mây vàng PbI₂.'],
+        completionPose: buildStepPose(iodideBottle),
+      },
+    };
+
+    const leftPour = createPourInteraction({
+      source: leadBottle,
+      target: beaker,
+      streamMesh: leftStream,
+      options: {
+        sourceFillRange: [0.82, 0.42],
+        streamVisibleFrom: 0.05,
+        streamVisibleUntil: 0.99,
+        streamOpacityRange: [0.14, 0.52],
+        applySourcePose: false,
+        positionStream: positionSoftStream,
+        beforeValidate() {
+          const pose = stepConfig.lead.completionPose;
+          leadBottle.group.position.copy(pose.position);
+          leadBottle.group.rotation.copy(pose.rotation);
+          leadBottle.group.updateMatrixWorld(true);
+          leftPour.setProgress(0.72);
+        },
+      },
+    });
+    stepConfig.lead.pour = leftPour;
+
+    const rightPour = createPourInteraction({
+      source: iodideBottle,
+      target: beaker,
+      streamMesh: rightStream,
+      options: {
+        sourceFillRange: [0.82, 0.42],
+        streamVisibleFrom: 0.05,
+        streamVisibleUntil: 0.99,
+        streamOpacityRange: [0.14, 0.52],
+        applySourcePose: false,
+        positionStream: positionSoftStream,
+        beforeValidate() {
+          const pose = stepConfig.iodide.completionPose;
+          iodideBottle.group.position.copy(pose.position);
+          iodideBottle.group.rotation.copy(pose.rotation);
+          iodideBottle.group.updateMatrixWorld(true);
+          rightPour.setProgress(0.72);
+        },
+      },
+    });
+    stepConfig.iodide.pour = rightPour;
+
+    const baseBeakerFill = 0.34;
+    const mixedBeakerFill = 0.6;
+    const reactionDurations = { clouding: 3.2, settling: 4.2 };
+
+    const clock = new THREE.Clock();
+    const state = {
+      phase: 'ready',
+      stepOrder: ['lead', 'iodide'],
+      completedSteps: { lead: false, iodide: false },
+      currentStep: 'lead',
+      dragging: null,
+      completingStep: null,
+      completionT: 0,
+      completionDuration: 0,
+      completionFromPosition: null,
+      completionFromRotation: null,
+      pendingCompletedStep: null,
+      activePourStep: null,
+      stepPourProgress: { lead: 0, iodide: 0 },
+      nearTargetStep: null,
+      autoplay: false,
+      reactionActive: false,
+      reactionTime: 0,
+      precipitateLevel: 0,
+      streamsActive: false,
+      validatorReports: [],
+    };
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function updateCurrentStep() {
+      state.currentStep = state.stepOrder.find((key) => !state.completedSteps[key]) || null;
+    }
+
+    function getStepCompletion(key) {
+      const config = stepConfig[key];
+      if (!config) return null;
+      return {
+        object: config.apparatus.group,
+        pose: config.completionPose,
+        duration: config.duration,
+      };
+    }
+
+    function makeBottlePickObjects(apparatus) {
+      return Object.values(apparatus.meshes).filter((mesh) => mesh?.isObject3D);
+    }
+
+    function isStepReady(key) {
+      return state.currentStep === key && !state.activePourStep && !state.reactionActive && !state.completingStep;
+    }
+
+    function canPendingStepComplete(key) {
+      return canAttemptOrderedStep(key, state.stepOrder, state.completedSteps)
+        && !state.activePourStep
+        && !state.reactionActive;
+    }
+
+    function runValidationGate() {
+      const validatorGate = createSceneValidatorGate({
+        apparatuses: [leadBottle, iodideBottle, beaker],
+        interactions: [leftPour, rightPour],
+        camera,
+        visibilityPoints: [
+          { label: 'reaction:effectOrigin', apparatusId: getApparatusId(beaker), point: getAnchorWorld(beaker.anchors.effectOrigin) },
+          { label: 'reaction:mouth', apparatusId: getApparatusId(beaker), point: getAnchorWorld(beaker.anchors.mouth) },
+        ],
+      });
+      const result = validatorGate.validate();
+      state.validatorReports = result.reports;
+      if (!result.ok) {
+        console.warn('Scene validator gate reported issues', result.failed);
+      }
+      return result;
+    }
+
+    function getBeakerEffectLocal(heightOffset = 0) {
+      return beaker.group.worldToLocal(getAnchorWorld(beaker.anchors.effectOrigin).clone()).add(new THREE.Vector3(0, heightOffset, 0));
+    }
+
+    function getBeakerEffectWorld(heightOffset = 0) {
+      return getAnchorWorld(beaker.anchors.effectOrigin).clone().add(new THREE.Vector3(0, heightOffset, 0));
+    }
+
+    function spawnParticle(pool, basePosition, spread, velocity, lifeRange) {
+      const particle = pool.find((item) => !item.active);
+      if (!particle) return;
+      particle.active = true;
+      particle.life = 0;
+      particle.maxLife = THREE.MathUtils.randFloat(lifeRange[0], lifeRange[1]);
+      particle.position.copy(basePosition).add(new THREE.Vector3(
+        THREE.MathUtils.randFloatSpread(spread.x),
+        THREE.MathUtils.randFloatSpread(spread.y),
+        THREE.MathUtils.randFloatSpread(spread.z)
+      ));
+      particle.velocity.set(
+        THREE.MathUtils.randFloatSpread(velocity.x),
+        velocity.y + Math.random() * velocity.y,
+        THREE.MathUtils.randFloatSpread(velocity.z)
+      );
+    }
+
+    function updatePoints(pool, field, dt, updater) {
+      for (let i = 0; i < pool.length; i += 1) {
+        const particle = pool[i];
+        const index = i * 3;
+        if (!particle.active) {
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          continue;
+        }
+        particle.life += dt;
+        const t = particle.life / particle.maxLife;
+        if (t >= 1) {
+          particle.active = false;
+          field.positions[index] = 9999;
+          field.positions[index + 1] = 9999;
+          field.positions[index + 2] = 9999;
+          continue;
+        }
+        updater(particle, t, i);
+        field.positions[index] = particle.position.x;
+        field.positions[index + 1] = particle.position.y;
+        field.positions[index + 2] = particle.position.z;
+      }
+      field.geometry.setAttribute('position', new THREE.BufferAttribute(field.positions, 3));
+      field.geometry.attributes.position.needsUpdate = true;
+    }
+
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(apparatusRoot.position.y + 2.2));
+    const dragBounds = {
+      min: new THREE.Vector3(-5.3, 0.4, -2.0),
+      max: new THREE.Vector3(5.3, 4.8, 2.2),
+    };
+
+    const freeDrag = createFreeDragController({
+      camera,
+      renderer,
+      controls,
+      dragPlane,
+      bounds: dragBounds,
+      returnSpeed: 8,
+      targetRadius: 0.5,
+    });
+
+    function resolveStepKey(sampleId) {
+      return Object.values(stepConfig).find((entry) => entry.sampleId === sampleId || entry.id === sampleId || entry.key === sampleId)?.key || null;
+    }
+
+    function startSharedStepCompletion(key, { requireCurrentStep = false, sendHomeOnFailure = false } = {}) {
+      const config = stepConfig[key];
+      if (!config) {
+        return false;
+      }
+      const started = completeOrderedOverlapStep({
+        key,
+        state,
+        order: state.stepOrder,
+        completed: state.completedSteps,
+        isReady: requireCurrentStep ? isStepReady : canPendingStepComplete,
+        getCompletion: getStepCompletion,
+      });
+      if (!started) {
+        if (sendHomeOnFailure) {
+          freeDrag.sendHome(config.id);
+        }
+        return false;
+      }
+      onStepCompletionStart(key);
+      return true;
+    }
+
+    function beginStepFromDrop(key) {
+      if (!canPendingStepComplete(key) || state.completingStep === key || state.activePourStep === key || state.completedSteps[key]) {
+        freeDrag.sendHome(stepConfig[key].id);
+        return false;
+      }
+      return startSharedStepCompletion(key, { requireCurrentStep: true, sendHomeOnFailure: true });
+    }
+
+    function triggerAutoplayStep(key) {
+      return startSharedStepCompletion(key);
+    }
+
+    function maybeAdvanceAutoplay() {
+      if (!state.autoplay || state.reactionActive || state.activePourStep || state.completingStep) {
+        return;
+      }
+      if (!state.currentStep) {
+        state.autoplay = false;
+        return;
+      }
+      triggerAutoplayStep(state.currentStep);
+    }
+
+    function onStepCompletionStart(key) {
+      state.phase = 'step-completing';
+      state.nearTargetStep = key;
+      const config = stepConfig[key];
+      setStatus(...config.nearStatus);
+    }
+
+    function onStepReachedCompletion(key) {
+      const config = stepConfig[key];
+      state.activePourStep = key;
+      state.stepPourProgress[key] = 0;
+      state.phase = 'pouring';
+      setStatus(
+        key === 'lead'
+          ? 'Đang rót Pb(NO₃)₂ vào beaker.'
+          : 'Đang rót KI vào beaker để trộn với Pb(NO₃)₂.',
+        key === 'lead'
+          ? 'Hoàn tất bước 1, chai sẽ tự quay về vị trí cũ rồi mở khóa bước 2.'
+          : 'Hoàn tất bước 2, phản ứng tạo kết tủa vàng sẽ xuất hiện sau khi hai dung dịch gặp nhau.'
+      );
+    }
+
+    function finishPourStep(key) {
+      const config = stepConfig[key];
+      config.pour.reset();
+      state.activePourStep = null;
+      state.stepPourProgress[key] = 1;
+      state.completedSteps[key] = true;
+      freeDrag.sendHome(config.id);
+      updateCurrentStep();
+      if (key === 'lead') {
+        state.phase = 'ready';
+        setStatus(...config.nextStatus);
+      } else {
+        state.reactionActive = true;
+        state.phase = 'clouding';
+        state.reactionTime = 0;
+        state.streamsActive = false;
+        setStatus(...config.completionStatus);
+      }
+    }
+
+    function startAutoplay() {
+      if (state.reactionActive || state.activePourStep || state.completingStep) {
+        return false;
+      }
+      state.autoplay = true;
+      const nextKey = state.currentStep;
+      if (!nextKey) {
+        return false;
+      }
+      return triggerAutoplayStep(nextKey);
+    }
+
+    function updateIdleStatus() {
+      if (state.activePourStep || state.completingStep || state.reactionActive) {
+        return;
+      }
+      const current = state.currentStep ? stepConfig[state.currentStep] : null;
+      if (state.nearTargetStep && current?.key === state.nearTargetStep) {
+        setStatus(...current.nearStatus);
+        return;
+      }
+      if (current) {
+        setStatus(...current.idleStatus);
+      }
+    }
+
+    freeDrag.registerDraggable({
+      id: stepConfig.lead.id,
+      object: leadBottle.group,
+      pickObjects: makeBottlePickObjects(leadBottle),
+      anchors: leadBottle.anchors,
+      dragAnchor: leadBottle.anchors.gripAnchor,
+      homePose: clonePose(leadBottle.group),
+      validTargets: [leftStepTarget],
+      autoTiltTarget: beaker.anchors.mouth,
+      autoTiltRange: [-0.34, -1.06],
+      canDragStart() {
+        return isStepReady('lead');
+      },
+      onDragStart() {
+        state.dragging = 'lead';
+        state.nearTargetStep = null;
+        setStatus('Đang giữ chai Pb(NO₃)₂.', 'Di chuyển chai vào vùng rót phía trên beaker để hoàn tất bước 1.');
+      },
+      onNearTarget() {
+        state.nearTargetStep = 'lead';
+        if (!state.completingStep && !state.activePourStep) {
+          setStatus(...stepConfig.lead.nearStatus);
+        }
+      },
+      onDrag() {
+        if (!state.completedSteps.lead && !state.activePourStep) {
+          state.phase = 'dragging';
+        }
+      },
+      onDropTarget() {
+        beginStepFromDrop('lead');
+      },
+      onDragEnd({ target }) {
+        state.dragging = null;
+        if (!target?.withinRange && !state.completedSteps.lead) {
+          setStatus(...stepConfig.lead.wrongStatus);
+        }
+      },
+      onReturnHome() {
+        if (!state.completedSteps.lead) {
+          updateIdleStatus();
+        }
+      },
+    });
+
+    freeDrag.registerDraggable({
+      id: stepConfig.iodide.id,
+      object: iodideBottle.group,
+      pickObjects: makeBottlePickObjects(iodideBottle),
+      anchors: iodideBottle.anchors,
+      dragAnchor: iodideBottle.anchors.gripAnchor,
+      homePose: clonePose(iodideBottle.group),
+      validTargets: [rightStepTarget],
+      autoTiltTarget: beaker.anchors.mouth,
+      autoTiltRange: [0.34, 1.06],
+      canDragStart() {
+        return isStepReady('iodide');
+      },
+      onDragStart() {
+        state.dragging = 'iodide';
+        state.nearTargetStep = null;
+        setStatus('Đang giữ chai KI.', 'Di chuyển chai KI vào vùng rót phía trên beaker để hoàn tất bước 2.');
+      },
+      onNearTarget() {
+        state.nearTargetStep = 'iodide';
+        if (!state.completingStep && !state.activePourStep) {
+          setStatus(...stepConfig.iodide.nearStatus);
+        }
+      },
+      onDrag() {
+        if (!state.completedSteps.iodide && !state.activePourStep) {
+          state.phase = 'dragging';
+        }
+      },
+      onDropTarget() {
+        beginStepFromDrop('iodide');
+      },
+      onDragEnd({ target }) {
+        state.dragging = null;
+        if (!target?.withinRange && !state.completedSteps.iodide) {
+          setStatus(...stepConfig.iodide.wrongStatus);
+        }
+      },
+      onReturnHome() {
+        if (!state.completedSteps.iodide && !state.reactionActive) {
+          updateIdleStatus();
+        }
+      },
+    });
+
+    function resetParticles() {
+      precipitateField.positions.fill(9999);
+      precipitateField.geometry.setAttribute('position', new THREE.BufferAttribute(precipitateField.positions, 3));
+      precipitateField.geometry.attributes.position.needsUpdate = true;
+      sparkleField.positions.fill(9999);
+      sparkleField.geometry.setAttribute('position', new THREE.BufferAttribute(sparkleField.positions, 3));
+      sparkleField.geometry.attributes.position.needsUpdate = true;
+      for (const particle of precipitateParticles) particle.active = false;
+      for (const particle of sparkleParticles) particle.active = false;
+    }
+
+    function resetReactionVisuals() {
+      const baseCloud = getBeakerEffectLocal(-0.1);
+      cloud.position.copy(baseCloud);
+      cloud.scale.set(1.12, 0.74, 1.12);
+      cloud.material.opacity = 0;
+
+      const baseSwirl = getBeakerEffectLocal(0.06);
+      swirl.position.copy(baseSwirl);
+      swirl.scale.setScalar(1);
+      swirl.material.opacity = 0;
+
+      const mouthWorld = getAnchorWorld(beaker.anchors.mouth);
+      ring.position.copy(mouthWorld).add(new THREE.Vector3(0, 0.02, 0));
+      ring.material.opacity = 0;
+      ring.scale.setScalar(1);
+
+      const precipitateBase = getBeakerEffectLocal(-0.96);
+      precipitateLayer.position.copy(precipitateBase);
+      precipitateLayer.scale.y = 0.01;
+      precipitateLayer.visible = false;
+
+      yellowGlow.intensity = 12;
+      backLight.intensity = 14;
+      beaker.meshes.liquid.material.color.set(0xe9f5ff);
+      beaker.controllers.setLiquidOpacity(0.42);
+    }
+
+    function resetExperiment() {
+      state.phase = 'ready';
+      state.completedSteps = { lead: false, iodide: false };
+      state.currentStep = 'lead';
+      state.dragging = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+      state.pendingCompletedStep = null;
+      state.activePourStep = null;
+      state.stepPourProgress = { lead: 0, iodide: 0 };
+      state.nearTargetStep = null;
+      state.autoplay = false;
+      state.reactionActive = false;
+      state.reactionTime = 0;
+      state.precipitateLevel = 0;
+      state.streamsActive = false;
+
+      leadBottle.controllers.setLiquidLevel(0.82);
+      iodideBottle.controllers.setLiquidLevel(0.82);
+      beaker.controllers.setLiquidLevel(baseBeakerFill);
+
+      freeDrag.reset();
+      leftPour.reset();
+      rightPour.reset();
+      resetReactionVisuals();
+      resetParticles();
+      updateIdleStatus();
+      runValidationGate();
+      installHarness();
+    }
+
+    function updateStepCompletionAndPour(dt) {
+      const completing = runStepCompletion(state, dt, getStepCompletion, (completedKey) => {
+        onStepReachedCompletion(completedKey);
+      });
+
+      if (completing) {
+        const stepKey = state.completingStep;
+        if (stepKey) {
+          const progress = clamp01(state.completionT / Math.max(state.completionDuration || 0.001, 0.001));
+          stepConfig[stepKey].pour.setProgress(0.12 + progress * 0.18, state);
+          state.streamsActive = true;
+        }
+      }
+
+      if (!state.activePourStep) {
+        if (!state.completingStep) {
+          leftPour.setProgress(0, state);
+          rightPour.setProgress(0, state);
+          state.streamsActive = false;
+        }
+        return;
+      }
+
+      const key = state.activePourStep;
+      const config = stepConfig[key];
+      state.stepPourProgress[key] = clamp01(state.stepPourProgress[key] + dt / config.pourDuration);
+      config.pour.setProgress(state.stepPourProgress[key], state);
+      state.streamsActive = true;
+
+      const totalLiquidProgress = Math.max(state.stepPourProgress.lead, 0) + Math.max(state.stepPourProgress.iodide, 0);
+      const normalizedFill = clamp01(totalLiquidProgress * 0.5);
+      const beakerFill = THREE.MathUtils.lerp(baseBeakerFill, mixedBeakerFill, normalizedFill);
+      beaker.controllers.setLiquidLevel(beakerFill);
+
+      if (state.stepPourProgress[key] >= 1) {
+        finishPourStep(key);
+      }
+    }
+
+    function updateReaction(dt, elapsed) {
+      if (!state.reactionActive) {
+        return;
+      }
+      state.reactionTime += dt;
+      const cloudingDuration = reactionDurations.clouding;
+      const settlingDuration = reactionDurations.settling;
+
+      if (state.reactionTime < cloudingDuration) {
+        state.phase = 'clouding';
+        const t = THREE.MathUtils.smootherstep(state.reactionTime, 0, cloudingDuration);
+        cloud.material.opacity = 0.18 + t * 0.42;
+        cloud.scale.set(1.08 + t * 0.45, 0.68 + t * 0.28, 1.08 + t * 0.45);
+        cloud.position.copy(getBeakerEffectLocal(-0.08 + t * 0.18));
+        swirl.material.opacity = 0.18 + Math.sin(elapsed * 7.5) * 0.06;
+        swirl.scale.setScalar(1 + t * 0.16);
+        ring.material.opacity = 0.15 + Math.sin(elapsed * 6.5) * 0.04;
+        yellowGlow.intensity = 15 + t * 8;
+        backLight.intensity = 14 + t * 3;
+        beaker.meshes.liquid.material.color.lerpColors(new THREE.Color(0xe9f5ff), new THREE.Color(0xfff2b0), t * 0.35);
+        setStatus('Đám mây vàng PbI₂ đang hình thành trong vùng trộn.', 'Ion chì(II) và iodua vừa gặp nhau, tạo nên chất không tan màu vàng trong beaker.');
+
+        const particleBurst = Math.round((4 + t * 12) * dt * 30);
+        const basePosition = getBeakerEffectWorld(-0.02 + t * 0.12);
+        for (let i = 0; i < particleBurst; i += 1) {
+          spawnParticle(precipitateParticles, basePosition, new THREE.Vector3(1.8, 0.6, 1.8), new THREE.Vector3(0.18, 0.1, 0.18), [1.3, 2.6]);
+        }
+        const sparkleBurst = Math.round((0.8 + t * 3.2) * dt * 18);
+        for (let i = 0; i < sparkleBurst; i += 1) {
+          spawnParticle(sparkleParticles, basePosition, new THREE.Vector3(1.2, 0.4, 1.2), new THREE.Vector3(0.16, 0.18, 0.16), [0.5, 1.1]);
+        }
+        return;
+      }
+
+      const settlingTime = Math.min(state.reactionTime - cloudingDuration, settlingDuration);
+      const t = THREE.MathUtils.smootherstep(settlingTime, 0, settlingDuration);
+      state.phase = settlingTime < settlingDuration ? 'settling' : 'precipitated';
+      state.precipitateLevel = t;
+      precipitateLayer.visible = true;
+      precipitateLayer.scale.y = 0.01 + t * 4.2;
+      precipitateLayer.position.copy(getBeakerEffectLocal(-0.96 + t * 0.18));
+      cloud.material.opacity = 0.52 - t * 0.44;
+      cloud.position.copy(getBeakerEffectLocal(0.08 - t * 0.32));
+      beaker.controllers.setLiquidOpacity(0.44 - t * 0.12);
+      beaker.meshes.liquid.material.color.lerpColors(new THREE.Color(0xffefb1), new THREE.Color(0xf2f7ff), t * 0.55);
+      swirl.material.opacity = 0.16 - t * 0.12;
+      ring.material.opacity = 0.18 + Math.sin(elapsed * 4.2) * 0.03;
+      yellowGlow.intensity = 18 + (1 - t) * 4;
+
+      if (state.phase === 'settling') {
+        setStatus('Kết tủa vàng đang lắng dần xuống đáy beaker.', 'Phần rắn PbI₂ rõ dần lên ở đáy, còn lớp dung dịch phía trên sáng và trong hơn.');
+      } else {
+        state.reactionActive = false;
+        state.autoplay = false;
+        setStatus('Đã hình thành lớp kết tủa vàng PbI₂ ở đáy beaker.', 'Đây là dấu hiệu điển hình của phản ứng tạo chất không tan giữa Pb(NO₃)₂ và KI.');
+      }
+    }
+
+    function updateParticleSystems(dt, elapsed) {
+      updatePoints(precipitateParticles, precipitateField, dt, (particle, t) => {
+        particle.position.addScaledVector(particle.velocity, dt);
+        particle.velocity.y -= dt * 0.14;
+        particle.velocity.x *= 0.985;
+        particle.velocity.z *= 0.985;
+        particle.position.y -= dt * (0.08 + t * 0.18);
+      });
+
+      updatePoints(sparkleParticles, sparkleField, dt, (particle, t) => {
+        particle.position.addScaledVector(particle.velocity, dt);
+        particle.position.y += Math.sin(elapsed * 3.4 + t * 5) * 0.002;
+        particle.velocity.y -= dt * 0.08;
+      });
+    }
+
+    function getDragPath(sampleId) {
+      const config = Object.values(stepConfig).find((entry) => entry.sampleId === sampleId || entry.id === sampleId || entry.key === sampleId);
+      if (!config) {
+        return null;
+      }
+      const completionPoint = projectPoseAnchorToCanvas(
+        config.apparatus.group,
+        config.apparatus.anchors.gripAnchor,
+        config.completionPose,
+        camera,
+        renderer,
+      );
+      return {
+        from: projectWorldToCanvas(config.apparatus.anchors.gripAnchor, camera, renderer),
+        to: withTargetCanvasPadding(completionPoint, config.key),
+      };
+    }
+
+    function dragFromPageApi(args = {}) {
+      const key = args.key || resolveStepKey(args.sampleId);
+      if (!key || state.currentStep !== key || state.activePourStep || state.completingStep) {
+        return false;
+      }
+      return triggerAutoplayStep(key);
+    }
+
+    function waitForCondition(check, timeoutMs = 8000, intervalMs = 50) {
+      return new Promise((resolve) => {
+        const start = performance.now();
+        function tick() {
+          if (check()) {
+            resolve(true);
+            return;
+          }
+          if (performance.now() - start >= timeoutMs) {
+            resolve(false);
+            return;
+          }
+          window.setTimeout(tick, intervalMs);
+        }
+        tick();
+      });
+    }
+
+    function runVerifierStep(step = {}) {
+      if (step?.type === 'complete-step') {
+        const key = step.key || resolveStepKey(step.sampleId);
+        if (!key) return false;
+        return triggerAutoplayStep(key);
+      }
+      if (step?.type === 'run-autoplay' || step?.type === 'run-reaction-autoplay') {
+        return startAutoplay();
+      }
+      if (step?.type === 'reset') {
+        resetExperiment();
+        return true;
+      }
+      return false;
+    }
+
+    function getGoldenPath() {
+      return [
+        { type: 'pageApiCall', method: 'runVerifierStep', args: [{ type: 'complete-step', key: 'lead' }], afterMs: 3200 },
+        { type: 'pageApiCall', method: 'runVerifierStep', args: [{ type: 'complete-step', key: 'iodide' }], afterMs: 5600 },
+      ];
+    }
+
+    function getFrameDelta() {
+      return Math.min(clock.getDelta(), 0.5);
+    }
+
+
+    function installHarness() {
+      installCoursewareTestHarness({
+        state,
+        mapState(runtimeState) {
+          return {
+            phase: runtimeState.phase,
+            currentStep: runtimeState.currentStep,
+            completedSteps: { ...runtimeState.completedSteps },
+            precipitateLevel: Number(runtimeState.precipitateLevel.toFixed(3)),
+            streamsActive: runtimeState.streamsActive,
+          };
+        },
+        getVerifierMeta() {
+          return {
+            supportsGoldenPath: true,
+            successPhase: 'precipitated',
+          };
+        },
+        getGoldenPath,
+        getDragPath,
+        dragFromPageApi,
+        runVerifierStep,
+      });
+    }
+
+    pourBtn.addEventListener('click', () => {
+      startAutoplay();
+    });
+    resetBtn.addEventListener('click', resetExperiment);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      runValidationGate();
+      installHarness();
+    });
+
+    function animate() {
+      const dt = getFrameDelta();
+      const elapsed = clock.getElapsedTime();
+      controls.update();
+      freeDrag.update(dt);
+      updateStepCompletionAndPour(dt);
+      updateReaction(dt, elapsed);
+      updateParticleSystems(dt, elapsed);
+      maybeAdvanceAutoplay();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    resetExperiment();
+    animate();
+  </script>
+</body>
+</html>

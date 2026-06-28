@@ -4,6 +4,8 @@ import {
   THREE,
   addToParent,
   applyTransform,
+  attachFixedPlaneLabel,
+  attachLabelController,
   clamp,
   cloneMaterial,
   createDefaultGlassMaterial,
@@ -51,6 +53,9 @@ export function createDropperApparatus({
 
   const anchors = {
     labelAnchor: makeAnchor(group, 0, bulbRadius + 0.2, 0, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, bulbRadius * 0.2, 0, `${name}:gripAnchor`),
+    tipAnchor: makeAnchor(group, 0, tip.position.y, 0, `${name}:tipAnchor`),
+    interactionZone: makeAnchor(group, 0, tip.position.y + stemLength * 0.12, 0, `${name}:interactionZone`),
     mouth: makeAnchor(group, 0, bulbRadius * 0.72, 0, `${name}:mouth`),
     nozzle: makeAnchor(group, 0, tip.position.y - stemLength * 0.11, 0, `${name}:nozzle`),
   };
@@ -75,6 +80,13 @@ export function createDropperApparatus({
 
   const basePosition = new THREE.Vector3(...position);
   const baseRotation = new THREE.Euler(...rotation);
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(0.86, 0.34),
+    role: 'floating-badge',
+  });
+
   apparatus.controllers = {
     setPourPose(progress) {
       const value = clamp(progress, 0, 1);
@@ -83,6 +95,7 @@ export function createDropperApparatus({
       group.rotation.set(baseRotation.x + value * 0.4, baseRotation.y, baseRotation.z - value * 0.8);
     },
   };
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
   apparatus.validators = [];
   return apparatus;
 }

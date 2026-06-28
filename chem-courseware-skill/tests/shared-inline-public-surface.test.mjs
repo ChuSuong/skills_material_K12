@@ -1,34 +1,79 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-const repoRoot = '/home/ding/skills_material_K12/chem-courseware-skill';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const repoRoot = path.resolve(__dirname, '..');
 const inlineBundlePath = path.join(repoRoot, 'templates/shared-inline-snippet.js');
 const generatedExperimentDir = path.join(repoRoot, 'generated/experiment');
 
 const sharedExports = [
   'THREE',
+  'cameraPresets',
+  'getCameraPreset',
+  'themePresets',
+  'getThemePreset',
   'updatePointerFromEvent',
   'setPointerCaptureSafe',
   'releasePointerCaptureSafe',
   'setControlsDragging',
+  'createManipulationController',
+  'createFreeDragController',
+  'createSceneShell',
   'intersectPointerPlane',
+  'getWorldBounds',
+  'modelsOverlapOrNear',
+  'canAttemptOrderedStep',
+  'hasActiveCompletion',
+  'isStepBusy',
+  'lerpObjectPose',
+  'beginStepCompletion',
+  'clearStepCompletion',
+  'runStepCompletion',
+  'completeOrderedOverlapStep',
   'clamp01',
   'lerp',
   'smoothstep01',
   'segment',
   'sequenceProgress',
+  'computeAnchorPlacementPose',
+  'applyAnchorPlacement',
+  'createGuidedAnchorMotion',
+  'createContextualLabelPolicy',
+  'createSpriteTexture',
+  'createSoftCircleTexture',
+  'createParticlePool',
+  'createBubbleField',
+  'createSteamField',
+  'createSparkField',
+  'createPourStream',
+  'createGlowRing',
+  'createFlamePlume',
+  'createColorTransition',
+  'createMaterialProgress',
+  'createReactionFlow',
+  'createPourIntoVesselReaction',
+  'createAcidBaseIndicatorReaction',
+  'createMetalDisplacementReaction',
+  'createDehydrationCarbonizationReaction',
+  'createAcidMetalGasReaction',
+  'createMethaneCombustionReaction',
   'getCanvasBox',
   'canvasPoint',
   'projectWorldToCanvas',
   'installFlameTestHarness',
+  'installCoursewareTestHarness',
 ];
 
-const generatedHtmlFiles = [
-  path.join(generatedExperimentDir, 'rate-applications-3d/index.html'),
-  path.join(generatedExperimentDir, 'reaction-rate-specimens/index.html'),
-];
+async function listGeneratedExperimentHtmlFiles() {
+  const entries = await readdir(generatedExperimentDir, { withFileTypes: true }).catch(() => []);
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => path.join(generatedExperimentDir, entry.name, 'index.html'));
+}
 
 test('shared inline bundle exposes the shared public surface', async () => {
   const inlineSource = await readFile(inlineBundlePath, 'utf8');
@@ -39,12 +84,14 @@ test('shared inline bundle exposes the shared public surface', async () => {
   }
 });
 
-test('affected generated experiment HTML files avoid repo-local helper imports', async () => {
+test('legacy generated experiment references still avoid repo-local helper imports', async () => {
   const localImportPattern = /\.\.\/\.\.\/\.\.\/lib\//;
+  const generatedHtmlFiles = await listGeneratedExperimentHtmlFiles();
 
   for (const filePath of generatedHtmlFiles) {
     const source = await readFile(filePath, 'utf8');
     assert.doesNotMatch(source, localImportPattern, `Expected ${filePath} to avoid repo-local helper imports`);
-    assert.match(source, /globalThis\.ChemSharedLib/, `Expected ${filePath} to install or consume ChemSharedLib`);
+    assert.match(source, /<script type="importmap">/, `Expected ${filePath} to declare an importmap`);
+    assert.match(source, /__coursewareTestApi|__flameTestApi/, `Expected ${filePath} to expose a verifier API`);
   }
 });

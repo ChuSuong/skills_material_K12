@@ -4,6 +4,8 @@ import {
   THREE,
   addToParent,
   applyTransform,
+  attachFixedPlaneLabel,
+  attachLabelController,
   clamp,
   cloneMaterial,
   createDefaultGlassMaterial,
@@ -60,7 +62,10 @@ export function createAlcoholBurnerApparatus({
     meshes: { body, cap, wick },
     anchors: {
       labelAnchor: makeAnchor(group, 0, bodyHeight + wickHeight + 0.48, 0, `${name}:labelAnchor`),
+      gripAnchor: makeAnchor(group, 0, bodyHeight * 0.52, 0, `${name}:gripAnchor`),
+      interactionZone: makeAnchor(group, 0, bodyHeight + wickHeight + 0.02, 0, `${name}:interactionZone`),
       heatZone: makeAnchor(group, 0, bodyHeight + wickHeight + 0.02, 0, `${name}:heatZone`),
+      ignitionTip: makeAnchor(group, 0, bodyHeight + wickHeight + 0.08, 0, `${name}:ignitionTip`),
       flameOrigin: makeAnchor(group, 0, bodyHeight + wickHeight + 0.08, 0, `${name}:flameOrigin`),
     },
     constraints: {
@@ -73,12 +78,20 @@ export function createAlcoholBurnerApparatus({
     meta: { appearance: appearance.name },
   });
 
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: apparatus.anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.0, 0.38),
+    role: 'floating-badge',
+  });
+
   apparatus.controllers = {
     setEffectIntensity(value) {
       apparatus.state = apparatus.state || {};
       apparatus.state.effectIntensity = clamp(value, 0, 1);
     },
   };
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#ff9b32' });
   apparatus.validators = [];
   return apparatus;
 }

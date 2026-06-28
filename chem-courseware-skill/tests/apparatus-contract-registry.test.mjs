@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import {
   ApparatusContractRegistry,
@@ -20,7 +21,7 @@ import {
   normalizeCapabilities,
 } from '../lib/apparatus/capabilities.js';
 
-const repoRoot = '/home/ding/chem-courseware-skill-base';
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const apparatusCorePath = path.join(repoRoot, 'lib/apparatus/core.js');
 const apparatusIndexPath = path.join(repoRoot, 'lib/apparatus/index.js');
 const apparatusPresetsPath = path.join(repoRoot, 'lib/apparatus/presets.js');
