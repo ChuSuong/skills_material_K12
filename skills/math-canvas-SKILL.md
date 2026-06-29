@@ -814,10 +814,10 @@ và kiểm tra tay:
 
 ## Manual Verification Checklist (Statistics Mode)
 
-- [ ] Switch to Statistics: panel 180px xuất hiện, canvas hiện placeholder, Example/Clear enabled
-- [ ] Click Example: 25 điểm thi load, histogram vẽ với n/mean/min/max đúng
-- [ ] Nhập `5, 10, 5, 15, 10, 5, 20`: histogram 7 số đúng hình dạng
-- [ ] Nhập `42` (một giá trị): một cột giữa, không crash
+- [x] Switch to Statistics: panel 180px xuất hiện, canvas hiện placeholder, Example/Clear enabled
+- [x] Click Example: 25 điểm thi load, histogram vẽ với n/mean/min/max đúng
+- [x] Nhập `5, 10, 5, 15, 10, 5, 20`: histogram 7 số đúng hình dạng
+- [x] Nhập `42` (một giá trị): một cột giữa, không crash
 - [x] Nhập `a, b, c`: dataset rỗng, canvas hiện placeholder
 - [x] Nhập `1, 2, abc, 3, 4`: bỏ qua ký tự không hợp lệ, histogram 4 số
 - [x] Thay Bins → 3: histogram redraw ngay với 3 bins
@@ -825,4 +825,4 @@ và kiểm tra tay:
 - [x] Switch Geometry → vẽ điểm → switch Statistics: dataset còn nguyên trong textarea
 - [x] Switch Graphing → switch Statistics: funcs và dataset cả hai còn nguyên
 - [x] Zoom/pan buttons: không crash, không ảnh hưởng chart
-- [ ] DevTools console: không có lỗi JS
+- [x] DevTools console: không có lỗi JS
