@@ -4,13 +4,24 @@
   "type": "module",
   "scripts": {
     "verify:pw:smoke": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\"",
+    "verify:pw:contract": "node scripts/pw-courseware-contract-smoke.mjs \"$COURSEWARE_HTML\"",
     "verify:pw:canvas": "node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\"",
     "verify:pw:interaction": "node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
     "verify:pw:screenshot": "node scripts/pw-capture-screenshot.mjs",
-    "verify:pw": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
-    "verify": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
+    "verify:pw": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-courseware-contract-smoke.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
+    "verify": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\" && node scripts/pw-courseware-contract-smoke.mjs \"$COURSEWARE_HTML\" && node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\" && node scripts/pw-interaction-golden-path.mjs \"$COURSEWARE_HTML\"",
+    "audit:generated": "node scripts/audit-generated-artifacts.mjs",
+    "audit:scene-contract": "node scripts/audit-experiment-scene-contract.mjs",
+    "audit:recipe-scene": "node scripts/audit-recipe-scene-contract.mjs",
+    "test:apparatus": "node --test tests/apparatus-contract-registry.test.mjs tests/apparatus-public-surface.test.mjs",
+    "test:apparatus-labels": "node --test tests/apparatus-label-contract.test.mjs",
+    "test:scene-contract": "node --test tests/experiment-scene-contract.test.mjs",
+    "test:recipe-contract": "node --test tests/recipe-contract.test.mjs tests/recipe-scene-contract.test.mjs tests/recipe-scene-builder.test.mjs",
+    "test:proposal-contract": "node --test tests/recipe-proposal-contract.test.mjs",
+    "test:runtime-contract": "node --test tests/runtime-contract-source.test.mjs",
+    "test:shared-inline": "node --test tests/shared-inline-public-surface.test.mjs",
     "test:format": "node --test tests/courseware-format.test.mjs",
-    "test:format:example": "COURSEWARE_HTML=/home/ding/chem-courseware-skill-base/examples/sugar-h2so4/sugar-h2so4.html node --test tests/courseware-format.test.mjs"
+    "test:format:example": "COURSEWARE_HTML=examples/sugar-h2so4.html node --test tests/courseware-format.test.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.0"

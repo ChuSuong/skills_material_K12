@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hình học phân tử 3D: CH₄, NH₃, H₂O</title>
+  <style>
+    :root {
+      --panel: rgba(10, 17, 28, 0.78);
+      --panel-soft: rgba(8, 13, 24, 0.68);
+      --border: rgba(255, 255, 255, 0.12);
+      --text: #f3f8ff;
+      --muted: rgba(243, 248, 255, 0.74);
+      --accent: #83d6ff;
+      --accent-strong: #4fb3ff;
+      --green: #94f2b4;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at top left, #1d3557 0%, #0f1b31 40%, #04070c 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel,
+    .legend,
+    .status,
+    .controls {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 56px rgba(0, 0, 0, 0.28);
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 390px;
+      padding: 18px 20px;
+      background: var(--panel);
+    }
+
+    .panel h1 {
+      margin: 0 0 10px;
+      font-size: 25px;
+      line-height: 1.08;
+    }
+
+    .panel p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .panel p + p {
+      margin-top: 10px;
+    }
+
+    .legend {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      width: 300px;
+      padding: 16px 18px;
+      background: var(--panel-soft);
+    }
+
+    .legend h2,
+    .controls h2 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bfdcff;
+    }
+
+    .legend ul {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      max-width: 430px;
+      min-width: 330px;
+      padding: 16px 18px;
+      background: rgba(7, 12, 20, 0.8);
+    }
+
+    .label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+    }
+
+    #statusText {
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    #statusSub {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.52;
+      color: var(--muted);
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      width: 300px;
+      padding: 16px;
+      background: rgba(7, 12, 20, 0.74);
+      pointer-events: auto;
+    }
+
+    .control-copy {
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.52;
+      color: var(--muted);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      flex: 1;
+      min-height: 46px;
+      border-radius: 999px;
+      border: 0;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #pourBtn {
+      color: #071220;
+      background: linear-gradient(135deg, #9fe7ff, var(--accent-strong));
+      box-shadow: 0 12px 26px rgba(77, 182, 255, 0.3);
+    }
+
+    #resetBtn {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: var(--green);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    @media (max-width: 960px) {
+      .panel,
+      .legend,
+      .status,
+      .controls {
+        left: 14px;
+        right: 14px;
+        width: auto;
+        max-width: calc(100vw - 28px);
+      }
+
+      .legend {
+        top: auto;
+        bottom: 186px;
+      }
+
+      .status {
+        bottom: 110px;
+        min-width: 0;
+      }
+
+      .controls {
+        bottom: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>So sánh hình học phân tử CH₄, NH₃ và H₂O</h1>
+      <p>Không gian 3D giúp người học thấy rõ vì sao cùng có liên kết với H nhưng ba phân tử lại có hình dạng khác nhau.</p>
+      <p>Hãy xoay mô hình bằng chuột. Nút trình diễn sẽ tự chuyển tiêu điểm và làm nổi bật góc liên kết tiêu biểu của từng phân tử.</p>
+    </div>
+
+    <div class="legend" data-courseware-role="legend">
+      <h2>Khái niệm cần nhớ</h2>
+      <ul>
+        <li>CH₄: tứ diện đều, góc H-C-H xấp xỉ 109,5°.</li>
+        <li>NH₃: chóp tam giác, một cặp e tự do làm góc H-N-H nhỏ còn khoảng 107°.</li>
+        <li>H₂O: gấp khúc, hai cặp e tự do đẩy mạnh hơn nên góc H-O-H còn khoảng 104,5°.</li>
+      </ul>
+    </div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái học tập</div>
+      <div id="statusText">Sẵn sàng. Xoay để quan sát ba mô hình và bấm trình diễn để highlight từng góc liên kết.</div>
+      <div id="statusSub">Mẹo: so sánh số cặp electron tự do quanh nguyên tử trung tâm để giải thích sự giảm dần của góc liên kết.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <h2>Trình diễn nhanh</h2>
+      <div class="control-copy">Nút chính sẽ lần lượt đưa camera tới CH₄, NH₃, H₂O và bật hiệu ứng góc liên kết trong khoảng vài giây.</div>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay">Highlight góc</button>
+      </div>
+      <div class="pill-list">
+        <div class="pill">Có thể xoay tự do</div>
+        <div class="pill">Góc liên kết hiện rõ</div>
+        <div class="pill">So sánh trực quan</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x07101b);
+    scene.fog = new THREE.Fog(0x07101b, 18, 34);
+
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 6.4, 16.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.08;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.8, 0);
+    controls.minDistance = 8;
+    controls.maxDistance = 24;
+    controls.minPolarAngle = 0.4;
+    controls.maxPolarAngle = Math.PI / 2.05;
+
+    scene.add(new THREE.HemisphereLight(0xc8ddff, 0x111824, 1.45));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(7, 10, 7);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.PointLight(0x6cc6ff, 16, 30, 2);
+    fillLight.position.set(0, 6, -8);
+    scene.add(fillLight);
+
+    const warmLight = new THREE.PointLight(0xffcc7a, 10, 24, 2);
+    warmLight.position.set(-7, 3, 4);
+    scene.add(warmLight);
+
+    const stage = new THREE.Mesh(
+      new THREE.CircleGeometry(18, 64),
+      new THREE.MeshStandardMaterial({ color: 0x122033, roughness: 0.9, metalness: 0.04 })
+    );
+    stage.rotation.x = -Math.PI / 2;
+    stage.position.y = -2.2;
+    scene.add(stage);
+
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(5.8, 0.06, 16, 100),
+      new THREE.MeshBasicMaterial({ color: 0x21496e, transparent: true, opacity: 0.45 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = -2.18;
+    scene.add(ring);
+
+    const atomMaterials = {
+      C: new THREE.MeshStandardMaterial({ color: 0x3f4650, roughness: 0.25, metalness: 0.12 }),
+      N: new THREE.MeshStandardMaterial({ color: 0x4ea0ff, roughness: 0.25, metalness: 0.08 }),
+      O: new THREE.MeshStandardMaterial({ color: 0xff5d66, roughness: 0.22, metalness: 0.06 }),
+      H: new THREE.MeshStandardMaterial({ color: 0xf1f7ff, roughness: 0.18, metalness: 0.02 }),
+      lone: new THREE.MeshStandardMaterial({ color: 0x9cf0bf, emissive: 0x2f8f58, emissiveIntensity: 0.45, roughness: 0.18 }),
+      angle: new THREE.MeshBasicMaterial({ color: 0xffd36e, transparent: true, opacity: 0.0 })
+    };
+
+    const labelCanvas = document.createElement('canvas');
+    labelCanvas.width = 768;
+    labelCanvas.height = 256;
+    const labelContext = labelCanvas.getContext('2d');
+    labelContext.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+    labelContext.fillStyle = '#ffffff';
+    labelContext.font = '700 52px "Segoe UI", sans-serif';
+    labelContext.textAlign = 'center';
+    labelContext.fillText('CH₄   |   NH₃   |   H₂O', labelCanvas.width / 2, 88);
+    labelContext.font = '28px "Segoe UI", sans-serif';
+    labelContext.fillStyle = 'rgba(210, 232, 255, 0.92)';
+    labelContext.fillText('Tứ diện đều    Chóp tam giác    Gấp khúc', labelCanvas.width / 2, 148);
+    const labelTexture = new THREE.CanvasTexture(labelCanvas);
+    const labelPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(8.4, 2.8),
+      new THREE.MeshBasicMaterial({ map: labelTexture, transparent: true })
+    );
+    labelPlane.position.set(0, 5.8, -0.2);
+    scene.add(labelPlane);
+
+    function makeAtom(radius, materialKey, position) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(radius, 32, 32), atomMaterials[materialKey]);
+      mesh.position.copy(position);
+      return mesh;
+    }
+
+    function makeBond(start, end) {
+      const direction = end.clone().sub(start);
+      const length = direction.length();
+      const bond = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, length, 16),
+        new THREE.MeshStandardMaterial({ color: 0xb9d5ef, roughness: 0.28, metalness: 0.25 })
+      );
+      bond.position.copy(start.clone().add(end).multiplyScalar(0.5));
+      bond.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+      return bond;
+    }
+
+    function makeAngleArc(radius, angleDeg) {
+      const points = [];
+      const segments = 48;
+      const angle = THREE.MathUtils.degToRad(angleDeg);
+      for (let i = 0; i <= segments; i += 1) {
+        const t = -angle / 2 + (angle * i) / segments;
+        points.push(new THREE.Vector3(Math.sin(t) * radius, Math.cos(t) * radius, 0));
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(
+        geometry,
+        new THREE.LineBasicMaterial({ color: 0xffd36e, transparent: true, opacity: 0.0 })
+      );
+      return line;
+    }
+
+    function makeTextSprite(mainText, subText) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 220;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(6, 12, 20, 0.72)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 4;
+      const radius = 28;
+      ctx.beginPath();
+      ctx.moveTo(radius, 20);
+      ctx.arcTo(canvas.width - 20, 20, canvas.width - 20, canvas.height - 20, radius);
+      ctx.arcTo(canvas.width - 20, canvas.height - 20, 20, canvas.height - 20, radius);
+      ctx.arcTo(20, canvas.height - 20, 20, 20, radius);
+      ctx.arcTo(20, 20, canvas.width - 20, 20, radius);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 48px "Segoe UI", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(mainText, canvas.width / 2, 88);
+      ctx.fillStyle = '#d8ebff';
+      ctx.font = '28px "Segoe UI", sans-serif';
+      ctx.fillText(subText, canvas.width / 2, 146);
+      const texture = new THREE.CanvasTexture(canvas);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+      sprite.scale.set(3.6, 1.55, 1);
+      return sprite;
+    }
+
+    function createMolecule({ name, subtitle, center, centralType, hydrogenPositions, lonePairPositions, angleDeg }) {
+      const group = new THREE.Group();
+      group.position.copy(center);
+
+      const core = makeAtom(0.54, centralType, new THREE.Vector3());
+      group.add(core);
+
+      hydrogenPositions.forEach((position) => {
+        group.add(makeAtom(0.28, 'H', position));
+        group.add(makeBond(new THREE.Vector3(), position));
+      });
+
+      const lonePairMeshes = [];
+      lonePairPositions.forEach((position) => {
+        const lp = makeAtom(0.12, 'lone', position);
+        lonePairMeshes.push(lp);
+        group.add(lp);
+      });
+
+      const arc = makeAngleArc(1.28, angleDeg);
+      arc.position.set(0, 0, 0);
+      group.add(arc);
+
+      const label = makeTextSprite(name, subtitle);
+      label.position.set(0, 2.3, 0);
+      group.add(label);
+
+      scene.add(group);
+      return { group, arc, label, core, lonePairMeshes, angleDeg, name, subtitle };
+    }
+
+    const molecules = [
+      createMolecule({
+        name: 'CH₄',
+        subtitle: 'Tứ diện đều · 109,5°',
+        center: new THREE.Vector3(-4.6, 0.6, 0),
+        centralType: 'C',
+        hydrogenPositions: [
+          new THREE.Vector3(0, 1.05, 0),
+          new THREE.Vector3(1.08, -0.32, 0.58),
+          new THREE.Vector3(-1.02, -0.34, 0.64),
+          new THREE.Vector3(0.04, -0.3, -1.06)
+        ],
+        lonePairPositions: [],
+        angleDeg: 109.5
+      }),
+      createMolecule({
+        name: 'NH₃',
+        subtitle: 'Chóp tam giác · 107°',
+        center: new THREE.Vector3(0, 0.6, 0),
+        centralType: 'N',
+        hydrogenPositions: [
+          new THREE.Vector3(0, 0.98, 0.18),
+          new THREE.Vector3(0.95, -0.5, 0.44),
+          new THREE.Vector3(-0.95, -0.5, 0.44)
+        ],
+        lonePairPositions: [
+          new THREE.Vector3(0, 1.5, -0.38),
+          new THREE.Vector3(0.18, 1.32, -0.18)
+        ],
+        angleDeg: 107
+      }),
+      createMolecule({
+        name: 'H₂O',
+        subtitle: 'Gấp khúc · 104,5°',
+        center: new THREE.Vector3(4.6, 0.6, 0),
+        centralType: 'O',
+        hydrogenPositions: [
+          new THREE.Vector3(-0.92, 0.54, 0.12),
+          new THREE.Vector3(0.92, 0.54, 0.12)
+        ],
+        lonePairPositions: [
+          new THREE.Vector3(-0.48, 1.15, -0.52),
+          new THREE.Vector3(0.48, 1.15, -0.52),
+          new THREE.Vector3(-0.2, 1.42, -0.18),
+          new THREE.Vector3(0.2, 1.42, -0.18)
+        ],
+        angleDeg: 104.5
+      })
+    ];
+
+    const angleTextCanvas = document.createElement('canvas');
+    angleTextCanvas.width = 320;
+    angleTextCanvas.height = 160;
+    const angleTextCtx = angleTextCanvas.getContext('2d');
+    const angleTextTexture = new THREE.CanvasTexture(angleTextCanvas);
+    const angleSprite = new THREE.Sprite(
+      new THREE.SpriteMaterial({ map: angleTextTexture, transparent: true })
+    );
+    angleSprite.scale.set(2.2, 1.1, 1);
+    angleSprite.visible = false;
+    scene.add(angleSprite);
+
+    function updateAngleSprite(text, position) {
+      angleTextCtx.clearRect(0, 0, angleTextCanvas.width, angleTextCanvas.height);
+      angleTextCtx.fillStyle = 'rgba(6, 11, 20, 0.76)';
+      angleTextCtx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      angleTextCtx.lineWidth = 3;
+      angleTextCtx.beginPath();
+      angleTextCtx.roundRect(18, 18, angleTextCanvas.width - 36, angleTextCanvas.height - 36, 26);
+      angleTextCtx.fill();
+      angleTextCtx.stroke();
+      angleTextCtx.fillStyle = '#ffe08a';
+      angleTextCtx.font = '700 44px "Segoe UI", sans-serif';
+      angleTextCtx.textAlign = 'center';
+      angleTextCtx.fillText(text, angleTextCanvas.width / 2, 92);
+      angleTextTexture.needsUpdate = true;
+      angleSprite.position.copy(position);
+      angleSprite.visible = true;
+    }
+
+    const state = {
+      autoplay: false,
+      autoplayStart: 0,
+      autoplayDuration: 8.6,
+      activeIndex: -1
+    };
+
+    const clock = new THREE.Clock();
+    const cameraBase = new THREE.Vector3(0, 6.4, 16.2);
+
+    function setIdleState() {
+      state.autoplay = false;
+      state.activeIndex = -1;
+      camera.position.copy(cameraBase);
+      controls.target.set(0, 1.2, 0);
+      statusText.textContent = 'Sẵn sàng. Xoay để quan sát ba mô hình và bấm trình diễn để highlight từng góc liên kết.';
+      statusSub.textContent = 'Mẹo: so sánh số cặp electron tự do quanh nguyên tử trung tâm để giải thích sự giảm dần của góc liên kết.';
+      angleSprite.visible = false;
+      molecules.forEach((molecule) => {
+        molecule.arc.material.opacity = 0.0;
+        molecule.label.material.opacity = 1.0;
+        molecule.group.scale.setScalar(1);
+        molecule.core.scale.setScalar(1);
+        molecule.lonePairMeshes.forEach((item) => item.scale.setScalar(1));
+      });
+    }
+
+    function focusMolecule(index) {
+      const molecule = molecules[index];
+      if (!molecule) {
+        return;
+      }
+      state.activeIndex = index;
+      molecules.forEach((item, itemIndex) => {
+        const isActive = itemIndex === index;
+        item.arc.material.opacity = isActive ? 1.0 : 0.0;
+        item.group.scale.lerp(new THREE.Vector3(isActive ? 1.1 : 1.0, isActive ? 1.1 : 1.0, isActive ? 1.1 : 1.0), 0.18);
+        item.core.scale.setScalar(isActive ? 1.08 : 1.0);
+        item.lonePairMeshes.forEach((lp) => lp.scale.setScalar(isActive ? 1.35 : 1.0));
+      });
+      updateAngleSprite(`${molecule.angleDeg.toFixed(1).replace('.0', '')}°`, molecule.group.position.clone().add(new THREE.Vector3(0, -1.35, 0)));
+    }
+
+    function updateAutoplay(now) {
+      if (!state.autoplay) {
+        return;
+      }
+
+      const elapsed = now - state.autoplayStart;
+      const normalized = elapsed / state.autoplayDuration;
+
+      if (normalized >= 1) {
+        state.autoplay = false;
+        focusMolecule(2);
+        statusText.textContent = 'Kết thúc so sánh: CH₄ có góc lớn nhất, rồi đến NH₃, cuối cùng là H₂O.';
+        statusSub.textContent = 'Càng nhiều cặp electron tự do quanh nguyên tử trung tâm, lực đẩy càng mạnh và góc liên kết càng bị nén nhỏ.';
+        return;
+      }
+
+      const segment = Math.min(2, Math.floor(normalized * 3));
+      const segmentProgress = (normalized * 3) - segment;
+      const molecule = molecules[segment];
+
+      focusMolecule(segment);
+
+      const target = molecule.group.position.clone().add(new THREE.Vector3(0, 2.0, 6.8));
+      camera.position.lerp(target, 0.06);
+      controls.target.lerp(molecule.group.position.clone(), 0.08);
+
+      if (segment === 0) {
+        statusText.textContent = 'CH₄: bốn liên kết bố trí đối xứng trong không gian, tạo hình tứ diện đều.';
+        statusSub.textContent = 'Không có cặp electron tự do trên C nên góc H-C-H giữ gần giá trị lý tưởng 109,5°.';
+      } else if (segment === 1) {
+        statusText.textContent = 'NH₃: một cặp electron tự do đẩy mạnh hơn liên kết, làm chóp tam giác khép lại.';
+        statusSub.textContent = 'Góc H-N-H giảm còn khoảng 107°. Hãy chú ý hai chấm xanh biểu diễn vùng electron không liên kết.';
+      } else {
+        statusText.textContent = 'H₂O: hai cặp electron tự do chiếm chỗ lớn, bẻ phân tử thành dạng gấp khúc.';
+        statusSub.textContent = 'Góc H-O-H chỉ còn khoảng 104,5°, nhỏ hơn NH₃ vì lực đẩy của cặp electron tự do mạnh hơn.';
+      }
+
+      molecules.forEach((item, itemIndex) => {
+        const phase = itemIndex === segment ? 1 + Math.sin(segmentProgress * Math.PI) * 0.08 : 1.0;
+        item.group.scale.setScalar(phase);
+      });
+    }
+
+    pourBtn.addEventListener('click', () => {
+      state.autoplay = true;
+      state.autoplayStart = clock.getElapsedTime();
+      statusText.textContent = 'Bắt đầu trình diễn highlight góc liên kết cho ba phân tử.';
+      statusSub.textContent = 'Camera sẽ lần lượt di chuyển tới CH₄, NH₃ và H₂O để so sánh hình học không gian.';
+    });
+
+    resetBtn.addEventListener('click', setIdleState);
+
+    function animate() {
+      const now = clock.getElapsedTime();
+      updateAutoplay(now);
+
+      const idleWave = Math.sin(now * 0.8) * 0.08;
+      molecules[0].group.rotation.y = now * 0.34;
+      molecules[1].group.rotation.y = -now * 0.3;
+      molecules[2].group.rotation.y = now * 0.28;
+      molecules.forEach((molecule, index) => {
+        molecule.group.position.y = 0.6 + Math.sin(now * 0.9 + index) * 0.08;
+      });
+      labelPlane.position.y = 5.8 + idleWave;
+
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    setIdleState();
+    animate();
+  </script>
+</body>
+</html>

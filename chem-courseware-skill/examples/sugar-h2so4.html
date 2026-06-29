@@ -234,6 +234,97 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
 
+    function makeAnchor(parent, x = 0, y = 0, z = 0) {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function clampValue(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function setCylinderLiquidLevel(solutionMesh, surfaceMesh, profile, fillRatio, topOffset = 0) {
+      const ratio = clampValue(fillRatio, 0, 1);
+      const usableHeight = Math.min(profile.height * ratio, profile.safeFillHeight ?? profile.height);
+      const normalizedHeight = profile.height <= 0 ? 0 : usableHeight / profile.height;
+      const surfaceRadius = THREE.MathUtils.lerp(profile.radiusBottom, profile.radiusTop, normalizedHeight);
+
+      solutionMesh.scale.set(1, Math.max(normalizedHeight, 0.0001), 1);
+      solutionMesh.position.y = profile.baseY + usableHeight * 0.5;
+
+      if (surfaceMesh) {
+        const referenceRadius = profile.surfaceReferenceRadius || profile.radiusTop || 1;
+        surfaceMesh.scale.setScalar(surfaceRadius / referenceRadius);
+        surfaceMesh.position.y = profile.baseY + usableHeight - topOffset;
+      }
+    }
+
+    function validatePourAlignment(sourceApparatus, targetApparatus) {
+      const nozzle = getAnchorWorld(sourceApparatus.anchors.nozzle);
+      const mouth = getAnchorWorld(targetApparatus.anchors.mouth);
+      const dx = nozzle.x - mouth.x;
+      const dz = nozzle.z - mouth.z;
+      const radialOffset = Math.hypot(dx, dz);
+      const verticalClearance = nozzle.y - mouth.y;
+      const maxRadius = targetApparatus.constraints.safePourRadius ?? 0.25;
+      const minClearance = targetApparatus.constraints.safePourClearance ?? 0.1;
+      const ok = radialOffset <= maxRadius && verticalClearance >= minClearance;
+
+      return {
+        ok,
+        code: 'pour-alignment',
+        message: ok ? 'Pour alignment ok' : 'Bottle nozzle misses target vessel mouth',
+        details: {
+          radialOffset,
+          verticalClearance,
+          maxRadius,
+          minClearance,
+        },
+      };
+    }
+
+    function runApparatusValidators(validators = []) {
+      const reports = validators.map((validator) => validator()).filter(Boolean);
+      const failed = reports.filter((entry) => !entry.ok);
+      return {
+        ok: failed.length === 0,
+        reports,
+        failed,
+      };
+    }
+
+    function createBeakerApparatus({ group, meshes = {}, anchors = {}, constraints = {}, controllers = {} }) {
+      return {
+        kind: 'beaker',
+        family: 'open-vessel',
+        group,
+        meshes,
+        anchors,
+        constraints,
+        controllers,
+        validators: [],
+      };
+    }
+
+    function createBottleApparatus({ group, meshes = {}, anchors = {}, constraints = {}, controllers = {} }) {
+      return {
+        kind: 'bottle',
+        family: 'transfer-tool',
+        group,
+        meshes,
+        anchors,
+        constraints,
+        controllers,
+        validators: [],
+      };
+    }
+
     const statusText = document.getElementById('statusText');
     const statusSub = document.getElementById('statusSub');
     const pourBtn = document.getElementById('pourBtn');
@@ -511,6 +602,64 @@
 
     const bottleBasePosition = bottleGroup.position.clone();
     const bottleBaseRotation = bottleGroup.rotation.clone();
+    const acidLiquidProfile = {
+      baseY: -1.03,
+      height: 1.5,
+      radiusTop: 0.49,
+      radiusBottom: 0.61,
+      safeFillHeight: 1.5,
+    };
+    const beakerApparatus = createBeakerApparatus({
+      group: beakerGroup,
+      meshes: {
+        outer: beakerOuter,
+        bottom: beakerBottom,
+        sugar,
+        caramelLayer,
+        carbonMass,
+      },
+      anchors: {
+        labelAnchor: makeAnchor(beakerGroup, 0, 1.6, 0),
+        mouth: makeAnchor(beakerGroup, 0, 1.18, 0),
+        pourTarget: makeAnchor(beakerGroup, 0, 0.96, 0),
+        effectOrigin: makeAnchor(beakerGroup, 0, -0.08, 0),
+        steamOrigin: makeAnchor(beakerGroup, 0, 0.95, 0),
+      },
+      constraints: {
+        innerRadius: 1.45,
+        innerHeight: 2.42,
+        safeFillHeight: 1.9,
+        safePourRadius: 0.92,
+        safePourClearance: 0.25,
+      },
+      controllers: {},
+    });
+    const bottleApparatus = createBottleApparatus({
+      group: bottleGroup,
+      meshes: {
+        body: bottleBody,
+        shoulder: bottleShoulder,
+        neck: bottleNeck,
+        acidLiquid,
+        cap: bottleCap,
+        label: bottleLabel,
+      },
+      anchors: {
+        labelAnchor: makeAnchor(bottleGroup, 0, 0.3, 0.74),
+        nozzle: nozzleMarker,
+      },
+      constraints: {
+        innerRadius: 0.61,
+        innerHeight: 1.5,
+        safeFillHeight: 1.5,
+        tiltLimit: 1.18,
+      },
+      controllers: {
+        setLiquidLevel(fillRatio) {
+          setCylinderLiquidLevel(acidLiquid, null, acidLiquidProfile, fillRatio);
+        },
+      },
+    });
 
     const labelCanvas = document.createElement('canvas');
     labelCanvas.width = 512;
@@ -677,6 +826,11 @@
       autoPour: false,
       returning: false
     };
+    const autoPourPose = {
+      position: new THREE.Vector3(-2.3, 4.55, 0.85),
+      rotationY: 0.15,
+      rotationZ: -1.15,
+    };
 
     function setStatus(main, sub) {
       statusText.textContent = main;
@@ -690,11 +844,42 @@
     }
 
     function getBottleNozzleWorld(target = new THREE.Vector3()) {
-      return nozzleMarker.getWorldPosition(target);
+      return getAnchorWorld(bottleApparatus.anchors.nozzle, target);
     }
 
     function getBeakerMouthWorld(target = new THREE.Vector3()) {
-      return beakerGroup.getWorldPosition(target).add(new THREE.Vector3(0, 1.18, 0));
+      return getAnchorWorld(beakerApparatus.anchors.mouth, target);
+    }
+
+    function getBeakerPourTargetWorld(target = new THREE.Vector3()) {
+      return getAnchorWorld(beakerApparatus.anchors.pourTarget, target);
+    }
+
+    function getBeakerEffectOriginWorld(target = new THREE.Vector3()) {
+      return getAnchorWorld(beakerApparatus.anchors.effectOrigin, target);
+    }
+
+    function getBeakerSteamOriginWorld(target = new THREE.Vector3()) {
+      return getAnchorWorld(beakerApparatus.anchors.steamOrigin, target);
+    }
+
+    function validateSceneGeometry() {
+      const previousPosition = bottleGroup.position.clone();
+      const previousRotation = bottleGroup.rotation.clone();
+      bottleGroup.position.copy(autoPourPose.position);
+      bottleGroup.rotation.set(0, autoPourPose.rotationY, autoPourPose.rotationZ);
+      bottleGroup.updateMatrixWorld(true);
+      beakerGroup.updateMatrixWorld(true);
+      const report = runApparatusValidators([
+        () => validatePourAlignment(bottleApparatus, beakerApparatus),
+      ]);
+      bottleGroup.position.copy(previousPosition);
+      bottleGroup.rotation.copy(previousRotation);
+      bottleGroup.updateMatrixWorld(true);
+      for (const entry of report.failed) {
+        console.warn(`[geometry] ${entry.code}: ${entry.message}`, entry.details);
+      }
+      return report;
     }
 
     function isBottleAboveBeaker() {
@@ -815,7 +1000,6 @@
 
     const bubbleCenter = new THREE.Vector3();
     const steamCenter = new THREE.Vector3();
-
     function updateReaction(dt, elapsed) {
       const nozzle = getBottleNozzleWorld(new THREE.Vector3());
       const mouth = getBeakerMouthWorld(new THREE.Vector3());
@@ -873,8 +1057,8 @@
           item.mesh.position.y = -0.28 + appear * (1.2 + (i % 4) * 0.16);
         }
 
-        bubbleCenter.copy(beakerGroup.position).add(new THREE.Vector3(0, -0.08 + carbonGrowth * 1.2, 0));
-        steamCenter.copy(beakerGroup.position).add(new THREE.Vector3(0, 0.95 + carbonGrowth * 1.6, 0));
+        bubbleCenter.copy(getBeakerEffectOriginWorld(new THREE.Vector3())).add(new THREE.Vector3(0, carbonGrowth * 1.2, 0));
+        steamCenter.copy(getBeakerSteamOriginWorld(new THREE.Vector3())).add(new THREE.Vector3(0, carbonGrowth * 1.6, 0));
 
         const bubbleBurst = Math.round((3 + heat * 16 + pourState * 12) * dt * 30);
         for (let i = 0; i < bubbleBurst; i++) {
@@ -925,8 +1109,8 @@
 
     function animateBottle(dt, elapsed) {
       if (interactionState.autoPour) {
-        interactionState.bottleTarget.lerp(new THREE.Vector3(0.55, 4.55, 0.85), 1 - Math.exp(-dt * 2.4));
-        interactionState.rotationZ = THREE.MathUtils.lerp(interactionState.rotationZ, -1.15, 1 - Math.exp(-dt * 2.7));
+        interactionState.bottleTarget.lerp(autoPourPose.position, 1 - Math.exp(-dt * 2.4));
+        interactionState.rotationZ = THREE.MathUtils.lerp(interactionState.rotationZ, autoPourPose.rotationZ, 1 - Math.exp(-dt * 2.7));
         if (reactionStarted && reactionTime > 5.8) {
           interactionState.autoPour = false;
           interactionState.returning = true;
@@ -944,7 +1128,11 @@
 
       bottleGroup.position.lerp(interactionState.bottleTarget, 1 - Math.exp(-dt * (draggingBottle ? 16 : 7)));
       bottleGroup.rotation.z = interactionState.rotationZ;
-      bottleGroup.rotation.y = THREE.MathUtils.lerp(bottleGroup.rotation.y, draggingBottle || interactionState.autoPour ? 0.15 : 0, 1 - Math.exp(-dt * 6));
+      bottleGroup.rotation.y = THREE.MathUtils.lerp(
+        bottleGroup.rotation.y,
+        draggingBottle || interactionState.autoPour ? autoPourPose.rotationY : 0,
+        1 - Math.exp(-dt * 6)
+      );
 
       acidLiquid.scale.y = 1 - Math.min(0.44, reactionTime * 0.035 + pourState * 0.08);
       acidLiquid.position.y = -0.28 - (1 - acidLiquid.scale.y) * 0.46;
@@ -1030,6 +1218,7 @@
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
 
+    validateSceneGeometry();
     resetExperiment();
     animate();
   </script>

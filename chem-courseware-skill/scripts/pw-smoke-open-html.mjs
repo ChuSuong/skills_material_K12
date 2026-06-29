@@ -8,8 +8,9 @@ if (!htmlPath) {
 }
 
 const result = await runPlaywrightPage({ htmlPath: path.resolve(htmlPath) });
+const severeConsoleErrors = result.consoleMessages.filter((entry) => entry.type === 'error');
 
-if (result.status && result.status >= 400) {
+if ((result.status && result.status >= 400) || result.pageErrors.length > 0 || severeConsoleErrors.length > 0) {
   console.error(JSON.stringify(result, null, 2));
   process.exit(1);
 }

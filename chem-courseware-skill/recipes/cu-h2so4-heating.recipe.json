@@ -1,0 +1,39 @@
+{
+  "id": "cu-h2so4-heating",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["copper-piece", "test-tube", "alcohol-burner"],
+  "interaction": "free-drag-heat",
+  "reaction": "hot-concentrated-h2so4-copper",
+  "effects": ["bubble-field", "steam-field", "glow-ring", "color-transition"],
+  "resultSustainEffects": ["steam-field", "glow-ring"],
+  "steps": [
+    {
+      "id": "load-copper",
+      "type": "drag-drop-anchor",
+      "source": "copper-piece.interactionZone",
+      "sourcePlacementAnchor": "copper-piece.interactionZone",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.42,
+      "overlapPadding": 0.2,
+      "onComplete": "stage-sample"
+    },
+    {
+      "id": "heat-tube",
+      "type": "drag-heat-anchor",
+      "source": "test-tube.gripAnchor",
+      "sourcePlacementAnchor": "test-tube.heatZone",
+      "target": "alcohol-burner.heatZone",
+      "targetRadius": 0.72,
+      "overlapPadding": 0.28,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "hot-concentrated-h2so4-copper",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

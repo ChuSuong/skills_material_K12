@@ -1,0 +1,1996 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kẽm + axit clohidric, thử khí hiđro</title>
+  <style>
+    :root {
+      --panel: rgba(17, 24, 35, 0.78);
+      --panel-soft: rgba(17, 24, 35, 0.58);
+      --border: rgba(255,255,255,0.14);
+      --text: #163043;
+      --muted: rgba(22, 48, 67, 0.74);
+      --accent: #2d87c7;
+      --warm: #ffb867;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #fcfdff 0%, #edf3f8 45%, #d8e2ec 100%);
+      color: var(--text);
+    }
+    canvas#stage {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      user-select: none;
+    }
+    .panel, .status, .controls, .prompt {
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 54px rgba(26, 38, 52, 0.14);
+      border-radius: 18px;
+    }
+    .panel {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: min(365px, calc(100vw - 40px));
+      padding: 15px 16px;
+      background: var(--panel);
+      color: white;
+    }
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.12;
+    }
+    .panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255,255,255,0.82);
+    }
+    .panel p + p { margin-top: 7px; }
+    .prompt {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      max-width: min(560px, calc(100vw - 180px));
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.66);
+      color: #18415c;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .status {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      width: min(430px, calc(100vw - 40px));
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.82);
+    }
+    .label {
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    #statusText {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    #statusSub {
+      margin-top: 7px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .controls {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: min(296px, calc(100vw - 40px));
+      padding: 14px;
+      background: var(--panel-soft);
+      color: white;
+      pointer-events: auto;
+    }
+    .controls p {
+      margin: 0 0 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.82);
+    }
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      flex: 1;
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+    #pourBtn {
+      color: #fff;
+      background: linear-gradient(135deg, #fbbe6a, #ff845d);
+      box-shadow: 0 12px 28px rgba(255, 132, 93, 0.24);
+    }
+    #resetBtn {
+      color: white;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    .label3d {
+      position: absolute;
+      transform: translate(-50%, 0);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.74);
+      box-shadow: 0 10px 24px rgba(40, 62, 88, 0.12);
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e5478;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    #hint {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.54);
+      border: 1px solid rgba(22,48,67,0.08);
+      color: rgba(22,48,67,0.75);
+      font-size: 12px;
+    }
+    @media (max-width: 900px) {
+      .panel, .status, .controls {
+        left: 12px;
+        right: 12px;
+        width: auto;
+      }
+      .panel { top: 12px; padding: 12px 14px; }
+      .panel h1 { font-size: 17px; margin-bottom: 6px; }
+      .panel p, .controls p, #statusSub, .prompt { font-size: 12px; }
+      .prompt {
+        left: auto;
+        right: 12px;
+        top: 12px;
+        transform: none;
+        max-width: calc(100vw - 140px);
+        text-align: left;
+        padding: 9px 12px;
+      }
+      .controls { bottom: 12px; padding: 12px; }
+      .status { bottom: 88px; padding: 12px 14px; }
+      #statusText { font-size: 15px; }
+      #hint { display: none; }
+    }
+    @media (max-width: 560px) {
+      .button-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Kẽm + axit clohidric, thử khí hiđro</h1>
+      <p>Mục tiêu học: hiểu phản ứng kim loại với axit tạo ra khí hiđro và nhận biết H₂ bằng que đóm đang cháy.</p>
+      <p>Hãy lần lượt thả viên kẽm vào ống nghiệm, rót HCl rồi đưa que đóm đến miệng ống nghiệm để nghe tiếng “bụp” nhỏ.</p>
+    </div>
+
+    <div class="prompt">Câu hỏi quan sát: Dấu hiệu nào cho thấy khí H₂ đã sinh ra và được nhận biết thành công?</div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div id="statusText">Sẵn sàng. Hãy kéo viên kẽm vào ống nghiệm trước.</div>
+      <div id="statusSub">Golden path: kẽm → HCl → que đóm. Khi phản ứng xảy ra sẽ thấy sủi bọt khí và sau đó thử khí ở miệng ống nghiệm.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <p>Bạn có thể kéo trực tiếp vật thể trong không gian 3D. Nút “Chạy tự động” sẽ thực hiện đúng chuỗi thao tác để tiện kiểm tra.</p>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay" type="button">Chạy tự động</button>
+      </div>
+    </div>
+
+    <div id="hint">Kéo nền để xoay góc nhìn, cuộn để phóng to hoặc thu nhỏ.</div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    globalThis.THREE = THREE;
+
+// Generated by scripts/build-shared-inline-bundle.mjs
+// Paste this inside a <script type="module"> block after importing THREE.
+
+function updatePointerFromEvent(event, domElement, pointer) {
+  const rect = domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  return pointer;
+}
+
+function setPointerCaptureSafe(domElement, pointerId) {
+  if (pointerId == null || typeof domElement.setPointerCapture !== 'function') {
+    return;
+  }
+  domElement.setPointerCapture(pointerId);
+}
+
+function releasePointerCaptureSafe(domElement, pointerId) {
+  if (pointerId == null || typeof domElement.releasePointerCapture !== 'function') {
+    return;
+  }
+  try {
+    domElement.releasePointerCapture(pointerId);
+  } catch {}
+}
+
+function setControlsDragging(controls, dragging) {
+  if (!controls) {
+    return;
+  }
+  controls.enabled = !dragging;
+}
+
+function intersectPointerPlane({ raycaster, pointer, camera, plane, out }) {
+  raycaster.setFromCamera(pointer, camera);
+  return raycaster.ray.intersectPlane(plane, out);
+}
+
+function getWorldBounds(group, padding = 0) {
+  group.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(group);
+  if (padding > 0) {
+    bounds.expandByScalar(padding);
+  }
+  return bounds;
+}
+
+function modelsOverlapOrNear(sourceGroup, targetGroup, padding = 0.12) {
+  const sourceBounds = getWorldBounds(sourceGroup, padding);
+  const targetBounds = getWorldBounds(targetGroup, padding);
+  return sourceBounds.intersectsBox(targetBounds)
+    || sourceBounds.distanceToPoint(targetGroup.position) <= padding
+    || targetBounds.distanceToPoint(sourceGroup.position) <= padding;
+}
+
+function canAttemptOrderedStep(key, order = [], completed = {}) {
+  if (!key) {
+    return false;
+  }
+  const stepIndex = order.indexOf(key);
+  if (stepIndex === -1) {
+    return false;
+  }
+  if (completed[key]) {
+    return false;
+  }
+  for (let index = 0; index < stepIndex; index += 1) {
+    if (!completed[order[index]]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function hasActiveCompletion(state, key) {
+  return Boolean(state && (state.pendingCompletedStep === key || state.completingStep === key));
+}
+
+function isStepBusy(state, key) {
+  return Boolean(state && (state.dragging === key || hasActiveCompletion(state, key)));
+}
+
+function lerpObjectPose(object, fromPosition, fromRotation, toPose, t) {
+  object.position.lerpVectors(fromPosition, toPose.position, t);
+  object.rotation.set(
+    fromRotation.x + (toPose.rotation.x - fromRotation.x) * t,
+    fromRotation.y + (toPose.rotation.y - fromRotation.y) * t,
+    fromRotation.z + (toPose.rotation.z - fromRotation.z) * t,
+  );
+}
+
+function beginStepCompletion(state, key, object, pose, duration = 0.25) {
+  if (!state || !object || !pose || hasActiveCompletion(state, key)) {
+    return false;
+  }
+  state.completingStep = key;
+  state.completionT = 0;
+  state.completionDuration = duration;
+  state.completionFromPosition = object.position.clone();
+  state.completionFromRotation = object.rotation.clone();
+  state.pendingCompletedStep = null;
+  state.dragging = null;
+  return true;
+}
+
+function clearStepCompletion(state) {
+  if (!state) {
+    return;
+  }
+  state.pendingCompletedStep = null;
+  state.completingStep = null;
+  state.completionT = 0;
+  state.completionDuration = 0;
+  state.completionFromPosition = null;
+  state.completionFromRotation = null;
+}
+
+function runStepCompletion(state, dt, getCurrent, onComplete) {
+  if (!state?.completingStep) {
+    return false;
+  }
+  const current = getCurrent?.(state.completingStep);
+  if (!current?.object || !current?.pose || !state.completionFromPosition || !state.completionFromRotation) {
+    clearStepCompletion(state);
+    return false;
+  }
+  state.completionT += dt;
+  const duration = Math.max(0.001, state.completionDuration || current.duration || 0.25);
+  const t = smoothstep01(clamp01(state.completionT / duration));
+  lerpObjectPose(current.object, state.completionFromPosition, state.completionFromRotation, current.pose, t);
+  if (state.completionT >= duration) {
+    const completedKey = state.completingStep;
+    clearStepCompletion(state);
+    onComplete?.(completedKey, current);
+  }
+  return true;
+}
+
+function completeOrderedOverlapStep({
+  key,
+  state,
+  order = [],
+  completed = {},
+  isReady,
+  getCompletion,
+}) {
+  if (!canAttemptOrderedStep(key, order, completed)) {
+    return false;
+  }
+  if (typeof isReady === 'function' && !isReady(key)) {
+    return false;
+  }
+  const current = getCompletion?.(key);
+  if (!current?.object || !current?.pose) {
+    return false;
+  }
+  return beginStepCompletion(state, key, current.object, current.pose, current.duration);
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function smoothstep01(t) {
+  const value = clamp01(t);
+  return value * value * (3 - 2 * value);
+}
+
+function segment(t, start, end) {
+  if (end === start) {
+    return t >= end ? 1 : 0;
+  }
+  return clamp01((t - start) / (end - start));
+}
+
+function sequenceProgress(t, segments) {
+  return segments.map(({ start, end, easing }) => {
+    const value = segment(t, start, end);
+    return easing ? easing(value) : value;
+  });
+}
+
+function getCanvasBox(renderer) {
+  return renderer.domElement.getBoundingClientRect();
+}
+
+function canvasPoint(renderer, nx, ny) {
+  const rect = getCanvasBox(renderer);
+  return {
+    x: rect.left + rect.width * nx,
+    y: rect.top + rect.height * ny,
+  };
+}
+
+function projectWorldToCanvas(target, camera, renderer, offset = new THREE.Vector3()) {
+  const rect = getCanvasBox(renderer);
+  const anchor = typeof target.getWorldPosition === 'function'
+    ? target.getWorldPosition(new THREE.Vector3())
+    : target.clone();
+  const projected = anchor.add(offset).project(camera);
+  return {
+    x: rect.left + ((projected.x + 1) * 0.5) * rect.width,
+    y: rect.top + ((-projected.y + 1) * 0.5) * rect.height,
+  };
+}
+
+function installFlameTestHarness({ state, mapState, getPaths }) {
+  window.__flameTestApi = {
+    getState() {
+      return mapState(state);
+    },
+    ...getPaths(),
+  };
+
+  return window.__flameTestApi;
+}
+
+function installCoursewareTestHarness({
+  state,
+  mapState,
+  getVerifierMeta,
+  getGoldenPath,
+  getDragPath,
+  runVerifierStep,
+}) {
+  window.__coursewareTestApi = {
+    getState() {
+      return mapState(state);
+    },
+    getVerifierMeta() {
+      return typeof getVerifierMeta === 'function' ? getVerifierMeta(state) : null;
+    },
+    getGoldenPath() {
+      return typeof getGoldenPath === 'function' ? getGoldenPath(state) : null;
+    },
+    getDragPath(sampleId) {
+      return typeof getDragPath === 'function' ? getDragPath(sampleId, state) : null;
+    },
+    runVerifierStep(step) {
+      return typeof runVerifierStep === 'function' ? runVerifierStep(step, state) : false;
+    },
+  };
+
+  return window.__coursewareTestApi;
+}
+
+const ChemSharedLib = {
+  THREE,
+  updatePointerFromEvent,
+  setPointerCaptureSafe,
+  releasePointerCaptureSafe,
+  setControlsDragging,
+  intersectPointerPlane,
+  getWorldBounds,
+  modelsOverlapOrNear,
+  canAttemptOrderedStep,
+  hasActiveCompletion,
+  isStepBusy,
+  lerpObjectPose,
+  beginStepCompletion,
+  clearStepCompletion,
+  runStepCompletion,
+  completeOrderedOverlapStep,
+  clamp01,
+  lerp,
+  smoothstep01,
+  segment,
+  sequenceProgress,
+  getCanvasBox,
+  canvasPoint,
+  projectWorldToCanvas,
+  installFlameTestHarness,
+  installCoursewareTestHarness,
+};
+
+globalThis.ChemSharedLib = ChemSharedLib;
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { createSceneShell } from '../../../lib/runtime/scene-shell.js';
+    import { createManipulationController } from '../../../lib/interaction/manipulation-controller.js';
+
+    const {
+      setControlsDragging,
+      modelsOverlapOrNear,
+      canAttemptOrderedStep,
+      hasActiveCompletion,
+      isStepBusy,
+      runStepCompletion,
+      completeOrderedOverlapStep,
+      clearStepCompletion,
+      lerpObjectPose,
+      clamp01,
+      smoothstep01,
+      projectWorldToCanvas,
+    } = globalThis.ChemSharedLib;
+
+    const shell = createSceneShell({
+      canvas: document.getElementById('stage'),
+      theme: {
+        scene: {
+          background: 0xf4f6fa,
+          fog: { color: 0xe6edf3, near: 18, far: 38 },
+          rendererExposure: 1.02,
+          ambientLight: { skyColor: 0xffffff, groundColor: 0xafbfd0, intensity: 1.44 },
+          keyLight: { color: 0xffffff, intensity: 2.1, position: [8, 14, 10] },
+          rimLight: { color: 0xa8d8ff, intensity: 4.8, distance: 28, decay: 2, position: [-1, 8, -10] },
+          warmLight: null,
+          bench: 0xfafcfe,
+          benchLeg: 0xbecad5,
+          floor: 0xe7edf3,
+          room: 0xf4f6fa,
+        },
+        ui: {
+          panel: 'rgba(17, 24, 35, 0.78)',
+          panelSoft: 'rgba(17, 24, 35, 0.58)',
+          border: 'rgba(255,255,255,0.14)',
+          text: '#163043',
+          muted: 'rgba(22, 48, 67, 0.74)',
+          accent: '#2d87c7',
+          warm: '#ffb867',
+          buttonPrimary: 'linear-gradient(135deg, #fbbe6a, #ff845d)',
+          buttonSecondary: 'rgba(255,255,255,0.12)',
+        },
+      },
+      cameraPreset: {
+        position: [0, 7.1, 13.2],
+        target: [0, 2.1, 0.1],
+        fov: 42,
+        near: 0.1,
+        far: 120,
+        minDistance: 8,
+        maxDistance: 18,
+        minPolarAngle: 0.42,
+        maxPolarAngle: Math.PI / 2.15,
+      },
+      hud: {
+        canvasId: 'stage',
+        statusTextId: 'statusText',
+        statusSubId: 'statusSub',
+        primaryActionId: 'pourBtn',
+        resetId: 'resetBtn',
+      },
+    });
+
+    const { renderer, scene, camera, controls, bench, floor, room, hud } = shell;
+    const statusText = hud.statusText;
+    const statusSub = hud.statusSub;
+    const pourBtn = hud.primaryAction;
+    const resetBtn = hud.reset;
+    const manipulation = createManipulationController({
+      camera,
+      renderer,
+      controls,
+      defaultDragPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), -3.55),
+    });
+    const interactionState = manipulation.state;
+
+    room.geometry = new THREE.SphereGeometry(40, 42, 28);
+    floor.geometry = new THREE.CircleGeometry(24, 72);
+    const benchTop = bench.children[0];
+    benchTop.geometry = new THREE.BoxGeometry(12.8, 0.34, 5.8);
+
+
+    const labelDivs = [];
+    function createTextLabel(text) {
+      const div = document.createElement('div');
+      div.className = 'label3d';
+      div.textContent = text;
+      document.body.appendChild(div);
+      labelDivs.push(div);
+      return div;
+    }
+
+    function makeAnchor(parent, x = 0, y = 0, z = 0) {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function screenPointForAnchor(anchor, offset = new THREE.Vector3()) {
+      return projectWorldToCanvas(anchor, camera, renderer, offset);
+    }
+
+    function worldDistance(a, b) {
+      return a.distanceTo(b);
+    }
+
+    function setObjectPose(object, pose) {
+      if (pose.position) object.position.copy(pose.position);
+      if (pose.rotation) object.rotation.set(pose.rotation.x, pose.rotation.y, pose.rotation.z);
+    }
+
+    function alignAnchorToTarget({ object, sourceAnchor, targetAnchor, pose = null }) {
+      if (pose) setObjectPose(object, pose);
+      object.updateMatrixWorld(true);
+      const sourceWorld = getAnchorWorld(sourceAnchor);
+      const targetWorld = getAnchorWorld(targetAnchor);
+      object.position.add(targetWorld.sub(sourceWorld));
+      object.updateMatrixWorld(true);
+    }
+
+    function getAnchorDistance(sourceAnchor, targetAnchor) {
+      return getAnchorWorld(sourceAnchor).distanceTo(getAnchorWorld(targetAnchor));
+    }
+
+    function createBechMarker(x, z, color = 0x9fb0c0) {
+      const mesh = new THREE.Mesh(
+        new THREE.CircleGeometry(0.55, 28),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.12 })
+      );
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, 1.49, z);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function createTestTube() {
+      const group = new THREE.Group();
+      group.position.set(0.15, 1.49, 0.1);
+      scene.add(group);
+
+      const tube = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.32, 0.32, 3.1, 28, 1, true),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xe8f6ff,
+          transparent: true,
+          opacity: 0.22,
+          transmission: 0.94,
+          roughness: 0.08,
+          thickness: 0.18,
+          side: THREE.DoubleSide,
+        })
+      );
+      tube.position.y = 1.55;
+      tube.castShadow = true;
+      tube.receiveShadow = true;
+      group.add(tube);
+
+      const bulb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.32, 22, 18, 0, Math.PI * 2, 0, Math.PI * 0.5),
+        new THREE.MeshPhysicalMaterial({ color: 0xeef9ff, transparent: true, opacity: 0.28, transmission: 0.88, roughness: 0.08 })
+      );
+      bulb.position.y = 0.32;
+      group.add(bulb);
+
+      const liquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.25, 2.25, 22),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xbedff0,
+          transparent: true,
+          opacity: 0.0,
+          transmission: 0.3,
+          roughness: 0.14,
+          thickness: 0.14,
+        })
+      );
+      liquid.position.y = 1.18;
+      group.add(liquid);
+
+      const liquidSurface = new THREE.Mesh(
+        new THREE.CircleGeometry(0.25, 22),
+        new THREE.MeshStandardMaterial({ color: 0xd8effc, transparent: true, opacity: 0.0, roughness: 0.18 })
+      );
+      liquidSurface.rotation.x = -Math.PI / 2;
+      liquidSurface.position.y = 2.3;
+      group.add(liquidSurface);
+
+      const stopperGlow = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.44, 0.44, 0.04, 22),
+        new THREE.MeshBasicMaterial({ color: 0xaadfff, transparent: true, opacity: 0.0 })
+      );
+      stopperGlow.position.y = 3.14;
+      group.add(stopperGlow);
+
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.55, 28),
+        new THREE.MeshBasicMaterial({ color: 0x8fa1b2, transparent: true, opacity: 0.14 })
+      );
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.position.set(group.position.x, 1.35, group.position.z);
+      scene.add(shadow);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 3.74, 0),
+        mouth: makeAnchor(group, 0, 3.1, 0),
+        pourTarget: makeAnchor(group, 0, 2.8, 0),
+        effectOrigin: makeAnchor(group, 0, 1.52, 0),
+        bubbleOrigin: makeAnchor(group, 0, 0.96, 0),
+        sparkOrigin: makeAnchor(group, 0, 3.18, 0),
+      };
+
+      return {
+        group,
+        tube,
+        bulb,
+        liquid,
+        liquidSurface,
+        stopperGlow,
+        shadow,
+        anchors,
+        state: {
+          fillRatio: 0,
+        },
+        setLiquidLevel(ratio) {
+          const t = clamp01(ratio);
+          this.state.fillRatio = t;
+          this.liquid.material.opacity = 0.18 + t * 0.34;
+          this.liquid.scale.y = Math.max(0.0001, t);
+          this.liquid.position.y = 0.46 + (2.25 * t) * 0.5;
+          this.liquidSurface.material.opacity = this.liquid.material.opacity;
+          this.liquidSurface.position.y = 0.46 + 2.25 * t;
+        },
+      };
+    }
+
+    function createAcidBottle() {
+      const group = new THREE.Group();
+      group.position.set(3.45, 2.55, 0.75);
+      scene.add(group);
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.3, 0.38, 1.25, 28),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xe9f6ff,
+          transparent: true,
+          opacity: 0.26,
+          transmission: 0.92,
+          roughness: 0.1,
+          thickness: 0.16,
+        })
+      );
+      body.castShadow = true;
+      group.add(body);
+
+      const neck = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.11, 0.13, 0.34, 20),
+        new THREE.MeshPhysicalMaterial({ color: 0xe8f5ff, transparent: true, opacity: 0.28, transmission: 0.9, roughness: 0.08 })
+      );
+      neck.position.y = 0.79;
+      group.add(neck);
+
+      const cap = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.13, 0.13, 0.12, 20),
+        new THREE.MeshStandardMaterial({ color: 0x37495b, roughness: 0.46, metalness: 0.14 })
+      );
+      cap.position.y = 1.03;
+      group.add(cap);
+
+      const liquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.24, 0.3, 0.92, 24),
+        new THREE.MeshPhysicalMaterial({ color: 0xd8f0ff, transparent: true, opacity: 0.48, transmission: 0.26, roughness: 0.12 })
+      );
+      liquid.position.y = -0.08;
+      group.add(liquid);
+
+      const label = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.56, 0.38),
+        new THREE.MeshBasicMaterial({ color: 0xf4fafc })
+      );
+      label.position.set(0, 0.02, 0.39);
+      group.add(label);
+
+      const labelBand = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.42, 0.12),
+        new THREE.MeshBasicMaterial({ color: 0xe38a7d })
+      );
+      labelBand.position.set(0, 0.08, 0.392);
+      group.add(labelBand);
+
+      const shadow = createBechMarker(group.position.x, group.position.z, 0x9eb0c0);
+      shadow.scale.set(1.0, 1.0, 0.76);
+
+      const anchors = {
+        labelAnchor: makeAnchor(group, 0, 0.15, 0.58),
+        gripAnchor: makeAnchor(group, 0, 0.2, 0),
+        mouth: makeAnchor(group, 0, 0.99, 0),
+        nozzle: makeAnchor(group, 0, 1.18, 0),
+        pourAlign: makeAnchor(group, 0.12, 1.06, 0),
+      };
+
+      return {
+        group,
+        liquid,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function createZincPiece() {
+      const group = new THREE.Group();
+      group.position.set(-3.95, 2.15, 0.55);
+      scene.add(group);
+
+      const core = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.34, 0),
+        new THREE.MeshStandardMaterial({ color: 0xaab2bc, roughness: 0.54, metalness: 0.62 })
+      );
+      core.castShadow = true;
+      core.receiveShadow = true;
+      group.add(core);
+
+      const flake = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.12, 0.2),
+        new THREE.MeshStandardMaterial({ color: 0xc0c8d2, roughness: 0.44, metalness: 0.68 })
+      );
+      flake.rotation.set(0.4, -0.7, 0.5);
+      flake.position.set(0.06, -0.02, 0.08);
+      flake.castShadow = true;
+      group.add(flake);
+
+      const shadow = createBechMarker(group.position.x, group.position.z, 0x99a9b8);
+      shadow.scale.set(0.78, 1, 0.62);
+
+      const anchors = {
+        gripAnchor: makeAnchor(group, 0, 0, 0),
+        dropAnchor: makeAnchor(group, 0.02, -0.18, 0.02),
+        labelAnchor: makeAnchor(group, 0, 0.62, 0),
+      };
+
+      return {
+        group,
+        core,
+        flake,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function createMatchStick() {
+      const group = new THREE.Group();
+      group.position.set(3.55, 2.08, -1.35);
+      group.rotation.z = -0.26;
+      scene.add(group);
+
+      const stick = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.028, 0.03, 2.02, 18),
+        new THREE.MeshStandardMaterial({ color: 0xd9b68d, roughness: 0.9, metalness: 0.02 })
+      );
+      stick.rotation.z = Math.PI / 2;
+      stick.castShadow = true;
+      group.add(stick);
+
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.072, 16, 14),
+        new THREE.MeshStandardMaterial({ color: 0x682821, roughness: 0.74, metalness: 0.02, emissive: 0x2a0c05, emissiveIntensity: 0.6 })
+      );
+      head.position.x = 0.95;
+      group.add(head);
+
+      const flame = new THREE.Group();
+      flame.position.x = 1.08;
+      group.add(flame);
+
+      const flameCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.078, 14, 14),
+        new THREE.MeshBasicMaterial({ color: 0xfff3a8, transparent: true, opacity: 0.92 })
+      );
+      flame.add(flameCore);
+
+      const flameOuter = new THREE.Mesh(
+        new THREE.SphereGeometry(0.16, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xff933f, transparent: true, opacity: 0.58 })
+      );
+      flame.add(flameOuter);
+
+      const flameLight = new THREE.PointLight(0xffb05c, 0.0, 4.6, 2);
+      flameLight.position.copy(flame.position);
+      group.add(flameLight);
+
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.26, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xff8a4d, transparent: true, opacity: 0.0 })
+      );
+      glow.position.copy(flame.position);
+      group.add(glow);
+
+      const shadow = createBechMarker(group.position.x, group.position.z, 0x99a9b8);
+      shadow.scale.set(0.76, 1, 0.34);
+
+      const anchors = {
+        gripAnchor: makeAnchor(group, -0.56, 0, 0),
+        ignitionTip: makeAnchor(group, 1.08, 0, 0),
+        labelAnchor: makeAnchor(group, 0, 0.42, 0),
+      };
+
+      return {
+        group,
+        flame,
+        flameCore,
+        flameOuter,
+        flameLight,
+        glow,
+        shadow,
+        anchors,
+        homePosition: group.position.clone(),
+        homeRotation: group.rotation.clone(),
+      };
+    }
+
+    function createSparkBurst() {
+      const group = new THREE.Group();
+      scene.add(group);
+      const particleCount = 18;
+      const positions = new Float32Array(particleCount * 3);
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({ color: 0xffcd74, size: 0.14, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending });
+      const points = new THREE.Points(geometry, material);
+      group.add(points);
+      return {
+        group,
+        geometry,
+        positions,
+        material,
+      };
+    }
+
+    const tube = createTestTube();
+    const acidBottle = createAcidBottle();
+    const zinc = createZincPiece();
+    const match = createMatchStick();
+    const sparkBurst = createSparkBurst();
+
+    const ringStand = new THREE.Group();
+    ringStand.position.set(0.15, 1.48, 0.1);
+    scene.add(ringStand);
+
+    const standBase = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.16, 1.2),
+      new THREE.MeshStandardMaterial({ color: 0x51606d, roughness: 0.64, metalness: 0.3 })
+    );
+    standBase.position.set(0, 0.06, 0);
+    standBase.castShadow = true;
+    standBase.receiveShadow = true;
+    ringStand.add(standBase);
+
+    const rod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.06, 3.5, 18),
+      new THREE.MeshStandardMaterial({ color: 0x5a6774, roughness: 0.52, metalness: 0.42 })
+    );
+    rod.position.set(-0.78, 1.75, 0);
+    rod.castShadow = true;
+    ringStand.add(rod);
+
+    const clampArm = new THREE.Mesh(
+      new THREE.BoxGeometry(1.15, 0.08, 0.08),
+      new THREE.MeshStandardMaterial({ color: 0x60707e, roughness: 0.54, metalness: 0.36 })
+    );
+    clampArm.position.set(-0.2, 2.75, 0);
+    ringStand.add(clampArm);
+
+    const clampRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.42, 0.04, 12, 40),
+      new THREE.MeshStandardMaterial({ color: 0x667685, roughness: 0.48, metalness: 0.42 })
+    );
+    clampRing.rotation.y = Math.PI / 2;
+    clampRing.position.set(0.36, 2.58, 0);
+    ringStand.add(clampRing);
+
+    const bubblePool = [];
+    for (let i = 0; i < 14; i += 1) {
+      const bubble = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06 + (i % 3) * 0.02, 16, 16),
+        new THREE.MeshPhysicalMaterial({ color: 0xecfbff, transparent: true, opacity: 0.0, transmission: 0.86, roughness: 0.06 })
+      );
+      bubble.visible = false;
+      scene.add(bubble);
+      bubblePool.push({ mesh: bubble, phase: Math.random(), speed: 0.4 + Math.random() * 0.6, radius: 0.03 + Math.random() * 0.06 });
+    }
+
+    const gasPlumes = [];
+    for (let i = 0; i < 10; i += 1) {
+      const plume = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12 + i * 0.01, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xcbefff, transparent: true, opacity: 0.0, depthWrite: false })
+      );
+      plume.visible = false;
+      scene.add(plume);
+      gasPlumes.push({ mesh: plume, offset: i * 0.18, seed: Math.random() * Math.PI * 2 });
+    }
+
+    const labels = {
+      tube: createTextLabel('Ống nghiệm'),
+      zinc: createTextLabel('Kẽm'),
+      acid: createTextLabel('HCl'),
+      match: createTextLabel('Que đóm cháy'),
+    };
+
+    const state = {
+      phase: 'ready',
+      dragging: null,
+      hovered: null,
+      autoplay: false,
+      autoplayStep: 0,
+      autoplayT: 0,
+      reactionT: 0,
+      sparkT: 0,
+      zincLoaded: false,
+      acidAdded: false,
+      hydrogenReady: false,
+      popDone: false,
+      zincPassedMouth: false,
+      zincDragReleasedAboveMouth: false,
+      pointerHeld: false,
+      pointerId: null,
+      pendingCompletedStep: null,
+      completingStep: null,
+      completionT: 0,
+      completionDuration: 0,
+      completionFromPosition: null,
+      completionFromRotation: null,
+    };
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function resetScene() {
+      manipulation.setEnabled(false);
+      interactionState.hovered = null;
+      interactionState.dragging = null;
+      interactionState.pointerHeld = false;
+      interactionState.pointerId = null;
+      manipulation.setEnabled(true);
+
+      state.phase = 'ready';
+      state.dragging = null;
+      state.hovered = null;
+      state.autoplay = false;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      state.reactionT = 0;
+      state.sparkT = 0;
+      state.zincLoaded = false;
+      state.acidAdded = false;
+      state.hydrogenReady = false;
+      state.popDone = false;
+      state.zincPassedMouth = false;
+      state.zincDragReleasedAboveMouth = false;
+      state.pointerHeld = false;
+      state.pointerId = null;
+      state.pendingCompletedStep = null;
+      state.completingStep = null;
+      state.completionT = 0;
+      state.completionDuration = 0;
+      state.completionFromPosition = null;
+      state.completionFromRotation = null;
+      setControlsDragging(controls, false);
+      syncInteractionState();
+      renderer.domElement.style.cursor = 'default';
+
+      zinc.group.position.copy(zinc.homePosition);
+      zinc.group.rotation.copy(zinc.homeRotation);
+      acidBottle.group.position.copy(acidBottle.homePosition);
+      acidBottle.group.rotation.copy(acidBottle.homeRotation);
+      match.group.position.copy(match.homePosition);
+      match.group.rotation.copy(match.homeRotation);
+
+      zinc.shadow.position.set(zinc.group.position.x, 1.37, zinc.group.position.z);
+      acidBottle.shadow.position.set(acidBottle.group.position.x, 1.45, acidBottle.group.position.z);
+      match.shadow.position.set(match.group.position.x, 1.42, match.group.position.z);
+      zinc.group.updateMatrixWorld(true);
+      acidBottle.group.updateMatrixWorld(true);
+      match.group.updateMatrixWorld(true);
+      tube.group.updateMatrixWorld(true);
+
+      tube.setLiquidLevel(0);
+      tube.stopperGlow.material.opacity = 0.0;
+      match.flameLight.intensity = 0.0;
+      match.glow.material.opacity = 0.0;
+      match.flameCore.material.opacity = 0.92;
+      match.flameOuter.material.opacity = 0.58;
+      sparkBurst.material.opacity = 0;
+
+      for (const bubble of bubblePool) {
+        bubble.mesh.visible = false;
+        bubble.mesh.material.opacity = 0;
+      }
+      for (const plume of gasPlumes) {
+        plume.mesh.visible = false;
+        plume.mesh.material.opacity = 0;
+      }
+
+      setStatus(
+        'Sẵn sàng. Hãy kéo viên kẽm vào ống nghiệm trước.',
+        'Golden path: kẽm → HCl → que đóm. Khi phản ứng xảy ra sẽ thấy sủi bọt khí và sau đó thử khí ở miệng ống nghiệm.'
+      );
+    }
+
+    const zincMouthPose = {
+      position: zinc.homePosition.clone(),
+      rotation: new THREE.Euler(0.4, 0.16, -0.24),
+    };
+
+    const zincLoadedPose = {
+      position: zinc.homePosition.clone(),
+      rotation: new THREE.Euler(0.4, 0.2, -0.3),
+    };
+
+    const acidPourPose = {
+      position: acidBottle.homePosition.clone(),
+      rotation: new THREE.Euler(0.1, 0.02, -0.98),
+    };
+
+    const matchTestPose = {
+      position: match.homePosition.clone(),
+      rotation: new THREE.Euler(0.04, 0.0, -0.36),
+    };
+
+    function snapZincToMouth() {
+      alignAnchorToTarget({
+        object: zinc.group,
+        sourceAnchor: zinc.anchors.dropAnchor,
+        targetAnchor: tube.anchors.mouth,
+        pose: zincMouthPose,
+      });
+      zinc.group.position.y += 0.18;
+      zinc.group.updateMatrixWorld(true);
+    }
+
+    function snapZincToTube() {
+      alignAnchorToTarget({
+        object: zinc.group,
+        sourceAnchor: zinc.anchors.dropAnchor,
+        targetAnchor: tube.anchors.effectOrigin,
+        pose: zincLoadedPose,
+      });
+    }
+
+    function snapBottleToPourPose() {
+      alignAnchorToTarget({
+        object: acidBottle.group,
+        sourceAnchor: acidBottle.anchors.pourAlign,
+        targetAnchor: tube.anchors.pourTarget,
+        pose: acidPourPose,
+      });
+    }
+
+    function snapMatchToTestPose() {
+      alignAnchorToTarget({
+        object: match.group,
+        sourceAnchor: match.anchors.ignitionTip,
+        targetAnchor: tube.anchors.mouth,
+        pose: matchTestPose,
+      });
+    }
+
+    function getLoadPosition() {
+      snapZincToTube();
+      return zinc.group.position.clone();
+    }
+
+    function getPourBottlePosition() {
+      snapBottleToPourPose();
+      return acidBottle.group.position.clone();
+    }
+
+    function getMatchTestPosition() {
+      snapMatchToTestPose();
+      return match.group.position.clone();
+    }
+
+    function getGripAlignedPosition(object, gripAnchor, targetAnchor, pose = null) {
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      alignAnchorToTarget({ object, sourceAnchor: gripAnchor, targetAnchor, pose });
+      const position = object.position.clone();
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return position;
+    }
+
+    function getAnchorTargetScreenPoint(object, gripAnchor, targetAnchor, pose = null) {
+      const position = getGripAlignedPosition(object, gripAnchor, targetAnchor, pose);
+      const originalPosition = object.position.clone();
+      const originalRotation = object.rotation.clone();
+      if (pose) setObjectPose(object, pose);
+      object.position.copy(position);
+      object.updateMatrixWorld(true);
+      const point = screenPointForAnchor(gripAnchor);
+      object.position.copy(originalPosition);
+      object.rotation.copy(originalRotation);
+      object.updateMatrixWorld(true);
+      return point;
+    }
+
+    function restoreSnapPose(key) {
+      if (key === 'zinc' && state.zincLoaded) snapZincToTube();
+      if (key === 'acid' && state.acidAdded) snapBottleToPourPose();
+      if (key === 'match' && state.popDone) snapMatchToTestPose();
+    }
+
+    resetScene();
+    snapZincToMouth();
+    const zincMouthPosition = zinc.group.position.clone();
+    resetScene();
+    const zincLoadPosition = getLoadPosition();
+    resetScene();
+    const acidPourPosition = getPourBottlePosition();
+    resetScene();
+    const matchTestPosition = getMatchTestPosition();
+    resetScene();
+    zincMouthPose.position.copy(zincMouthPosition);
+    zincLoadedPose.position.copy(zincLoadPosition);
+    acidPourPose.position.copy(acidPourPosition);
+    matchTestPose.position.copy(matchTestPosition);
+    resetScene();
+
+    function updateShadow(shadow, object, lift = 1.42, scaleBase = 1.0) {
+      shadow.position.x += (object.position.x - shadow.position.x) * 0.2;
+      shadow.position.z += (object.position.z - shadow.position.z) * 0.2;
+      shadow.material.opacity = 0.13 - Math.min(0.06, Math.max(0, (object.position.y - lift) * 0.028));
+      const scale = scaleBase + Math.max(0, (object.position.y - lift) * 0.08);
+      shadow.scale.set(scale, 1, scale * 0.78);
+    }
+
+    function markZincMouthPassIfNeeded() {
+      const mouthDistance = getAnchorDistance(zinc.anchors.dropAnchor, tube.anchors.mouth);
+      const zincDropPoint = getAnchorWorld(zinc.anchors.dropAnchor);
+      const tubeMouthPoint = getAnchorWorld(tube.anchors.mouth);
+      if (mouthDistance <= 0.34 && zincDropPoint.y >= tubeMouthPoint.y - 0.02) {
+        state.zincPassedMouth = true;
+      }
+    }
+
+    function tryCompleteZincStep() {
+      markZincMouthPassIfNeeded();
+      const zincDropPoint = getAnchorWorld(zinc.anchors.dropAnchor);
+      const tubeMouthPoint = getAnchorWorld(tube.anchors.mouth);
+      const distance = getAnchorDistance(zinc.anchors.dropAnchor, tube.anchors.effectOrigin);
+      const releasedAboveMouth = state.zincDragReleasedAboveMouth || zincDropPoint.y >= tubeMouthPoint.y - 0.02;
+      if (!state.zincPassedMouth || !releasedAboveMouth || distance > 0.36) return false;
+      snapZincToTube();
+      state.zincLoaded = true;
+      state.zincPassedMouth = false;
+      state.zincDragReleasedAboveMouth = false;
+      state.phase = 'zinc-loaded';
+      setStatus('Đã thả kẽm vào ống nghiệm.', 'Tiếp theo, hãy kéo chai HCl đến miệng ống nghiệm để bắt đầu phản ứng.');
+      return true;
+    }
+
+    function completeZincViaMouthDrop() {
+      snapZincToMouth();
+      state.zincPassedMouth = true;
+      state.zincDragReleasedAboveMouth = true;
+      return tryCompleteZincStep();
+    }
+
+    function tryCompleteAcidStep() {
+      if (!state.zincLoaded) {
+        setStatus('Cần thả kẽm vào ống nghiệm trước.', 'Hãy kéo viên kẽm vào ống nghiệm rồi mới rót HCl.');
+        return false;
+      }
+      const distance = getAnchorDistance(acidBottle.anchors.pourAlign, tube.anchors.pourTarget);
+      if (distance > 0.42) return false;
+      snapBottleToPourPose();
+      state.acidAdded = true;
+      state.phase = 'reacting';
+      state.reactionT = 0;
+      setStatus('HCl đã tiếp xúc với kẽm. Phản ứng đang xảy ra.', 'Quan sát bọt khí hiđro xuất hiện trong ống nghiệm và thoát ra ở miệng ống nghiệm.');
+      return true;
+    }
+
+    function completeAcidStep() {
+      snapBottleToPourPose();
+      return tryCompleteAcidStep();
+    }
+
+    function tryCompleteMatchStep() {
+      if (!state.hydrogenReady) {
+        setStatus('Khí hiđro chưa đủ để thử.', 'Hãy chờ phản ứng sủi bọt diễn ra rõ rồi mới đưa que đóm tới miệng ống nghiệm.');
+        return false;
+      }
+      const distance = getAnchorDistance(match.anchors.ignitionTip, tube.anchors.mouth);
+      if (distance > 0.34) return false;
+      snapMatchToTestPose();
+      state.popDone = true;
+      state.phase = 'completed';
+      state.sparkT = 0.65;
+      setStatus('Khí H₂ đã cháy với tiếng “bụp” nhỏ.', 'Kết luận: kẽm phản ứng với axit clohidric tạo khí hiđro; đưa que đóm đang cháy tới miệng ống nghiệm cho dấu hiệu nhận biết H₂.');
+      return true;
+    }
+
+    function completeMatchStep() {
+      snapMatchToTestPose();
+      return tryCompleteMatchStep();
+    }
+
+    const orderedSteps = ['zinc', 'acid', 'match'];
+
+    function getCompletedSteps() {
+      return {
+        zinc: state.zincLoaded,
+        acid: state.acidAdded,
+        match: state.popDone,
+      };
+    }
+
+    function canAttemptStep(key) {
+      return canAttemptOrderedStep(key, orderedSteps, getCompletedSteps());
+    }
+
+    function isZincOverlapReady() {
+      if (!canAttemptStep('zinc')) return false;
+      return modelsOverlapOrNear(zinc.group, tube.group, 0.26);
+    }
+
+    function isAcidOverlapReady() {
+      if (!canAttemptStep('acid')) return false;
+      return modelsOverlapOrNear(acidBottle.group, tube.group, 0.34);
+    }
+
+    function isMatchOverlapReady() {
+      if (!canAttemptStep('match')) return false;
+      return modelsOverlapOrNear(match.group, tube.group, 0.28);
+    }
+
+    function getCompletionPose(key) {
+      if (key === 'zinc') return zincLoadedPose;
+      if (key === 'acid') return acidPourPose;
+      if (key === 'match') return matchTestPose;
+      return null;
+    }
+
+    function getStepCompletionDuration(key) {
+      return key === 'zinc' ? 0.22 : 0.26;
+    }
+
+    function syncInteractionState() {
+      state.dragging = interactionState.dragging;
+      state.hovered = interactionState.hovered;
+      state.pointerHeld = interactionState.pointerHeld;
+      state.pointerId = interactionState.pointerId;
+    }
+
+    function clearPendingCompletion() {
+      state.pendingCompletedStep = null;
+    }
+
+    function clearAllManualCompletionFlags() {
+      clearStepCompletion(state);
+      clearPendingCompletion();
+    }
+
+    function hasPendingOrActiveCompletion(key) {
+      return hasActiveCompletion(state, key);
+    }
+
+    function isSceneStepBusy(key) {
+      return isStepBusy(state, key);
+    }
+
+    function completeStepInstantly(key) {
+      if (key === 'zinc') {
+        snapZincToTube();
+        state.zincLoaded = true;
+        state.zincPassedMouth = false;
+        state.zincDragReleasedAboveMouth = false;
+        state.phase = 'zinc-loaded';
+        setStatus('Đã đặt kẽm vào ống nghiệm.', 'Tiếp theo, hãy kéo chai HCl overlap với ống nghiệm để scene tự rót axit.');
+        return true;
+      }
+      if (key === 'acid') {
+        return completeAcidStep();
+      }
+      if (key === 'match') {
+        return completeMatchStep();
+      }
+      return false;
+    }
+
+    function finalizeStepByKey(key) {
+      return completeStepInstantly(key);
+    }
+
+    function getCompletionEntry(key) {
+      const object = draggableMap.get(key);
+      const pose = getCompletionPose(key);
+      if (!object || !pose) {
+        return null;
+      }
+      return {
+        object: object.group,
+        pose,
+        duration: getStepCompletionDuration(key),
+      };
+    }
+
+    function beginCompletionTween(key) {
+      syncInteractionState();
+      const started = completeOrderedOverlapStep({
+        key,
+        state,
+        order: orderedSteps,
+        completed: getCompletedSteps(),
+        isReady(currentKey) {
+          return currentKey === key;
+        },
+        getCompletion: getCompletionEntry,
+      });
+      if (started) {
+        interactionState.dragging = null;
+        syncInteractionState();
+        renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      }
+      return started;
+    }
+
+    function completeStepByKey(key) {
+      if (hasPendingOrActiveCompletion(key)) return true;
+      return beginCompletionTween(key);
+    }
+
+    function finishDraggedStep(key) {
+      interactionState.dragging = null;
+      syncInteractionState();
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      if (!state.pointerHeld) {
+        setControlsDragging(controls, false);
+      }
+      return completeStepByKey(key);
+    }
+
+    function flushPendingCompletedStep() {
+      if (!state.pendingCompletedStep) return false;
+      const key = state.pendingCompletedStep;
+      state.pendingCompletedStep = null;
+      setControlsDragging(controls, false);
+      return completeStepByKey(key);
+    }
+
+    function cancelManualDrag() {
+      interactionState.dragging = null;
+      syncInteractionState();
+      clearAllManualCompletionFlags();
+      setControlsDragging(controls, false);
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+    }
+
+    function runManualCompletion(dt) {
+      runStepCompletion(
+        state,
+        dt,
+        getCompletionEntry,
+        (key) => {
+          finalizeStepByKey(key);
+        },
+      );
+    }
+
+    function shouldRelaxObject(key) {
+      return !isSceneStepBusy(key) && !state.autoplay;
+    }
+
+    function completeStepForVerifier(key) {
+      clearAllManualCompletionFlags();
+      return completeStepInstantly(key);
+    }
+
+    function completeStepForAutoplay(key) {
+      clearAllManualCompletionFlags();
+      return completeStepInstantly(key);
+    }
+
+    function tryAutoCompleteDraggedStep(key) {
+      if (!key || !state.dragging || state.dragging !== key) return false;
+      if (key === 'zinc' && isZincOverlapReady()) return finishDraggedStep(key);
+      if (key === 'acid' && isAcidOverlapReady()) return finishDraggedStep(key);
+      if (key === 'match' && isMatchOverlapReady()) return finishDraggedStep(key);
+      return false;
+    }
+
+    function runVerifierStep(step) {
+      const key = String(step || '').toLowerCase();
+      if (key === 'load-zinc') {
+        return completeStepForVerifier('zinc');
+      }
+      if (key === 'pour-acid') {
+        if (!state.zincLoaded) runVerifierStep('load-zinc');
+        return completeStepForVerifier('acid');
+      }
+      if (key === 'test-gas') {
+        if (!state.acidAdded) runVerifierStep('pour-acid');
+        state.reactionT = Math.max(state.reactionT, 2.7);
+        state.hydrogenReady = true;
+        state.phase = state.popDone ? 'completed' : 'hydrogen-ready';
+        return completeStepForVerifier('match');
+      }
+      return false;
+    }
+
+    const draggableMap = new Map([
+      ['zinc', zinc],
+      ['acid', acidBottle],
+      ['match', match],
+    ]);
+
+    function updateLabels() {
+      const tubePoint = screenPointForAnchor(tube.anchors.labelAnchor);
+      labels.tube.style.left = `${tubePoint.x}px`;
+      labels.tube.style.top = `${tubePoint.y}px`;
+
+      const zincPoint = screenPointForAnchor(zinc.anchors.labelAnchor);
+      labels.zinc.style.left = `${zincPoint.x}px`;
+      labels.zinc.style.top = `${zincPoint.y}px`;
+
+      const acidPoint = screenPointForAnchor(acidBottle.anchors.labelAnchor);
+      labels.acid.style.left = `${acidPoint.x}px`;
+      labels.acid.style.top = `${acidPoint.y}px`;
+
+      const matchPoint = screenPointForAnchor(match.anchors.labelAnchor);
+      labels.match.style.left = `${matchPoint.x}px`;
+      labels.match.style.top = `${matchPoint.y}px`;
+    }
+
+    function clampDraggedObject(key) {
+      syncInteractionState();
+      if (key === 'zinc') {
+        zinc.group.position.clamp(new THREE.Vector3(-5.2, 1.85, -1.8), new THREE.Vector3(1.2, 4.3, 1.8));
+        zinc.group.rotation.x += (0.4 - zinc.group.rotation.x) * 0.18;
+        zinc.group.rotation.z += (-0.2 - zinc.group.rotation.z) * 0.18;
+      } else if (key === 'acid') {
+        acidBottle.group.position.clamp(new THREE.Vector3(-0.8, 1.9, -1.5), new THREE.Vector3(4.8, 4.6, 1.8));
+        acidBottle.group.rotation.x += (0.1 - acidBottle.group.rotation.x) * 0.2;
+      } else if (key === 'match') {
+        match.group.position.clamp(new THREE.Vector3(-0.6, 1.8, -2.0), new THREE.Vector3(4.8, 4.6, 1.4));
+      }
+    }
+
+    function onDragStart(key) {
+      syncInteractionState();
+      state.pendingCompletedStep = null;
+      state.autoplay = false;
+      if (key === 'zinc') {
+        state.zincPassedMouth = false;
+        state.zincDragReleasedAboveMouth = false;
+        setStatus('Đang cầm viên kẽm.', 'Chỉ cần kéo viên kẽm overlap với bất kỳ phần nào của ống nghiệm, scene sẽ tự đặt viên kẽm nằm trong ống nghiệm như một bước hoàn chỉnh.');
+      } else if (key === 'acid') {
+        setStatus('Đang cầm chai HCl.', 'Chỉ cần đưa chai HCl overlap hoặc lại gần toàn bộ ống nghiệm, scene sẽ tự căn và rót axit.');
+      } else {
+        setStatus('Đang cầm que đóm cháy.', 'Chỉ cần đưa que đóm cháy overlap hoặc lại gần toàn bộ ống nghiệm, scene sẽ tự hoàn tất bước thử khí hiđro.');
+      }
+    }
+
+    function onDragMove(key) {
+      syncInteractionState();
+      clampDraggedObject(key);
+      if (key === 'zinc') {
+        markZincMouthPassIfNeeded();
+      }
+      tryAutoCompleteDraggedStep(key);
+    }
+
+    function onDragEnd(key, canceled) {
+      syncInteractionState();
+      if (canceled) {
+        cancelManualDrag();
+        return;
+      }
+      if (state.pendingCompletedStep) {
+        flushPendingCompletedStep();
+        return;
+      }
+      if (!key) {
+        setControlsDragging(controls, false);
+        return;
+      }
+      const completed = tryAutoCompleteDraggedStep(key);
+      if (completed) {
+        flushPendingCompletedStep();
+        return;
+      }
+      cancelManualDrag();
+      if (key === 'zinc') {
+        setStatus('Viên kẽm chưa overlap với ống nghiệm.', 'Hãy kéo viên kẽm chạm hoặc overlap với bất kỳ phần nào của ống nghiệm để scene tự đặt kẽm vào trong.');
+      } else if (key === 'acid') {
+        if (state.zincLoaded) {
+          setStatus('Chai HCl chưa đủ gần ống nghiệm.', 'Hãy đưa chai HCl overlap hoặc lại gần toàn bộ ống nghiệm rồi thả ra.');
+        }
+      } else if (state.hydrogenReady) {
+        setStatus('Que đóm chưa đủ gần ống nghiệm.', 'Hãy đưa que đóm overlap hoặc lại gần toàn bộ ống nghiệm.');
+      }
+    }
+
+    function canStartDrag(key) {
+      syncInteractionState();
+      if (state.completingStep || state.pendingCompletedStep) {
+        return false;
+      }
+      if (!canAttemptStep(key)) {
+        if (key === 'acid') {
+          setStatus('Chưa thể dùng HCl lúc này.', 'Hãy thả viên kẽm vào ống nghiệm trước rồi mới kéo chai HCl.');
+        } else if (key === 'match') {
+          setStatus('Chưa thể thử khí lúc này.', 'Hãy hoàn tất bước kẽm và HCl trước, rồi chờ khí hiđro sinh ra rõ rệt.');
+        }
+        return false;
+      }
+      return true;
+    }
+
+    function registerDraggable(entryKey, object, bounds) {
+      manipulation.register({
+        id: entryKey,
+        object: object.group,
+        anchors: object.anchors,
+        bounds,
+        canDragStart() {
+          return canStartDrag(entryKey);
+        },
+        onDragStart() {
+          onDragStart(entryKey);
+        },
+        onDrag() {
+          onDragMove(entryKey);
+        },
+        onDragEnd({ canceled }) {
+          onDragEnd(entryKey, canceled);
+        },
+      });
+    }
+
+    registerDraggable('zinc', zinc, { min: new THREE.Vector3(-5.2, 1.85, -1.8), max: new THREE.Vector3(1.2, 4.3, 1.8) });
+    registerDraggable('acid', acidBottle, { min: new THREE.Vector3(-0.8, 1.9, -1.5), max: new THREE.Vector3(4.8, 4.6, 1.8) });
+    registerDraggable('match', match, { min: new THREE.Vector3(-0.6, 1.8, -2.0), max: new THREE.Vector3(4.8, 4.6, 1.4) });
+
+    function onPointerMiss(event) {
+      syncInteractionState();
+      if (!state.pointerHeld || state.dragging || !controls.enabled) return;
+      if (typeof event.preventDefault === 'function') event.preventDefault();
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerMiss, { capture: true });
+    renderer.domElement.addEventListener('touchstart', onPointerMiss, { capture: true, passive: false });
+    renderer.domElement.addEventListener('mousedown', onPointerMiss, { capture: true });
+    controls.addEventListener('start', () => {
+      if (state.pointerHeld || state.dragging || state.pendingCompletedStep || state.completingStep) {
+        controls.enabled = false;
+      }
+    });
+    controls.addEventListener('end', () => {
+      if (!state.pointerHeld && !state.dragging && !state.pendingCompletedStep && !state.completingStep) {
+        controls.enabled = true;
+      }
+    });
+
+    function runAutoplay(dt) {
+      if (!state.autoplay) return;
+      state.autoplayT += dt;
+
+      if (state.autoplayStep === 0) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 0.92));
+        lerpObjectPose(zinc.group, zinc.homePosition, zinc.homeRotation, zincMouthPose, t);
+        if (state.autoplayT >= 0.92) {
+          state.zincPassedMouth = true;
+          state.zincDragReleasedAboveMouth = true;
+          state.autoplayStep = 1;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 1) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 0.44));
+        lerpObjectPose(zinc.group, zincMouthPose.position, zincMouthPose.rotation, zincLoadedPose, t);
+        if (state.autoplayT >= 0.44) {
+          tryCompleteZincStep();
+          state.autoplayStep = 2;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 2) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 1.05));
+        lerpObjectPose(acidBottle.group, acidBottle.homePosition, acidBottle.homeRotation, acidPourPose, t);
+        if (state.autoplayT >= 1.05) {
+          completeAcidStep();
+          state.autoplayStep = 3;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 3) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 0.86));
+        lerpObjectPose(acidBottle.group, acidPourPose.position, acidPourPose.rotation, {
+          position: acidBottle.homePosition,
+          rotation: acidBottle.homeRotation,
+        }, t);
+        if (state.autoplayT >= 0.86) {
+          state.autoplayStep = 4;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 4) {
+        if (state.reactionT >= 2.85) {
+          state.autoplayStep = 5;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 5) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 1.0));
+        lerpObjectPose(match.group, match.homePosition, match.homeRotation, matchTestPose, t);
+        if (state.autoplayT >= 1.0) {
+          completeMatchStep();
+          state.autoplayStep = 6;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 6) {
+        const t = smoothstep01(Math.min(1, state.autoplayT / 0.82));
+        lerpObjectPose(match.group, matchTestPose.position, matchTestPose.rotation, {
+          position: match.homePosition,
+          rotation: match.homeRotation,
+        }, t);
+        if (state.autoplayT >= 0.82) {
+          state.autoplayStep = 7;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 7) {
+        if (state.sparkT <= 0.02) {
+          state.autoplay = false;
+          state.autoplayStep = 0;
+          state.autoplayT = 0;
+        }
+      }
+    }
+
+    function updateReaction(dt, time) {
+      if (!state.acidAdded) return;
+      state.reactionT = Math.min(state.reactionT + dt, 4.0);
+      const liquidT = clamp01(state.reactionT / 0.9);
+      tube.setLiquidLevel(0.78 * liquidT);
+
+      const bubbleIntensity = clamp01(state.reactionT / 0.5) * (1 - clamp01((state.reactionT - 3.2) / 1.0) * 0.35);
+      for (let i = 0; i < bubblePool.length; i += 1) {
+        const bubble = bubblePool[i];
+        const local = (time * bubble.speed + bubble.phase) % 1;
+        const active = bubbleIntensity > 0.02 && local < bubbleIntensity;
+        bubble.mesh.visible = active;
+        if (!active) continue;
+        const origin = getAnchorWorld(tube.anchors.bubbleOrigin);
+        const y = origin.y + local * 1.96;
+        bubble.mesh.position.set(
+          origin.x + Math.sin(local * 10 + i) * 0.09,
+          y,
+          origin.z + Math.cos(local * 8 + i * 0.4) * 0.09
+        );
+        bubble.mesh.material.opacity = 0.18 + (1 - local) * 0.34;
+        bubble.mesh.scale.setScalar(0.7 + bubble.radius * 5 + local * 0.4);
+      }
+
+      const gasIntensity = clamp01((state.reactionT - 0.8) / 1.2);
+      for (let i = 0; i < gasPlumes.length; i += 1) {
+        const plume = gasPlumes[i];
+        const origin = getAnchorWorld(tube.anchors.mouth);
+        const local = ((time * 0.52) + plume.offset) % 1;
+        plume.mesh.visible = gasIntensity > 0.01;
+        plume.mesh.position.set(
+          origin.x + Math.sin(local * Math.PI * 2 + plume.seed) * 0.06,
+          origin.y + 0.12 + local * 1.1,
+          origin.z + Math.cos(local * Math.PI * 2 + plume.seed) * 0.06
+        );
+        plume.mesh.material.opacity = gasIntensity * (0.16 + (1 - local) * 0.18);
+        plume.mesh.scale.setScalar(0.65 + local * 0.8);
+      }
+
+      tube.stopperGlow.material.opacity = gasIntensity * 0.18;
+
+      if (!state.hydrogenReady && state.reactionT >= 2.3) {
+        state.hydrogenReady = true;
+        state.phase = 'hydrogen-ready';
+        setStatus('Khí hiđro đã sinh ra rõ rệt.', 'Hãy đưa que đóm đang cháy tới miệng ống nghiệm để thử khí H₂.');
+      }
+    }
+
+    function updateMatchFlame(time) {
+      const flicker = 0.88 + Math.sin(time * 16) * 0.06 + Math.cos(time * 11) * 0.04;
+      match.flame.scale.set(1.0, flicker, 1.0);
+      match.flameLight.intensity = 1.45 + Math.sin(time * 22) * 0.18 + (state.popDone ? 1.2 : 0);
+      match.glow.material.opacity = 0.14 + Math.sin(time * 18) * 0.02 + (state.popDone ? 0.32 : 0);
+    }
+
+    function updateSparkBurst(dt) {
+      if (state.sparkT <= 0) {
+        sparkBurst.material.opacity = 0;
+        return;
+      }
+      state.sparkT = Math.max(0, state.sparkT - dt);
+      const life = state.sparkT / 0.65;
+      const origin = getAnchorWorld(tube.anchors.sparkOrigin);
+      sparkBurst.group.position.copy(origin);
+      sparkBurst.material.opacity = life * 0.95;
+      for (let i = 0; i < sparkBurst.positions.length; i += 3) {
+        const id = i / 3;
+        const angle = (id / 6) * Math.PI * 2 + id * 0.23;
+        const radius = (1 - life) * (0.18 + (id % 4) * 0.08);
+        sparkBurst.positions[i] = Math.cos(angle) * radius;
+        sparkBurst.positions[i + 1] = (1 - life) * (0.14 + (id % 3) * 0.08);
+        sparkBurst.positions[i + 2] = Math.sin(angle) * radius * 0.7;
+      }
+      sparkBurst.geometry.attributes.position.needsUpdate = true;
+    }
+
+    function animate(nowMs) {
+      const time = nowMs / 1000;
+      const dt = animate.lastMs == null ? 0 : Math.min(0.05, (nowMs - animate.lastMs) / 1000);
+      animate.lastMs = nowMs;
+
+      controls.update();
+      runAutoplay(dt);
+      runManualCompletion(dt);
+      updateReaction(dt, time);
+      updateMatchFlame(time);
+      updateSparkBurst(dt);
+
+      if (shouldRelaxObject('zinc')) {
+        if (state.zincLoaded) {
+          snapZincToTube();
+        } else {
+          zinc.group.position.lerp(zinc.homePosition, 1 - Math.exp(-dt * 4.5));
+          zinc.group.rotation.x += (zinc.homeRotation.x - zinc.group.rotation.x) * (1 - Math.exp(-dt * 4.5));
+          zinc.group.rotation.y += (zinc.homeRotation.y - zinc.group.rotation.y) * (1 - Math.exp(-dt * 4.5));
+          zinc.group.rotation.z += (zinc.homeRotation.z - zinc.group.rotation.z) * (1 - Math.exp(-dt * 4.5));
+        }
+      }
+      if (shouldRelaxObject('acid')) {
+        acidBottle.group.position.lerp(acidBottle.homePosition, 1 - Math.exp(-dt * 4.2));
+        acidBottle.group.rotation.x += (acidBottle.homeRotation.x - acidBottle.group.rotation.x) * (1 - Math.exp(-dt * 4.2));
+        acidBottle.group.rotation.y += (acidBottle.homeRotation.y - acidBottle.group.rotation.y) * (1 - Math.exp(-dt * 4.2));
+        acidBottle.group.rotation.z += (acidBottle.homeRotation.z - acidBottle.group.rotation.z) * (1 - Math.exp(-dt * 4.2));
+      }
+      if (shouldRelaxObject('match')) {
+        match.group.position.lerp(match.homePosition, 1 - Math.exp(-dt * 4.2));
+        match.group.rotation.x += (match.homeRotation.x - match.group.rotation.x) * (1 - Math.exp(-dt * 4.2));
+        match.group.rotation.y += (match.homeRotation.y - match.group.rotation.y) * (1 - Math.exp(-dt * 4.2));
+        match.group.rotation.z += (match.homeRotation.z - match.group.rotation.z) * (1 - Math.exp(-dt * 4.2));
+      }
+
+      if (state.dragging === 'zinc') {
+        markZincMouthPassIfNeeded();
+      }
+
+      if (!state.autoplay && state.zincLoaded) {
+        state.zincPassedMouth = false;
+        state.zincDragReleasedAboveMouth = false;
+      }
+
+      if (state.popDone && state.sparkT > 0) {
+        const sparkOrigin = getAnchorWorld(tube.anchors.sparkOrigin);
+        match.flameLight.position.lerp(match.group.worldToLocal(sparkOrigin.clone()), 0.12);
+      } else {
+        match.flameLight.position.lerp(match.flame.position, 0.16);
+      }
+
+      updateShadow(zinc.shadow, zinc.group, 1.44, 0.74);
+      updateShadow(acidBottle.shadow, acidBottle.group, 1.45, 0.98);
+      updateShadow(match.shadow, match.group, 1.43, 0.88);
+      tube.shadow.position.x += (tube.group.position.x - tube.shadow.position.x) * 0.2;
+      tube.shadow.position.z += (tube.group.position.z - tube.shadow.position.z) * 0.2;
+
+      renderer.render(scene, camera);
+      updateLabels();
+      requestAnimationFrame(animate);
+    }
+
+    function getDragPathForKey(key) {
+      if (key === 'load-zinc') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(zinc.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(zinc.group, zinc.anchors.gripAnchor, tube.anchors.mouth, zincMouthPose),
+          steps: 22,
+          afterMs: 700,
+        };
+      }
+      if (key === 'pour-acid') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(acidBottle.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(acidBottle.group, acidBottle.anchors.gripAnchor, tube.anchors.pourTarget, acidPourPose),
+          steps: 24,
+          afterMs: 900,
+        };
+      }
+      if (key === 'test-gas') {
+        return {
+          type: 'drag',
+          from: screenPointForAnchor(match.anchors.gripAnchor),
+          to: getAnchorTargetScreenPoint(match.group, match.anchors.gripAnchor, tube.anchors.mouth, matchTestPose),
+          steps: 22,
+          afterMs: 700,
+        };
+      }
+      return null;
+    }
+
+    shell.installHarness({
+      state,
+      mapState(currentState) {
+        return {
+          phase: currentState.phase,
+          zincLoaded: currentState.zincLoaded,
+          acidAdded: currentState.acidAdded,
+          hydrogenReady: currentState.hydrogenReady,
+          popDone: currentState.popDone,
+        };
+      },
+      getVerifierMeta() {
+        return {
+          supportsGoldenPath: true,
+          successPhase: 'completed',
+          failureStatusText: 'Thả chưa đúng vị trí',
+        };
+      },
+      getDragPath(sampleId = 'load-zinc') {
+        return getDragPathForKey(String(sampleId || 'load-zinc').toLowerCase());
+      },
+      getGoldenPath() {
+        return [
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['load-zinc'], afterMs: 300 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['pour-acid'], afterMs: 300 },
+          { type: 'wait', ms: 2600, afterMs: 200 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['test-gas'], afterMs: 400 },
+          { type: 'wait', ms: 500, afterMs: 200 },
+        ];
+      },
+      runVerifierStep(step) {
+        return runVerifierStep(step);
+      },
+    });
+
+    pourBtn.addEventListener('click', () => {
+      state.autoplay = true;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      setStatus('Đang chạy tự động theo thứ tự kẽm → HCl → que đóm.', 'Quan sát bọt khí hiđro sinh ra rồi hiện tượng cháy “bụp” ở miệng ống nghiệm.');
+    });
+
+    resetBtn.addEventListener('click', resetScene);
+
+    window.addEventListener('resize', () => {
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    });
+
+    syncInteractionState();
+
+    resetScene();
+    animate();
+  </script>
+</body>
+</html>

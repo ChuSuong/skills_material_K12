@@ -1,0 +1,15 @@
+{
+  "topic": "Đinh sắt thả vào dung dịch CuSO4",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "chem-lab-dark",
+  "recipe": "iron-cuso4-displacement",
+  "reaction": "metal-displacement",
+  "effects": [
+    "bubble-field",
+    "color-transition",
+    "material-progress"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

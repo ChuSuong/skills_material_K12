@@ -1,0 +1,28 @@
+{
+  "kind": "experiment",
+  "recipe": "ch4-combustion-flame-test",
+  "topic": "Đốt cháy khí metan (CH4) và quan sát ngọn lửa xanh",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "language": "vi",
+  "renderMode": "threejs",
+  "scene": {
+    "apparatus": ["gas-generator", "gas-delivery-tube", "test-tube", "alcohol-burner"],
+    "cameraPreset": "lab-close",
+    "themeVersion": "chem-lab-dark"
+  },
+  "interaction": {
+    "primaryMode": "direct-manipulation",
+    "goldenPath": ["release-ch4", "ignite-ch4", "finish-combustion"],
+    "resetRequired": true,
+    "autoplayRequired": true
+  },
+  "verification": {
+    "requiresFormat": true,
+    "requiresSmoke": true,
+    "requiresCanvas": true,
+    "requiresInteraction": true,
+    "requiresVisibility": true,
+    "requiresOffline": true
+  }
+}

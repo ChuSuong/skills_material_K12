@@ -14,6 +14,14 @@ Start from the chemistry teaching goal, not from the rendering technology.
 - If no chemistry skill fits, first research or pull a reusable skill, then delegate new skill creation to `chem-skill-builder` only when needed.
 - Require verification and UI review before calling the output done.
 
+## Architecture conventions
+
+- **Skill boundary:** This orchestrator decides the courseware route and verification gates. It must not duplicate detailed 3D apparatus, interaction, effect, or reaction rules; those belong in `chem-3d-experiment`.
+- **Compiler-first pipeline:** Prefer producing a semantic draft and assembling through `scripts/compile-semantic-draft.mjs` + `scripts/assemble-courseware.mjs` before hand-writing standalone HTML. See `docs/semantic-draft-contract.md` and `docs/generated-artifact-contract.md`.
+- **Recipe-builder first experiments:** For common 3D experiments, choose an existing `recipes/*.recipe.json` before writing scene code. If `scripts/build-recipe-scene.mjs` supports the recipe, generate only `semantic-draft.json` and run `rtk node scripts/compile-semantic-draft.mjs <draft-dir>/semantic-draft.json`; do not hand-write `<slug>.scene.js`.
+- **Proposal-first unsupported experiments:** If a lesson maps to a known chemistry pattern but no supported recipe builder exists, create `recipe-proposal.json` from `recipes/pattern-catalog.json` instead of generating HTML. See `docs/recipe-proposal-workflow.md`.
+- **3D implementation contract:** After routing to `chem-3d-experiment`, follow that skill's apparatus, recipe, interaction, effect, and reaction hard gates. Do not restate or override them here.
+
 ## Supported courseware types
 1. **3D experiment simulation**
    - Use `chem-3d-experiment`
@@ -40,6 +48,14 @@ Before picking a route, extract:
 - what evidence proves the output works
 - whether precise placement, camera framing, or motion quality is critical to learning success
 
+## New 3D experiment request flow
+For `chem-3d-experiment` requests:
+- First check whether the request maps to a recipe supported by `scripts/build-recipe-scene.mjs`.
+- If supported, create `semantic-draft.json`, compile, assemble, and verify.
+- If a recipe exists but is not builder-supported, stop before HTML and create a `recipe-proposal.json` or builder backlog item.
+- If no recipe exists but the request matches a pattern in `recipes/pattern-catalog.json`, generate `recipe-proposal.json` using `scripts/propose-recipe-from-pattern.mjs`, then validate with `scripts/validate-recipe-proposal.mjs`.
+- Do not hand-write `<slug>.scene.js` for unsupported or missing recipes.
+
 ## Phenomenon mapping (avoid dry diagrams)
 When the prompt sounds like a graph/table/definition (e.g., rate vs time, amount vs time), **do not default to schematic diagrams**.
 
@@ -58,7 +74,14 @@ When no existing chemistry skill fits:
 - after creating or adapting a skill, rerun the original lesson request through the new route
 
 ## Default output mode
-Prefer a **self-contained HTML** output for the first implementation unless the user explicitly needs deeper integration into an existing runtime.
+Prefer a **direct-openable self-contained HTML** output for the first implementation unless the user explicitly needs deeper integration into an existing runtime.
+
+Default expectation:
+- the learner can open the HTML directly in a browser via `file://`
+- the experience still works when served over a local HTTP server for verification
+- local server use is a verification/dev path, not a runtime requirement for the learner
+- do not make the generated HTML depend on repo-local module imports or filesystem paths that fail under direct browser open
+- if shared code is needed, inline/bundle it into the output or use browser-resolvable URLs
 
 ## Language rules
 Default to **Vietnamese** for learner-facing writing unless the user explicitly requests another language.
@@ -73,35 +96,20 @@ Keep chemistry terminology precise, natural, and easy to read for Vietnamese lea
 
 ## Common output contract
 All generated chemistry courseware should follow these defaults unless the user explicitly requests otherwise:
-- output a local-runnable HTML experience
-- keep the scene or learning stage visually dominant
+- output a direct-openable self-contained HTML experience
+- keep the learning stage visually dominant
 - prefer a full-screen layout with no accidental page scroll
 - include a visible learner status area
 - include one primary learner action
 - include a reset path back to a ready state
 - make the chemistry legible through before/during/after state differences
-
-## Default UI contract
-Prefer these selectors when generating the first pass so test and review steps can interact reliably:
-- `#statusText` for the main learner-facing state
-- `#statusSub` for supporting state or hint text
-- `#pourBtn` or `[data-action="autoplay"]` for the primary action
-- `#resetBtn` or `[data-action="reset"]` for reset
+- preserve a deterministic verification path for the chosen format
 
 ## Reuse rules
 When the chosen path is 3D:
-- use `threejs-fundamentals` for scene, camera, lighting, and renderer setup
-- use `threejs-interaction` for drag/drop, click, pointer, controls, and interaction flow
-- use `threejs-animation` for reaction motion, transitions, particles, growth, and stateful visual effects
-
-When visual fidelity matters (flame/smoke/sparks/glow/photons, subtle gradients):
-- prefer `threejs-shaders` + `threejs-textures` for procedural look and believable motion
-- consider `threejs-postprocessing` for mild bloom/glow (avoid heavy cinematic grading)
-
-When scene realism/readability matters:
-- use `threejs-materials` + `threejs-lighting` to keep apparatus and reaction zone legible
-- use `threejs-geometry` for better-shaped apparatus/effects when primitives look too toy-like
-- use `threejs-loaders` only when importing external models/assets is justified
+- route to `chem-3d-experiment`
+- use the local Three.js skills only as supporting references after `chem-3d-experiment` defines the contract
+- do not copy detailed apparatus, interaction, effect, reaction, label, or verifier rules into this orchestrator
 
 Do not copy large Three.js references into the output prompt. Reuse the existing skills deliberately.
 
@@ -116,6 +124,9 @@ Before reporting completion:
 
 ## Playwright verification order
 Run these checks against the generated HTML output:
+- `node scripts/audit-experiment-scene-contract.mjs <draft-dir>` for apparatus-driven experiments
+- `node scripts/audit-recipe-scene-contract.mjs <draft-dir>` when `semantic-draft.json.recipe` is set
+- `npm run verify:pw:contract` for recipe-builder generated HTML
 - `npm run test:format` with `COURSEWARE_HTML` pointing to the generated file
 - `node scripts/pw-smoke-open-html.mjs <html-path>`
 - `node scripts/pw-assert-canvas-visible.mjs <html-path>`

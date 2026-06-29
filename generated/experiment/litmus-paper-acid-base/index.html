@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Giấy quỳ tím thử axit - bazơ</title>
+  <style>
+    :root {
+      --panel: rgba(16, 22, 32, 0.72);
+      --panel-soft: rgba(16, 22, 32, 0.56);
+      --border: rgba(255, 255, 255, 0.14);
+      --text: #163043;
+      --muted: rgba(22, 48, 67, 0.76);
+      --accent: #2f8bd2;
+      --acid: #d95170;
+      --base: #3076d9;
+      --neutral: #6b7280;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #fdfefe 0%, #edf2f7 45%, #d7e0ea 100%);
+      color: var(--text);
+    }
+
+    canvas#stage {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel,
+    .status,
+    .controls,
+    .question {
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 54px rgba(25, 37, 52, 0.14);
+      border-radius: 18px;
+    }
+
+    .panel {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: min(360px, calc(100vw - 40px));
+      padding: 15px 16px;
+      background: var(--panel);
+      color: white;
+    }
+
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 21px;
+      line-height: 1.12;
+    }
+
+    .panel p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .panel p + p { margin-top: 7px; }
+
+    .question {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      transform: translateX(-50%);
+      max-width: min(560px, calc(100vw - 180px));
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.68);
+      color: #174260;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .status {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      width: min(430px, calc(100vw - 40px));
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .label {
+      margin-bottom: 8px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    #statusText {
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    #statusSub {
+      margin-top: 7px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .controls {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      width: min(292px, calc(100vw - 40px));
+      padding: 14px;
+      background: var(--panel-soft);
+      pointer-events: auto;
+      color: white;
+    }
+
+    .controls p {
+      margin: 0 0 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      min-height: 44px;
+      border: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    #pourBtn {
+      color: #ffffff;
+      background: linear-gradient(135deg, #3495d9, #1d6fa7);
+      box-shadow: 0 12px 28px rgba(29, 111, 167, 0.24);
+    }
+
+    #resetBtn {
+      color: white;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .label3d {
+      position: absolute;
+      transform: translate(-50%, 0);
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: 0 10px 24px rgba(40, 62, 88, 0.12);
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e5478;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+      .panel,
+      .status,
+      .controls {
+        left: 12px;
+        right: 12px;
+        width: auto;
+      }
+
+      .panel {
+        top: 12px;
+        padding: 12px 14px;
+      }
+
+      .panel h1 {
+        font-size: 17px;
+        margin-bottom: 6px;
+      }
+
+      .panel p,
+      .controls p,
+      #statusSub,
+      .question {
+        font-size: 12px;
+      }
+
+      .question {
+        left: auto;
+        right: 12px;
+        top: 12px;
+        transform: none;
+        max-width: calc(100vw - 140px);
+        text-align: left;
+        padding: 9px 12px;
+      }
+
+      .controls {
+        bottom: 12px;
+        padding: 12px;
+      }
+
+      .status {
+        bottom: 88px;
+        padding: 12px 14px;
+      }
+
+      #statusText { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+
+  <div class="hud">
+    <div class="panel" data-courseware-role="intro">
+      <h1>Giấy quỳ tím thử axit - bazơ</h1>
+      <p>Mục tiêu học: nhận biết dung dịch axit, bazơ và trung tính bằng chất chỉ thị là giấy quỳ tím.</p>
+      <p>Hãy cầm dải giấy quỳ tím và lần lượt nhúng đầu giấy vào từng cốc để quan sát màu đổi ở phần tiếp xúc.</p>
+    </div>
+
+    <div class="question">Câu hỏi quan sát: Cốc nào làm giấy quỳ chuyển đỏ? Cốc nào làm giấy quỳ chuyển xanh?</div>
+
+    <div class="status" data-courseware-role="status">
+      <div class="label">Trạng thái thí nghiệm</div>
+      <div id="statusText">Sẵn sàng. Hãy kéo giấy quỳ tím vào cốc axit hoặc bazơ.</div>
+      <div id="statusSub">Golden path: nhúng đầu giấy vào cốc axit trước để thấy màu đỏ, rồi nhúng vào cốc bazơ để thấy màu xanh.</div>
+    </div>
+
+    <div class="controls" data-courseware-role="controls">
+      <p>Có thể kéo giấy trực tiếp trong không gian 3D. Nút “Chạy tự động” sẽ thực hiện đúng thứ tự axit → bazơ để tiện kiểm tra.</p>
+      <div class="button-row">
+        <button id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+        <button id="pourBtn" data-action="autoplay" type="button">Chạy tự động</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    function clamp01(value) {
+      return Math.max(0, Math.min(1, value));
+    }
+
+    function smoothstep01(value) {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    }
+
+    function updatePointerFromEvent(event, element, target) {
+      const rect = element.getBoundingClientRect();
+      target.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      target.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      return target;
+    }
+
+    function setPointerCaptureSafe(element, pointerId) {
+      if (pointerId != null && typeof element.setPointerCapture === 'function') {
+        try {
+          element.setPointerCapture(pointerId);
+        } catch {}
+      }
+    }
+
+    function releasePointerCaptureSafe(element, pointerId) {
+      if (pointerId != null && typeof element.releasePointerCapture === 'function') {
+        try {
+          element.releasePointerCapture(pointerId);
+        } catch {}
+      }
+    }
+
+    function setControlsDragging(controls, dragging) {
+      controls.enabled = !dragging;
+    }
+
+    function intersectPointerPlane({ raycaster, plane, out }) {
+      return Boolean(raycaster.ray.intersectPlane(plane, out));
+    }
+
+    function projectWorldToCanvas(anchor, camera, renderer, offset = new THREE.Vector3()) {
+      const point = anchor.getWorldPosition(new THREE.Vector3()).add(offset);
+      point.project(camera);
+      const width = renderer.domElement.clientWidth;
+      const height = renderer.domElement.clientHeight;
+      return {
+        x: (point.x * 0.5 + 0.5) * width,
+        y: (-point.y * 0.5 + 0.5) * height,
+      };
+    }
+
+    const stageCanvas = document.getElementById('stage');
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const renderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.02;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xe4ecf3, 18, 38);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0, 7.4, 13.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.9, 0.15);
+    controls.minDistance = 8;
+    controls.maxDistance = 18;
+    controls.minPolarAngle = 0.45;
+    controls.maxPolarAngle = Math.PI / 2.18;
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xa7b8c9, 1.48));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    keyLight.position.set(8, 14, 10);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -16;
+    keyLight.shadow.camera.right = 16;
+    keyLight.shadow.camera.top = 16;
+    keyLight.shadow.camera.bottom = -16;
+    scene.add(keyLight);
+
+    const coolRim = new THREE.PointLight(0xa8d8ff, 5.4, 28, 2);
+    coolRim.position.set(0, 8, -10);
+    scene.add(coolRim);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(40, 42, 28),
+      new THREE.MeshBasicMaterial({ color: 0xf2f5f8, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(24, 72),
+      new THREE.MeshStandardMaterial({ color: 0xe8eef4, roughness: 0.96, metalness: 0.02 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const bench = new THREE.Group();
+    scene.add(bench);
+
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(12.8, 0.32, 5.8),
+      new THREE.MeshStandardMaterial({ color: 0xf8fbfd, roughness: 0.85, metalness: 0.02 })
+    );
+    benchTop.position.y = 1.32;
+    benchTop.castShadow = true;
+    benchTop.receiveShadow = true;
+    bench.add(benchTop);
+
+    const legGeometry = new THREE.BoxGeometry(0.35, 2.6, 0.35);
+    const legMaterial = new THREE.MeshStandardMaterial({ color: 0xbecad5, roughness: 0.72, metalness: 0.24 });
+    for (const [x, z] of [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]]) {
+      const leg = new THREE.Mesh(legGeometry, legMaterial);
+      leg.position.set(x, 0.0, z);
+      leg.castShadow = true;
+      bench.add(leg);
+    }
+
+    const pointer = new THREE.Vector2();
+    const raycaster = new THREE.Raycaster();
+    const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -3.9);
+    const dragPoint = new THREE.Vector3();
+
+    const labelDivs = [];
+    function createTextLabel(text) {
+      const div = document.createElement('div');
+      div.className = 'label3d';
+      div.textContent = text;
+      document.body.appendChild(div);
+      labelDivs.push(div);
+      return div;
+    }
+
+    function makeAnchor(parent, x = 0, y = 0, z = 0) {
+      const anchor = new THREE.Object3D();
+      anchor.position.set(x, y, z);
+      parent.add(anchor);
+      return anchor;
+    }
+
+    function getAnchorWorld(anchor, target = new THREE.Vector3()) {
+      return anchor.getWorldPosition(target);
+    }
+
+    function createCup({ x, solutionType, label, liquidColor, topColor }) {
+      const group = new THREE.Group();
+      group.position.set(x, 1.48, 0);
+      scene.add(group);
+
+      const shadowPad = new THREE.Mesh(
+        new THREE.CircleGeometry(0.95, 40),
+        new THREE.MeshBasicMaterial({ color: 0x8da1b2, transparent: true, opacity: 0.1 })
+      );
+      shadowPad.rotation.x = -Math.PI / 2;
+      shadowPad.position.y = 0.03;
+      shadowPad.scale.set(1.05, 1.0, 0.82);
+      group.add(shadowPad);
+
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.8, 0.8, 2.2, 40, 1, true),
+        new THREE.MeshPhysicalMaterial({
+          color: 0xe8f7ff,
+          transparent: true,
+          opacity: 0.24,
+          transmission: 0.92,
+          roughness: 0.08,
+          thickness: 0.16,
+          side: THREE.DoubleSide,
+        })
+      );
+      body.position.y = 1.1;
+      body.castShadow = true;
+      body.receiveShadow = true;
+      group.add(body);
+
+      const bottom = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.72, 0.72, 0.08, 40),
+        new THREE.MeshPhysicalMaterial({ color: 0xf3fbff, transparent: true, opacity: 0.32, transmission: 0.8, roughness: 0.1 })
+      );
+      bottom.position.y = 0.04;
+      group.add(bottom);
+
+      const liquid = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.68, 0.68, 1.1, 32),
+        new THREE.MeshPhysicalMaterial({
+          color: liquidColor,
+          transparent: true,
+          opacity: 0.56,
+          transmission: 0.32,
+          roughness: 0.18,
+          thickness: 0.18,
+        })
+      );
+      liquid.position.y = 0.6;
+      group.add(liquid);
+
+      const liquidSurface = new THREE.Mesh(
+        new THREE.CircleGeometry(0.68, 32),
+        new THREE.MeshStandardMaterial({ color: topColor, transparent: true, opacity: 0.52, roughness: 0.18 })
+      );
+      liquidSurface.rotation.x = -Math.PI / 2;
+      liquidSurface.position.y = 1.15;
+      group.add(liquidSurface);
+
+      const glow = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.72, 0.62, 0.84, 28),
+        new THREE.MeshBasicMaterial({ color: liquidColor, transparent: true, opacity: 0.0 })
+      );
+      glow.position.y = 0.72;
+      group.add(glow);
+
+      return {
+        group,
+        solutionType,
+        label,
+        body,
+        liquid,
+        liquidSurface,
+        glow,
+        labelDiv: createTextLabel(label),
+        anchors: {
+          labelAnchor: makeAnchor(group, 0, 2.74, 0),
+          mouth: makeAnchor(group, 0, 2.2, 0),
+          sampleZone: makeAnchor(group, 0, 0.95, 0),
+        },
+        constraints: {
+          radius: 0.74,
+          dipClearance: 0.22,
+        },
+      };
+    }
+
+    const cups = [
+      createCup({ x: -4.0, solutionType: 'acid', label: 'Axit', liquidColor: 0xffc9d5, topColor: 0xffdce5 }),
+      createCup({ x: 0.0, solutionType: 'neutral', label: 'Trung tính', liquidColor: 0xd9ecff, topColor: 0xe9f5ff }),
+      createCup({ x: 4.0, solutionType: 'base', label: 'Bazơ', liquidColor: 0xcfe0ff, topColor: 0xe1ebff }),
+    ];
+
+    const litmusRoot = new THREE.Group();
+    scene.add(litmusRoot);
+    litmusRoot.position.set(-5.4, 2.75, 1.3);
+
+    const stripGeometry = new THREE.BoxGeometry(0.5, 2.9, 0.06);
+    const stripMaterial = new THREE.MeshStandardMaterial({ color: 0x8c5fd8, roughness: 0.92, metalness: 0.02 });
+    const strip = new THREE.Mesh(stripGeometry, stripMaterial);
+    strip.castShadow = true;
+    strip.receiveShadow = true;
+    litmusRoot.add(strip);
+
+    const wetZone = new THREE.Mesh(
+      new THREE.BoxGeometry(0.48, 1.2, 0.064),
+      new THREE.MeshStandardMaterial({ color: 0x8c5fd8, roughness: 0.9, metalness: 0.02 })
+    );
+    wetZone.position.set(0, -0.84, 0.002);
+    wetZone.castShadow = true;
+    litmusRoot.add(wetZone);
+
+    const gripCap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.16, 0.18, 18),
+      new THREE.MeshStandardMaterial({ color: 0xf4f2ec, roughness: 0.88, metalness: 0.02 })
+    );
+    gripCap.position.y = 1.55;
+    litmusRoot.add(gripCap);
+
+    const litmusShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.44, 32),
+      new THREE.MeshBasicMaterial({ color: 0x90a0b2, transparent: true, opacity: 0.12 })
+    );
+    litmusShadow.rotation.x = -Math.PI / 2;
+    litmusShadow.position.set(-5.4, 1.35, 1.3);
+    scene.add(litmusShadow);
+
+    const litmus = {
+      group: litmusRoot,
+      strip,
+      wetZone,
+      gripCap,
+      anchors: {
+        gripAnchor: makeAnchor(litmusRoot, 0, 1.42, 0),
+        tipAnchor: makeAnchor(litmusRoot, 0, -1.45, 0),
+        sampleZone: makeAnchor(litmusRoot, 0, -0.92, 0),
+        labelAnchor: makeAnchor(litmusRoot, 0, 2.1, 0),
+      },
+      state: {
+        indicatorState: 'idle',
+        acidDone: false,
+        baseDone: false,
+      },
+      setIndicatorState(nextState) {
+        this.state.indicatorState = nextState;
+        if (nextState === 'acid-contact') {
+          this.wetZone.material.color.setHex(0xdc4f68);
+          this.strip.material.color.setHex(0x8c5fd8);
+        } else if (nextState === 'base-contact') {
+          this.wetZone.material.color.setHex(0x346fde);
+          this.strip.material.color.setHex(0x8c5fd8);
+        } else if (nextState === 'neutral-contact') {
+          this.wetZone.material.color.setHex(0x7b67b2);
+          this.strip.material.color.setHex(0x8c5fd8);
+        } else {
+          this.wetZone.material.color.setHex(0x8c5fd8);
+          this.strip.material.color.setHex(0x8c5fd8);
+        }
+      },
+    };
+
+    const state = {
+      phase: 'idle',
+      dragging: false,
+      hovered: false,
+      autoplay: false,
+      autoplayStep: 0,
+      autoplayT: 0,
+      completedSequence: false,
+      activeCup: null,
+    };
+
+    const litmusHome = {
+      position: litmus.group.position.clone(),
+      rotation: litmus.group.rotation.clone(),
+    };
+    const dragHome = litmusHome.position.clone();
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function worldDistanceXZ(a, b) {
+      const dx = a.x - b.x;
+      const dz = a.z - b.z;
+      return Math.hypot(dx, dz);
+    }
+
+    function updateCupGlow(cup, intensity) {
+      cup.glow.material.opacity = intensity;
+      cup.glow.scale.set(1 + intensity * 0.08, 1 + intensity * 0.04, 1 + intensity * 0.08);
+    }
+
+    function resetScene() {
+      state.phase = 'idle';
+      state.dragging = false;
+      state.autoplay = false;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      state.completedSequence = false;
+      state.activeCup = null;
+      litmus.state.acidDone = false;
+      litmus.state.baseDone = false;
+      litmus.group.position.copy(litmusHome.position);
+      litmus.group.rotation.copy(litmusHome.rotation);
+      litmusShadow.position.set(litmus.group.position.x, 1.35, litmus.group.position.z);
+      litmusShadow.scale.set(1, 1, 1);
+      litmus.setIndicatorState('idle');
+      cups.forEach((cup) => updateCupGlow(cup, 0));
+      setStatus(
+        'Sẵn sàng. Hãy kéo giấy quỳ tím vào cốc axit hoặc bazơ.',
+        'Golden path: nhúng đầu giấy vào cốc axit trước để thấy màu đỏ, rồi nhúng vào cốc bazơ để thấy màu xanh.'
+      );
+    }
+
+    function detectCupContact() {
+      const samplePoint = getAnchorWorld(litmus.anchors.sampleZone);
+      for (const cup of cups) {
+        const sampleZone = getAnchorWorld(cup.anchors.sampleZone);
+        const mouth = getAnchorWorld(cup.anchors.mouth);
+        const radialDistance = worldDistanceXZ(samplePoint, sampleZone);
+        const verticalClearance = mouth.y - samplePoint.y;
+        if (radialDistance <= cup.constraints.radius * 0.72 && verticalClearance >= -0.16 && verticalClearance <= 0.72) {
+          return cup;
+        }
+      }
+      return null;
+    }
+
+    function applyContact(cup) {
+      if (!cup) {
+        state.activeCup = null;
+        if (!litmus.state.acidDone && !litmus.state.baseDone) {
+          state.phase = 'idle';
+          litmus.setIndicatorState('idle');
+        }
+        cups.forEach((entry) => updateCupGlow(entry, 0));
+        return;
+      }
+
+      state.activeCup = cup.solutionType;
+      cups.forEach((entry) => updateCupGlow(entry, entry === cup ? 0.14 : 0));
+
+      if (cup.solutionType === 'acid') {
+        litmus.state.acidDone = true;
+        litmus.setIndicatorState('acid-contact');
+        state.phase = litmus.state.baseDone ? 'completed' : 'acid-contact';
+        setStatus(
+          'Giấy quỳ đã chuyển đỏ trong cốc axit.',
+          litmus.state.baseDone
+            ? 'Bạn đã hoàn tất chuỗi quan sát: axit làm quỳ tím hóa đỏ, bazơ làm quỳ tím hóa xanh.'
+            : 'Tiếp theo, hãy đưa giấy sang cốc bazơ để so sánh màu chuyển xanh.'
+        );
+      } else if (cup.solutionType === 'base') {
+        litmus.state.baseDone = true;
+        litmus.setIndicatorState('base-contact');
+        state.phase = litmus.state.acidDone ? 'completed' : 'base-contact';
+        setStatus(
+          litmus.state.acidDone
+            ? 'Giấy quỳ đã chuyển xanh trong cốc bazơ và chuỗi quan sát đã hoàn tất.'
+            : 'Giấy quỳ đã chuyển xanh trong cốc bazơ.',
+          litmus.state.acidDone
+            ? 'Kết luận: axit làm quỳ tím hóa đỏ, bazơ làm quỳ tím hóa xanh.'
+            : 'Bạn cũng có thể thử cốc axit để thấy màu đỏ xuất hiện ở phần giấy tiếp xúc.'
+        );
+      } else {
+        litmus.setIndicatorState('neutral-contact');
+        state.phase = litmus.state.acidDone || litmus.state.baseDone ? state.phase : 'neutral-contact';
+        setStatus(
+          'Cốc trung tính không làm giấy quỳ đổi sang đỏ hoặc xanh rõ rệt.',
+          'Giấy vẫn gần như tím. Hãy thử tiếp cốc axit và bazơ để so sánh.'
+        );
+      }
+
+      if (litmus.state.acidDone && litmus.state.baseDone) {
+        state.phase = 'completed';
+        state.completedSequence = true;
+      }
+    }
+
+    function screenPointForAnchor(anchor, offset = new THREE.Vector3()) {
+      return projectWorldToCanvas(anchor, camera, renderer, offset);
+    }
+
+    function screenPointForWorldPosition(position) {
+      const probe = new THREE.Object3D();
+      probe.position.copy(position);
+      scene.add(probe);
+      const point = projectWorldToCanvas(probe, camera, renderer);
+      scene.remove(probe);
+      return point;
+    }
+
+    const litmusLabel = createTextLabel('Giấy quỳ tím');
+
+    function updateLabels() {
+      for (const cup of cups) {
+        const screen = screenPointForAnchor(cup.anchors.labelAnchor);
+        cup.labelDiv.style.left = `${screen.x}px`;
+        cup.labelDiv.style.top = `${screen.y}px`;
+      }
+      const screen = screenPointForAnchor(litmus.anchors.labelAnchor, new THREE.Vector3(0, 0.04, 0));
+      litmusLabel.style.left = `${screen.x}px`;
+      litmusLabel.style.top = `${screen.y}px`;
+    }
+
+    function updatePointer(event) {
+      updatePointerFromEvent(event, renderer.domElement, pointer);
+      raycaster.setFromCamera(pointer, camera);
+    }
+
+    function tryPickLitmus(event) {
+      updatePointer(event);
+      const hits = raycaster.intersectObjects([litmus.strip, litmus.wetZone, litmus.gripCap], false);
+      return hits.length > 0;
+    }
+
+    function onPointerDown(event) {
+      if (!tryPickLitmus(event)) {
+        return;
+      }
+      state.dragging = true;
+      state.autoplay = false;
+      setControlsDragging(controls, true);
+      setPointerCaptureSafe(renderer.domElement, event.pointerId);
+      renderer.domElement.style.cursor = 'grabbing';
+      setStatus('Đang cầm giấy quỳ tím.', 'Di chuyển đầu giấy tới gần mặt dung dịch trong cốc để thử màu.');
+    }
+
+    function onPointerMove(event) {
+      updatePointer(event);
+      const hits = raycaster.intersectObjects([litmus.strip, litmus.wetZone, litmus.gripCap], false);
+      state.hovered = hits.length > 0;
+      if (!state.dragging) {
+        renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+        return;
+      }
+
+      if (intersectPointerPlane({ raycaster, pointer, camera, plane: dragPlane, out: dragPoint })) {
+        litmus.group.position.copy(dragPoint).clamp(
+          new THREE.Vector3(-5.8, 2.25, -1.95),
+          new THREE.Vector3(5.8, 4.85, 1.95)
+        );
+        litmus.group.rotation.set(0.1, 0, -0.08);
+        applyContact(detectCupContact());
+      }
+    }
+
+    function onPointerUp(event) {
+      releasePointerCaptureSafe(renderer.domElement, event.pointerId);
+      if (!state.dragging) {
+        return;
+      }
+      state.dragging = false;
+      setControlsDragging(controls, false);
+      renderer.domElement.style.cursor = state.hovered ? 'grab' : 'default';
+      if (!state.completedSequence) {
+        litmus.group.position.lerp(dragHome, 0.22);
+      }
+      applyContact(detectCupContact());
+    }
+
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+    renderer.domElement.addEventListener('mousedown', onPointerDown);
+    renderer.domElement.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mousemove', onPointerMove);
+    renderer.domElement.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('mouseup', onPointerUp);
+
+    function buildAutoplayTarget(cupType) {
+      const cup = cups.find((entry) => entry.solutionType === cupType);
+      if (!cup) {
+        return litmusHome.position.clone();
+      }
+      const target = cup.group.position.clone();
+      target.y = 3.9;
+      target.z = 0.2;
+      return target;
+    }
+
+    const autoplayTargets = {
+      acid: buildAutoplayTarget('acid'),
+      base: buildAutoplayTarget('base'),
+      home: litmusHome.position.clone(),
+    };
+
+    function runAutoplay(dt) {
+      if (!state.autoplay) {
+        return;
+      }
+      state.autoplayT += dt;
+      const duration = state.autoplayStep === 2 ? 1.45 : 1.2;
+      const eased = smoothstep01(Math.min(1, state.autoplayT / duration));
+      const acidCup = cups.find((entry) => entry.solutionType === 'acid');
+      const baseCup = cups.find((entry) => entry.solutionType === 'base');
+
+      if (state.autoplayStep === 0) {
+        litmus.group.position.lerpVectors(litmusHome.position, autoplayTargets.acid, eased);
+        litmus.group.rotation.set(0.1, 0, -0.08);
+        if (state.autoplayT >= 1.2) {
+          litmus.group.position.copy(autoplayTargets.acid);
+          applyContact(acidCup);
+          state.autoplayStep = 1;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 1) {
+        applyContact(acidCup);
+        if (state.autoplayT >= 0.8) {
+          state.autoplayStep = 2;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 2) {
+        litmus.group.position.lerpVectors(autoplayTargets.acid, autoplayTargets.base, eased);
+        litmus.group.rotation.set(0.1, 0, -0.08);
+        if (state.autoplayT >= 1.45) {
+          litmus.group.position.copy(autoplayTargets.base);
+          applyContact(baseCup);
+          state.autoplayStep = 3;
+          state.autoplayT = 0;
+        }
+      } else if (state.autoplayStep === 3) {
+        applyContact(baseCup);
+        if (state.autoplayT >= 0.9) {
+          state.autoplayStep = 4;
+          state.autoplayT = 0;
+        }
+      } else {
+        litmus.group.position.lerpVectors(autoplayTargets.base, autoplayTargets.home, eased);
+        litmus.group.rotation.set(0, 0, 0);
+        if (state.autoplayT >= 1.15) {
+          litmus.group.position.copy(autoplayTargets.home);
+          state.autoplay = false;
+          state.autoplayStep = 0;
+          state.autoplayT = 0;
+          state.phase = 'completed';
+          state.completedSequence = true;
+          setStatus(
+            'Autoplay đã hoàn tất: giấy quỳ đổi đỏ ở axit rồi đổi xanh ở bazơ.',
+            'Kết luận: axit làm quỳ tím hóa đỏ, bazơ làm quỳ tím hóa xanh. Bạn có thể kéo tay lại hoặc bấm đặt lại.'
+          );
+        }
+      }
+    }
+
+    function animate(nowMs) {
+      const time = nowMs / 1000;
+      const dt = animate.lastMs == null ? 0 : Math.min(0.05, (nowMs - animate.lastMs) / 1000);
+      animate.lastMs = nowMs;
+
+      controls.update();
+      runAutoplay(dt);
+
+      if (!state.dragging && !state.autoplay) {
+        litmus.group.position.lerp(dragHome, 1 - Math.exp(-dt * 4.2));
+        litmus.group.rotation.x += (0 - litmus.group.rotation.x) * (1 - Math.exp(-dt * 4.2));
+        litmus.group.rotation.z += (0 - litmus.group.rotation.z) * (1 - Math.exp(-dt * 4.2));
+      }
+
+      litmusShadow.position.x += (litmus.group.position.x - litmusShadow.position.x) * (1 - Math.exp(-dt * 8));
+      litmusShadow.position.z += (litmus.group.position.z - litmusShadow.position.z) * (1 - Math.exp(-dt * 8));
+      litmusShadow.scale.setScalar(1 + Math.max(0, (litmus.group.position.y - 2.3) * 0.08));
+      litmusShadow.material.opacity = 0.12 - Math.min(0.05, Math.max(0, (litmus.group.position.y - 2.5) * 0.02));
+
+      renderer.render(scene, camera);
+      updateLabels();
+      requestAnimationFrame(animate);
+    }
+
+    function getCupDragPath(cupType) {
+      const targetCup = cups.find((cup) => cup.solutionType === cupType);
+      if (!targetCup) {
+        return null;
+      }
+      const rootTarget = buildAutoplayTarget(cupType);
+      return {
+        type: 'drag',
+        from: screenPointForAnchor(litmus.anchors.gripAnchor),
+        to: screenPointForWorldPosition(rootTarget),
+        steps: 22,
+        afterMs: 900,
+      };
+    }
+
+    window.__debugLitmus = {
+      getPosition() {
+        return {
+          x: litmus.group.position.x,
+          y: litmus.group.position.y,
+          z: litmus.group.position.z,
+          dragging: state.dragging,
+          hovered: state.hovered,
+        };
+      },
+    };
+
+    window.__coursewareTestApi = {
+      getState() {
+        return {
+          phase: state.phase,
+          acidDone: litmus.state.acidDone,
+          baseDone: litmus.state.baseDone,
+          activeCup: state.activeCup,
+        };
+      },
+      getVerifierMeta() {
+        return {
+          supportsGoldenPath: true,
+          successPhase: 'completed',
+          failureStatusText: 'Thả chưa đúng vị trí',
+        };
+      },
+      getDragPath(sampleId = 'acid') {
+        return getCupDragPath(sampleId.toLowerCase());
+      },
+      getGoldenPath() {
+        return [
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['acid'], afterMs: 400 },
+          { type: 'wait', ms: 600, afterMs: 200 },
+          { type: 'pageApiCall', method: 'runVerifierStep', args: ['base'], afterMs: 400 },
+          { type: 'wait', ms: 800, afterMs: 200 },
+        ];
+      },
+      runVerifierStep(cupType) {
+        const target = String(cupType || '').toLowerCase();
+        const cup = cups.find((entry) => entry.solutionType === target);
+        if (!cup) {
+          return false;
+        }
+        litmus.group.position.copy(buildAutoplayTarget(target));
+        litmus.group.rotation.set(0.1, 0, -0.08);
+        applyContact(cup);
+        return true;
+      },
+    };
+
+    pourBtn.addEventListener('click', () => {
+      state.autoplay = true;
+      state.autoplayStep = 0;
+      state.autoplayT = 0;
+      setStatus('Đang chạy tự động theo thứ tự axit rồi bazơ.', 'Quan sát phần đầu giấy đổi đỏ ở cốc axit, sau đó đổi xanh ở cốc bazơ.');
+    });
+
+    resetBtn.addEventListener('click', resetScene);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    });
+
+    resetScene();
+    animate();
+  </script>
+</body>
+</html>

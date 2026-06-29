@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Diện tích bề mặt và tốc độ phản ứng</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --panel: rgba(12, 18, 32, 0.74);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #67d8ff;
+      --warm: #ffce6b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2a44 0%, #0b1220 48%, #05070d 100%);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .panel {
+      position: absolute;
+      left: 24px;
+      top: 24px;
+      max-width: 390px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h1 {
+      margin: 0 0 8px;
+      font-size: 19px;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .panel p {
+      margin: 0 0 8px;
+      color: rgba(255, 255, 255, 0.82);
+      line-height: 1.5;
+      font-size: 13.5px;
+    }
+
+    .panel .hint {
+      margin-top: 4px;
+      color: #ffd9a0;
+    }
+
+    .status {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      min-width: 340px;
+      max-width: 460px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(7, 10, 18, 0.74);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .status .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #84d8ff;
+      margin-bottom: 8px;
+    }
+
+    .status .value {
+      font-size: 15.5px;
+      line-height: 1.45;
+      color: #fff;
+    }
+
+    .status .sub {
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .metrics {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metrics .row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .metrics .row .value {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 12.5px;
+    }
+
+    .controls {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    button {
+      border: 0;
+      min-width: 100px;
+      height: 46px;
+      padding: 0 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      color: #08111c;
+      background: linear-gradient(135deg, #8ce3ff, #58c3ff);
+      box-shadow: 0 12px 30px rgba(72, 175, 255, 0.3);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    button.secondary {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: none;
+      min-width: 150px;
+    }
+
+    button.ghost {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: none;
+      min-width: 64px;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    @media (max-width: 1040px) {
+      .panel, .status {
+        max-width: calc(100vw - 28px);
+        left: 14px;
+        right: 14px;
+      }
+
+      .controls {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="panel">
+      <h1>Diện tích bề mặt và tốc độ phản ứng</h1>
+      <p>Nếu kích thước hạt càng nhỏ thì tổng diện tích bề mặt càng lớn, nên có thể tăng diện tích tiếp xúc bằng cách đập nhỏ hạt.</p>
+      <p>Ngoài ra, có thể tăng diện tích bề mặt của một khối chất bằng cách tạo nhiều đường rãnh, lỗ xốp trong lòng khối chất đó (tương tự như miếng bọt biển).</p>
+      <p class="hint">Bấm vào khối chất hoặc nhấn nút để đập nhỏ; bấm "Xem cấu trúc xốp" để xem diện tích bề mặt trong.</p>
+    </div>
+
+    <div class="status">
+      <div class="label">Trạng thái</div>
+      <div class="value" id="statusText">Khối chất nguyên — 1 mảnh.</div>
+      <div class="sub" id="statusSub">Bấm vào khối chất hoặc nhấn "Đập nhỏ hạt" để chia nhỏ.</div>
+      <div class="metrics">
+        <div class="row"><span>Số mảnh</span><span class="value" id="pieceValue">1</span></div>
+        <div class="row"><span>Diện tích bề mặt (tương đối)</span><span class="value" id="areaValue">x1</span></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="ghost" id="resetBtn" data-action="reset">Đặt lại</button>
+      <button class="secondary" id="spongeBtn">Xem cấu trúc xốp</button>
+      <button id="pourBtn" data-action="autoplay">Đập nhỏ hạt</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+
+    const statusText = document.getElementById('statusText');
+    const statusSub = document.getElementById('statusSub');
+    const pieceValue = document.getElementById('pieceValue');
+    const areaValue = document.getElementById('areaValue');
+    const pourBtn = document.getElementById('pourBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const spongeBtn = document.getElementById('spongeBtn');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a111c);
+    scene.fog = new THREE.Fog(0x0a111c, 14, 36);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(4.4, 3.6, 6.4);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 1.7, 0);
+    controls.minDistance = 5.5;
+    controls.maxDistance = 13;
+    controls.maxPolarAngle = 1.4;
+    controls.minPolarAngle = 0.3;
+
+    const ambient = new THREE.HemisphereLight(0xc7defc, 0x1a1208, 1.5);
+    scene.add(ambient);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    keyLight.position.set(5, 10, 6);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.set(2048, 2048);
+    keyLight.shadow.camera.left = -8;
+    keyLight.shadow.camera.right = 8;
+    keyLight.shadow.camera.top = 8;
+    keyLight.shadow.camera.bottom = -8;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.PointLight(0x6cb8ff, 12, 22, 2);
+    fillLight.position.set(-5, 4, 4);
+    scene.add(fillLight);
+
+    const room = new THREE.Mesh(
+      new THREE.SphereGeometry(26, 48, 32),
+      new THREE.MeshBasicMaterial({ color: 0x0d1727, side: THREE.BackSide })
+    );
+    scene.add(room);
+
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(14, 64),
+      new THREE.MeshStandardMaterial({ color: 0x16202f, roughness: 0.92, metalness: 0.05 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const stage = new THREE.Group();
+    stage.position.set(0, 1.7, 0);
+    scene.add(stage);
+
+    const CUBE_SIZE = 1.5;
+    const blockMaterial = new THREE.MeshStandardMaterial({ color: 0x9fb8d6, roughness: 0.35, metalness: 0.3 });
+
+    const piecesGroup = new THREE.Group();
+    stage.add(piecesGroup);
+
+    const pieceMeshes = [];
+
+    function explodeFactor(n) {
+      return 1 + (n - 1) * 0.22;
+    }
+
+    function buildPieces(n) {
+      for (const mesh of pieceMeshes) {
+        piecesGroup.remove(mesh);
+      }
+      pieceMeshes.length = 0;
+
+      const edge = CUBE_SIZE / n;
+      const geometry = new THREE.BoxGeometry(edge * 0.94, edge * 0.94, edge * 0.94);
+      const half = (CUBE_SIZE - edge) / 2;
+      const factor = explodeFactor(n);
+
+      for (let xi = 0; xi < n; xi++) {
+        for (let yi = 0; yi < n; yi++) {
+          for (let zi = 0; zi < n; zi++) {
+            const mesh = new THREE.Mesh(geometry, blockMaterial);
+            const px = (-half + xi * edge) * factor;
+            const py = (-half + yi * edge) * factor;
+            const pz = (-half + zi * edge) * factor;
+            mesh.position.set(px, py, pz);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            piecesGroup.add(mesh);
+            pieceMeshes.push(mesh);
+          }
+        }
+      }
+    }
+
+    // ---------- sponge (Menger-sponge level 1) ----------
+    const spongeGroup = new THREE.Group();
+    stage.add(spongeGroup);
+    spongeGroup.visible = false;
+
+    {
+      const n = 3;
+      const edge = CUBE_SIZE / n;
+      const geometry = new THREE.BoxGeometry(edge * 0.98, edge * 0.98, edge * 0.98);
+      const half = (CUBE_SIZE - edge) / 2;
+      for (let xi = 0; xi < n; xi++) {
+        for (let yi = 0; yi < n; yi++) {
+          for (let zi = 0; zi < n; zi++) {
+            const centerCount = [xi, yi, zi].filter((v) => v === 1).length;
+            if (centerCount >= 2) continue;
+            const mesh = new THREE.Mesh(geometry, blockMaterial);
+            mesh.position.set(-half + xi * edge, -half + yi * edge, -half + zi * edge);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            spongeGroup.add(mesh);
+          }
+        }
+      }
+    }
+
+    // ---------- reactant molecules ----------
+    const moleculeGroup = new THREE.Group();
+    stage.add(moleculeGroup);
+
+    const MAX_MOLECULES = 48;
+    const molecules = [];
+    for (let i = 0; i < MAX_MOLECULES; i++) {
+      const body = new THREE.Mesh(
+        new THREE.SphereGeometry(0.055, 14, 14),
+        new THREE.MeshStandardMaterial({ color: 0x5fbf6a, roughness: 0.4, emissive: 0x0c3a12, emissiveIntensity: 0.3 })
+      );
+      const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.022, 10, 10),
+        new THREE.MeshStandardMaterial({ color: 0xffd95c, emissive: 0x5a4400, emissiveIntensity: 0.5 })
+      );
+      core.position.set(0.03, 0.03, 0.03);
+      body.add(core);
+      body.visible = false;
+      moleculeGroup.add(body);
+      molecules.push({ mesh: body, angle: Math.random() * Math.PI * 2, polar: Math.random() * Math.PI, speed: 0.2 + Math.random() * 0.3, radiusJitter: Math.random() });
+    }
+
+    function updateMoleculeCount(count, baseRadius) {
+      for (let i = 0; i < molecules.length; i++) {
+        molecules[i].mesh.visible = i < count;
+        molecules[i].baseRadius = baseRadius;
+      }
+    }
+
+    const clock = new THREE.Clock();
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    let subdivisions = 1;
+    let spongeMode = false;
+    let pulseTime = 0;
+
+    function setStatus(main, sub) {
+      statusText.textContent = main;
+      statusSub.textContent = sub;
+    }
+
+    function refreshDisplay() {
+      const n = subdivisions;
+      piecesGroup.visible = !spongeMode;
+      spongeGroup.visible = spongeMode;
+
+      pieceValue.textContent = spongeMode ? '20 (khung xốp)' : `${n * n * n}`;
+      areaValue.textContent = spongeMode ? '> x1 (kể cả bề mặt trong)' : `x${n}`;
+
+      if (spongeMode) {
+        setStatus('Đang xem cấu trúc xốp (có lỗ và đường rãnh).', 'Diện tích bề mặt gồm cả bề mặt ngoài và bề mặt trong các lỗ/rãnh, dù khối chất không bị đập vụn.');
+        updateMoleculeCount(40, CUBE_SIZE * 0.62);
+      } else if (n === 1) {
+        setStatus('Khối chất nguyên — 1 mảnh.', 'Bấm vào khối chất hoặc nhấn "Đập nhỏ hạt" để chia nhỏ, làm tăng diện tích bề mặt tiếp xúc.');
+        updateMoleculeCount(8, CUBE_SIZE * explodeFactor(n) * 0.62);
+      } else {
+        setStatus(`Đã đập nhỏ thành lưới ${n}×${n}×${n} = ${n * n * n} mảnh.`, `Diện tích bề mặt tương đối tăng khoảng x${n} — nhiều hạt phản ứng tiếp xúc cùng lúc hơn, tốc độ phản ứng tăng.`);
+        updateMoleculeCount(Math.min(MAX_MOLECULES, 8 * n), CUBE_SIZE * explodeFactor(n) * 0.62);
+      }
+
+      pourBtn.textContent = spongeMode ? 'Đập nhỏ hạt' : 'Đập nhỏ hạt';
+      spongeBtn.textContent = spongeMode ? 'Xem khối đập nhỏ' : 'Xem cấu trúc xốp';
+    }
+
+    function breakFurther() {
+      if (spongeMode) {
+        spongeMode = false;
+      }
+      subdivisions = subdivisions >= 4 ? 1 : subdivisions + 1;
+      buildPieces(subdivisions);
+      pulseTime = 0.001;
+      refreshDisplay();
+    }
+
+    function toggleSponge() {
+      spongeMode = !spongeMode;
+      pulseTime = 0.001;
+      refreshDisplay();
+    }
+
+    function resetAll() {
+      subdivisions = 1;
+      spongeMode = false;
+      buildPieces(1);
+      refreshDisplay();
+    }
+
+    function pickBlock(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const targets = spongeMode ? spongeGroup.children : pieceMeshes;
+      return raycaster.intersectObjects(targets, false).length > 0;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+      if (pickBlock(event)) breakFurther();
+    });
+
+    pourBtn.addEventListener('click', breakFurther);
+    spongeBtn.addEventListener('click', toggleSponge);
+    resetBtn.addEventListener('click', resetAll);
+
+    function animate() {
+      const dt = Math.min(clock.getDelta(), 0.033);
+      const elapsed = clock.getElapsedTime();
+      pulseTime += dt;
+      controls.update();
+
+      const scalePulse = 1 + Math.max(0, 0.18 - pulseTime * 0.6);
+      piecesGroup.scale.setScalar(THREE.MathUtils.lerp(piecesGroup.scale.x, scalePulse, 0.25));
+      spongeGroup.scale.setScalar(THREE.MathUtils.lerp(spongeGroup.scale.x, scalePulse, 0.25));
+
+      for (const m of molecules) {
+        if (!m.mesh.visible) continue;
+        m.angle += dt * m.speed;
+        const r = (m.baseRadius || 1) * (0.92 + m.radiusJitter * 0.18);
+        m.mesh.position.set(
+          Math.sin(m.polar) * Math.cos(m.angle) * r,
+          Math.cos(m.polar) * r * 0.6,
+          Math.sin(m.polar) * Math.sin(m.angle) * r
+        );
+        m.mesh.rotation.y += dt * 0.6;
+      }
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    buildPieces(1);
+    refreshDisplay();
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "topic": "Đốt cháy khí metan (CH4) và quan sát ngọn lửa xanh",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "chem-lab-dark",
+  "recipe": "ch4-combustion-flame-test",
+  "reaction": "methane-combustion",
+  "effects": [
+    "bubble-field",
+    "steam-field",
+    "spark-field",
+    "glow-ring",
+    "flame-plume"
+  ],
+  "generatedBy": "recipe-scene-builder",
+  "created_at": "2026-06-28T09:52:49.607Z",
+  "verify_status": "pending"
+}

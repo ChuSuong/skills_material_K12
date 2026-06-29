@@ -1,0 +1,49 @@
+{
+  "id": "zinc-hcl-hydrogen-pop-test",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["solid-reagent-jar", "test-tube", "dropper", "alcohol-burner"],
+  "interaction": "free-drag-contact",
+  "reaction": "acid-metal-gas",
+  "effects": ["bubble-field", "spark-field", "glow-ring"],
+  "resultSustainEffects": ["glow-ring"],
+  "steps": [
+    {
+      "id": "add-zinc",
+      "type": "drag-drop-anchor",
+      "source": "solid-reagent-jar.gripAnchor",
+      "sourcePlacementAnchor": "solid-reagent-jar.dropAnchor",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.42,
+      "overlapPadding": 0.22,
+      "onComplete": "stage-metal"
+    },
+    {
+      "id": "add-hcl",
+      "type": "drag-pour-anchor",
+      "source": "dropper.tipAnchor",
+      "sourcePlacementAnchor": "dropper.tipAnchor",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.38,
+      "overlapPadding": 0.2,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "pop-test",
+      "type": "drag-heat-anchor",
+      "source": "alcohol-burner.flameOrigin",
+      "sourcePlacementAnchor": "alcohol-burner.flameOrigin",
+      "target": "test-tube.steamOrigin",
+      "targetRadius": 0.46,
+      "overlapPadding": 0.24,
+      "onComplete": "confirm-hydrogen"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "acid-metal-gas",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

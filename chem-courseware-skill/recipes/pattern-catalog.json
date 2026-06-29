@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "patterns": [
+    {
+      "id": "drag-drop-contact",
+      "description": "Learner drags a solid sample or tool into contact with a solution or target zone, then observes a visible reaction.",
+      "referenceCases": ["iron-cuso4-displacement"],
+      "intentKeywords": ["thả", "nhúng", "cho kim loại vào dung dịch", "drag-drop", "contact"],
+      "interaction": "free-drag-contact",
+      "requiredStepTypes": ["drag-drop-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["iron-nail", "beaker"],
+        "interaction": "free-drag-contact",
+        "reaction": "metal-displacement",
+        "effects": ["bubble-field", "color-transition", "material-progress"],
+        "resultSustainEffects": [],
+        "steps": [
+          {
+            "id": "place-sample",
+            "type": "drag-drop-anchor",
+            "source": "iron-nail.gripAnchor",
+            "sourcePlacementAnchor": "iron-nail.sampleZone",
+            "target": "beaker.effectOrigin",
+            "targetRadius": 0.78,
+            "overlapPadding": 0.28,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "metal-displacement",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "dip-indicator",
+      "description": "Learner dips an indicator strip or probe into a solution and observes an immediate color or state change.",
+      "referenceCases": ["litmus-paper-acid-base"],
+      "intentKeywords": ["giấy quỳ", "chỉ thị", "nhúng giấy", "indicator", "dip"],
+      "interaction": "free-drag-contact",
+      "requiredStepTypes": ["drag-drop-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "wide-compare",
+        "requiredApparatus": ["litmus-paper", "beaker"],
+        "interaction": "free-drag-contact",
+        "reaction": "acid-base-indicator",
+        "effects": ["glow-ring", "color-transition"],
+        "resultSustainEffects": ["glow-ring"],
+        "steps": [
+          {
+            "id": "dip-indicator",
+            "type": "drag-drop-anchor",
+            "source": "litmus-paper.gripAnchor",
+            "sourcePlacementAnchor": "litmus-paper.sampleZone",
+            "target": "beaker.effectOrigin",
+            "targetRadius": 0.62,
+            "overlapPadding": 0.24,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "acid-base-indicator",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "drag-pour-reaction",
+      "description": "Learner drags a reagent bottle/dropper to a vessel and pours or drips reagent into the target solution.",
+      "referenceCases": ["sugar-h2so4-dehydration", "litmus-paper-acid-base"],
+      "intentKeywords": ["rót", "nhỏ", "đổ dung dịch", "pour", "drip"],
+      "interaction": "free-drag-pour",
+      "requiredStepTypes": ["drag-pour-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["reagent-bottle", "beaker"],
+        "interaction": "free-drag-pour",
+        "reaction": "pour-into-vessel",
+        "effects": ["pour-stream", "bubble-field", "color-transition"],
+        "resultSustainEffects": [],
+        "steps": [
+          {
+            "id": "pour-reagent",
+            "type": "drag-pour-anchor",
+            "source": "reagent-bottle.nozzle",
+            "sourcePlacementAnchor": "reagent-bottle.pourAlign",
+            "target": "beaker.pourTarget",
+            "targetRadius": 0.72,
+            "overlapPadding": 0.3,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "pour-into-vessel",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "dehydration-carbonization",
+      "description": "Learner stages a solid in a vessel, pours concentrated acid, then observes carbonization, steam, bubbles, sparks, and residue growth.",
+      "referenceCases": ["sugar-h2so4-dehydration"],
+      "intentKeywords": ["đường", "h2so4 đặc", "mất nước", "hóa đen", "carbonization"],
+      "interaction": "free-drag-pour",
+      "requiredStepTypes": ["drag-drop-anchor", "drag-pour-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["beaker", "reagent-bottle", "solid-reagent-jar"],
+        "interaction": "free-drag-pour",
+        "reaction": "dehydration-carbonization",
+        "effects": ["pour-stream", "bubble-field", "steam-field", "spark-field", "glow-ring"],
+        "resultSustainEffects": ["steam-field", "glow-ring"],
+        "steps": [
+          {
+            "id": "add-solid",
+            "type": "drag-drop-anchor",
+            "source": "solid-reagent-jar.gripAnchor",
+            "sourcePlacementAnchor": "solid-reagent-jar.dropAnchor",
+            "target": "beaker.mouth",
+            "targetRadius": 0.7,
+            "overlapPadding": 0.3,
+            "onComplete": "stage-solid"
+          },
+          {
+            "id": "pour-acid",
+            "type": "drag-pour-anchor",
+            "source": "reagent-bottle.nozzle",
+            "sourcePlacementAnchor": "reagent-bottle.pourAlign",
+            "target": "beaker.pourTarget",
+            "targetRadius": 0.78,
+            "overlapPadding": 0.32,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "dehydration-carbonization",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "heat-sample",
+      "description": "Learner places a sample in a test tube or vessel, then drags it to a heat source before observing the reaction.",
+      "referenceCases": ["cu-h2so4-heating"],
+      "intentKeywords": ["đun nóng", "đèn cồn", "ống nghiệm", "heat", "burner"],
+      "interaction": "free-drag-heat",
+      "requiredStepTypes": ["drag-drop-anchor", "drag-heat-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["copper-piece", "test-tube", "alcohol-burner"],
+        "interaction": "free-drag-heat",
+        "reaction": "heated-sample-reaction",
+        "effects": ["bubble-field", "steam-field", "glow-ring", "color-transition"],
+        "resultSustainEffects": ["steam-field", "glow-ring"],
+        "steps": [
+          {
+            "id": "load-sample",
+            "type": "drag-drop-anchor",
+            "source": "copper-piece.interactionZone",
+            "sourcePlacementAnchor": "copper-piece.interactionZone",
+            "target": "test-tube.mouth",
+            "targetRadius": 0.42,
+            "overlapPadding": 0.2,
+            "onComplete": "stage-sample"
+          },
+          {
+            "id": "heat-vessel",
+            "type": "drag-heat-anchor",
+            "source": "test-tube.gripAnchor",
+            "sourcePlacementAnchor": "test-tube.heatZone",
+            "target": "alcohol-burner.heatZone",
+            "targetRadius": 0.72,
+            "overlapPadding": 0.28,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "heated-sample-reaction",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "gas-release-pop-test",
+      "description": "Learner combines a metal or carbonate with acid, observes gas bubbles, then tests the released gas.",
+      "referenceCases": ["zinc-hcl-hydrogen-pop-test"],
+      "intentKeywords": ["khí", "sủi bọt", "h2", "co2", "thử khí", "pop test"],
+      "interaction": "free-drag-contact",
+      "requiredStepTypes": ["drag-drop-anchor", "drag-pour-anchor", "drag-heat-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["solid-reagent-jar", "test-tube", "dropper", "alcohol-burner"],
+        "interaction": "free-drag-contact",
+        "reaction": "acid-metal-gas",
+        "effects": ["bubble-field", "spark-field", "glow-ring"],
+        "resultSustainEffects": ["glow-ring"],
+        "steps": [
+          {
+            "id": "add-solid",
+            "type": "drag-drop-anchor",
+            "source": "solid-reagent-jar.gripAnchor",
+            "sourcePlacementAnchor": "solid-reagent-jar.dropAnchor",
+            "target": "test-tube.mouth",
+            "targetRadius": 0.42,
+            "overlapPadding": 0.22,
+            "onComplete": "stage-solid"
+          },
+          {
+            "id": "add-acid",
+            "type": "drag-pour-anchor",
+            "source": "dropper.tipAnchor",
+            "sourcePlacementAnchor": "dropper.tipAnchor",
+            "target": "test-tube.mouth",
+            "targetRadius": 0.38,
+            "overlapPadding": 0.2,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "test-gas",
+            "type": "drag-heat-anchor",
+            "source": "alcohol-burner.flameOrigin",
+            "sourcePlacementAnchor": "alcohol-burner.flameOrigin",
+            "target": "test-tube.steamOrigin",
+            "targetRadius": 0.46,
+            "overlapPadding": 0.24,
+            "onComplete": "confirm-gas"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "acid-metal-gas",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    },
+    {
+      "id": "precipitation",
+      "description": "Learner pours one solution into another and observes cloudiness, precipitate formation, sediment, or color separation.",
+      "referenceCases": ["silver-nitrate-chloride-precipitation"],
+      "intentKeywords": ["kết tủa", "vẩn đục", "trầm tích", "precipitate"],
+      "interaction": "free-drag-pour",
+      "requiredStepTypes": ["drag-pour-anchor", "reaction-progress"],
+      "recipeSkeleton": {
+        "theme": "chem-lab-dark",
+        "cameraPreset": "lab-close",
+        "requiredApparatus": ["reagent-bottle", "beaker"],
+        "interaction": "free-drag-pour",
+        "reaction": "precipitation",
+        "effects": ["pour-stream", "bubble-field", "color-transition", "material-progress"],
+        "resultSustainEffects": [],
+        "steps": [
+          {
+            "id": "pour-reagent",
+            "type": "drag-pour-anchor",
+            "source": "reagent-bottle.nozzle",
+            "sourcePlacementAnchor": "reagent-bottle.pourAlign",
+            "target": "beaker.pourTarget",
+            "targetRadius": 0.72,
+            "overlapPadding": 0.3,
+            "onComplete": "start-reaction"
+          },
+          {
+            "id": "finish-reaction",
+            "type": "reaction-progress",
+            "reaction": "precipitation",
+            "successPhase": "result"
+          }
+        ],
+        "verifier": "run-reaction-golden-path"
+      }
+    }
+  ]
+}

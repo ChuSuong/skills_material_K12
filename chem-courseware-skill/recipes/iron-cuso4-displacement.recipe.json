@@ -1,0 +1,31 @@
+{
+  "id": "iron-cuso4-displacement",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["iron-nail", "beaker"],
+  "interaction": "free-drag-contact",
+  "reaction": "metal-displacement",
+  "effects": ["bubble-field", "color-transition", "material-progress"],
+  "resultSustainEffects": [],
+  "steps": [
+    {
+      "id": "place-iron",
+      "type": "drag-drop-anchor",
+      "source": "iron-nail.gripAnchor",
+      "sourcePlacementAnchor": "iron-nail.sampleZone",
+      "target": "beaker.effectOrigin",
+      "targetRadius": 0.78,
+      "overlapPadding": 0.28,
+      "placementOffset": [0.04, 0.08, 0.02],
+      "placementRotation": [0.04, 0, -1.36],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "metal-displacement",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

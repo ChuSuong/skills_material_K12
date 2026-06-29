@@ -48,10 +48,22 @@ The long-term goal is not to handcraft one fixed type of learning material, but 
 
 - `templates/`
   Base templates and lightweight references.
+- `docs/apparatus-standard.md`
+  Shared contract for anchor-based apparatus geometry, constraints, controllers, and validation in 3D experiment scenes.
+- `docs/semantic-draft-contract.md`
+  Planning contract for the active V1 compiler-first workflow.
+- `docs/generated-artifact-contract.md`
+  Output contract for `compileSemanticDraft() -> assembleCourseware()`.
+- `docs/legacy-generated-inventory.md`
+  Inventory of active fixtures vs legacy generated references so agents do not learn from stale outputs by accident.
 - `scripts/`
   Playwright-based verification utilities for local HTML outputs.
 - `generated/`
-  On-demand output workspace for generated outputs and verification artifacts. Create it when a run needs to save artifacts.
+  On-demand output workspace for generated outputs and verification artifacts. The active V1 contract is `generated/<kind>/<slug>/...`; older samples under `generated/` should be treated as legacy references unless explicitly promoted.
+- `generated/legacy/`
+  Quarantine area for older standalone HTML references that we keep for comparison but do not treat as the active pipeline output.
+- `examples/`
+  Stable manual fixtures used for regression checks when we need a known HTML artifact without first running the compiler/assembler pipeline.
 - `evals/`
   Eval prompts for orchestration behavior.
 
@@ -62,12 +74,12 @@ The long-term goal is not to handcraft one fixed type of learning material, but 
 3. Check whether a matching skill already exists locally.
 4. If yes, generate with that skill and reuse the `threejs-*` capability skills when needed.
 5. If not, research reusable skills first, then pull/adapt one if suitable; otherwise create a new local chemistry skill.
-6. Generate the first output, ideally as a self-contained HTML file.
+6. Generate a semantic draft first when possible, then compile and assemble into a direct-openable standalone HTML file.
 7. Create `generated/<kind>/<slug>/` on demand and save the output HTML plus `metadata.json`.
 8. Run Playwright verification for render, visible canvas, and interaction golden path.
 9. Save screenshots or other verification evidence alongside the generated output or under `generated/verify/` when the artifact is standalone evidence.
 10. Run reviewer agents for chemistry clarity and UI/UX polish.
-11. If the reviewers find issues, loop back and refine the skill and/or output.
+11. If the reviewers find issues, loop back and refine the draft/runtime/output rather than hand-copying more scene-local helpers.
 
 ## Important current gaps
 

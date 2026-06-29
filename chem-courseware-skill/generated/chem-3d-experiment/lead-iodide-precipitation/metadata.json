@@ -1,0 +1,10 @@
+{
+  "kind": "chem-3d-experiment",
+  "slug": "lead-iodide-precipitation",
+  "title": "Mô phỏng tạo kết tủa vàng PbI2",
+  "locale": "vi-VN",
+  "topic": "Phản ứng tạo kết tủa",
+  "reaction": "Pb(NO3)2(aq) + 2KI(aq) -> PbI2(s) + 2KNO3(aq)",
+  "summary": "Mô phỏng 3D self-contained cho thấy hai dung dịch trong suốt tạo ra kết tủa vàng PbI2 khi trộn trong beaker trung tâm.",
+  "verify_status": "passed"
+}

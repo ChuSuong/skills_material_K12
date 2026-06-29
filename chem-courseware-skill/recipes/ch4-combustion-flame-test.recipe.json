@@ -1,0 +1,43 @@
+{
+  "id": "ch4-combustion-flame-test",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["gas-generator", "gas-delivery-tube", "test-tube", "alcohol-burner"],
+  "interaction": "free-drag-flame-test",
+  "reaction": "methane-combustion",
+  "effects": ["bubble-field", "steam-field", "spark-field", "glow-ring", "flame-plume"],
+  "resultSustainEffects": ["steam-field", "spark-field", "glow-ring", "flame-plume"],
+  "steps": [
+    {
+      "id": "release-ch4",
+      "type": "drag-pour-anchor",
+      "source": "gas-delivery-tube.gripAnchor",
+      "sourcePlacementAnchor": "gas-delivery-tube.outletAnchor",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.46,
+      "overlapPadding": 0.38,
+      "placementOffset": [0, 0.1, 0],
+      "placementRotation": [0.08, 0, -0.12],
+      "onComplete": "stage-gas"
+    },
+    {
+      "id": "ignite-ch4",
+      "type": "drag-heat-anchor",
+      "source": "alcohol-burner.flameOrigin",
+      "sourcePlacementAnchor": "alcohol-burner.flameOrigin",
+      "target": "test-tube.steamOrigin",
+      "targetRadius": 0.56,
+      "overlapPadding": 0.24,
+      "placementOffset": [0.02, -0.1, 0],
+      "placementRotation": [0, 0, 0],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-combustion",
+      "type": "reaction-progress",
+      "reaction": "methane-combustion",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}
