@@ -1044,6 +1044,7 @@ requestAnimationFrame(animate);
 `;
 }
 
+
 const recipeSceneBuilders = new Map([
   ['iron-cuso4-displacement', {
     hudBuilder: buildExperimentHud,
@@ -1052,6 +1053,10 @@ const recipeSceneBuilders = new Map([
   ['ch4-combustion-flame-test', {
     hudBuilder: buildExperimentHud,
     sceneBuilder: buildCh4CombustionScene,
+  }],
+  ['moist-chlorine-bleaches-colored-paper', {
+    hudBuilder: buildExperimentHud,
+    sceneBuilder: buildMoistChlorineBleachingScene,
   }],
 ]);
 

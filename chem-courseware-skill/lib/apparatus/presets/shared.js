@@ -23,10 +23,11 @@ export function createDefaultGlassMaterial() {
   return new THREE.MeshPhysicalMaterial({
     color: 0xe8f7ff,
     transparent: true,
-    opacity: 0.28,
-    transmission: 0.92,
+    opacity: 0.22,
+    transmission: 0.94,
     roughness: 0.08,
-    thickness: 0.12,
+    thickness: 0.08,
+    depthWrite: false,
   });
 }
 
@@ -156,6 +157,9 @@ export function attachLabelController(apparatus, labelPlane, { defaultAccent = '
       labelPlane.material.map = texture;
       labelPlane.material.opacity = 1;
       labelPlane.material.needsUpdate = true;
+    },
+    setLabelVisible(visible = true) {
+      labelPlane.visible = Boolean(visible && labelPlane.material.map);
     },
   };
 }

@@ -33,6 +33,10 @@ test('effect modules expose reusable effect factories', async () => {
     'lib/effects/flame-plume.js',
     'lib/effects/color-transition.js',
     'lib/effects/material-progress.js',
+    'lib/effects/smoke-field.js',
+    'lib/effects/precipitate-cloud.js',
+    'lib/effects/gas-collection-bubbles.js',
+    'lib/effects/heat-shimmer.js',
   ];
 
   for (const filePath of files) {

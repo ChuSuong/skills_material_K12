@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:apparatus-viewer": "node scripts/build-apparatus-library-viewer.mjs",
+    "build:effect-viewer": "node scripts/build-effect-library-viewer.mjs",
     "verify:pw:smoke": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\"",
     "verify:pw:contract": "node scripts/pw-courseware-contract-smoke.mjs \"$COURSEWARE_HTML\"",
     "verify:pw:canvas": "node scripts/pw-assert-canvas-visible.mjs \"$COURSEWARE_HTML\"",

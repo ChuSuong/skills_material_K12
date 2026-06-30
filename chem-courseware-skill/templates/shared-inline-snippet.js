@@ -1881,9 +1881,14 @@ function createGlowRing({
   color = 0x73d7ff,
   opacity = 0.22,
   name = 'glow-ring',
+  maxOuterRadius = null,
 } = {}) {
+  const effectiveTube = Math.max(0.001, tube);
+  const effectiveRadius = Number.isFinite(maxOuterRadius)
+    ? Math.max(0.001, Math.min(radius, maxOuterRadius - effectiveTube))
+    : radius;
   const mesh = new THREE.Mesh(
-    new THREE.TorusGeometry(radius, tube, 12, 60),
+    new THREE.TorusGeometry(effectiveRadius, effectiveTube, 12, 60),
     new THREE.MeshBasicMaterial({
       color,
       transparent: true,
@@ -1906,7 +1911,7 @@ function createGlowRing({
     mesh.scale.setScalar(1);
   }
 
-  return { mesh, setIntensity, reset };
+  return { mesh, setIntensity, reset, radius: effectiveRadius, tube: effectiveTube, maxOuterRadius };
 }
 
 function createFlamePlume({
@@ -2026,6 +2031,279 @@ function createMaterialProgress({
   }
 
   return { setProgress, reset };
+}
+
+function createSmokeField({
+  parent,
+  count = 150,
+  color = 0x9aa0a6,
+  size = 1.15,
+  opacity = 0.34,
+  name = 'smoke-field',
+} = {}) {
+  const texture = createSoftCircleTexture({
+    inner: 'rgba(238,238,232,0.58)',
+    middle: 'rgba(128,134,142,0.34)',
+    outer: 'rgba(50,55,62,0)',
+  });
+  const pool = createParticlePool({ parent, count, texture, color, size, opacity, name });
+
+  function burst(origin, intensity = 1, dt = 1 / 60) {
+    const amount = Math.max(0, Math.round((2 + intensity * 9) * dt * 24));
+    for (let index = 0; index < amount; index += 1) {
+      pool.spawn({
+        origin,
+        spread: new THREE.Vector3(0.7, 0.12, 0.7),
+        velocity: new THREE.Vector3(0.14, 0.16 + intensity * 0.24, 0.14),
+        lifetime: [2.2, 4.6],
+      });
+    }
+  }
+
+  function update(dt = 1 / 60, elapsed = 0) {
+    pool.update(dt, (particle, t, index) => {
+      particle.origin.addScaledVector(particle.velocity, dt);
+      particle.origin.x += Math.sin(elapsed * 0.55 + index * 0.7) * dt * 0.1;
+      particle.origin.z += Math.cos(elapsed * 0.42 + index * 0.5) * dt * 0.1;
+      particle.velocity.y *= 0.992;
+      pool.scales[index] = 0.55 + t * 2.4;
+      pool.alphas[index] = (1 - t) * (0.58 + Math.sin(index) * 0.08);
+    });
+  }
+
+  return { ...pool, burst, update };
+}
+
+function createContainedGasField({
+  parent,
+  count = 96,
+  color = 0xdce870,
+  size = 0.16,
+  opacity = 0.28,
+  name = 'contained-gas-field',
+  radius = 0.28,
+  halfHeight = 0.46,
+  visualPadding = size * 0.7,
+  scaleFrom = 0.36,
+  scaleTo = 0.74,
+  emitRate = 22,
+  rise = 0.035,
+  texture = null,
+  textureOptions = {},
+} = {}) {
+  const gasTexture = texture || createSoftCircleTexture({
+    inner: 'rgba(245,248,184,0.34)',
+    middle: 'rgba(216,232,106,0.18)',
+    outer: 'rgba(216,232,106,0)',
+    ...textureOptions,
+  });
+  const pool = createParticlePool({ parent, count, texture: gasTexture, color, size, opacity, name });
+  const lastCenter = new THREE.Vector3();
+
+  function clampToVessel(particle, center) {
+    const safeRadius = Math.max(0.01, radius - visualPadding);
+    const safeHalfHeight = Math.max(0.01, halfHeight - visualPadding);
+    const dx = particle.origin.x - center.x;
+    const dz = particle.origin.z - center.z;
+    const radial = Math.hypot(dx, dz);
+    if (radial > safeRadius) {
+      const scale = safeRadius / Math.max(radial, 0.001);
+      particle.origin.x = center.x + dx * scale;
+      particle.origin.z = center.z + dz * scale;
+    }
+    particle.origin.y = Math.max(center.y - safeHalfHeight, Math.min(center.y + safeHalfHeight, particle.origin.y));
+  }
+
+  function emit(origin, intensity = 0.3, dt = 1 / 60) {
+    lastCenter.copy(origin);
+    const amount = Math.max(0, Math.round((1 + intensity * 6) * dt * emitRate));
+    for (let index = 0; index < amount; index += 1) {
+      const particle = pool.spawn({
+        origin,
+        spread: new THREE.Vector3(Math.max(0.01, radius - visualPadding) * 1.7, Math.max(0.01, halfHeight - visualPadding), Math.max(0.01, radius - visualPadding) * 1.7),
+        velocity: new THREE.Vector3(0.028, rise + intensity * 0.035, 0.028),
+        lifetime: [1.2, 2.6],
+      });
+      if (particle) {
+        clampToVessel(particle, lastCenter);
+      }
+    }
+  }
+
+  function update(dt = 1 / 60, elapsed = 0, center = lastCenter) {
+    lastCenter.copy(center);
+    pool.update(dt, (particle, t, index) => {
+      particle.origin.addScaledVector(particle.velocity, dt);
+      particle.origin.x += Math.sin(elapsed * 0.7 + index * 0.41) * dt * 0.035;
+      particle.origin.z += Math.cos(elapsed * 0.62 + index * 0.37) * dt * 0.035;
+      clampToVessel(particle, lastCenter);
+      particle.velocity.y *= 0.988;
+      pool.scales[index] = scaleFrom + t * (scaleTo - scaleFrom);
+      pool.alphas[index] = (1 - t) * 0.72;
+    });
+  }
+
+  return { ...pool, emit, update };
+}
+
+function createPrecipitateCloud({
+  parent,
+  count = 170,
+  color = 0xf0da78,
+  size = 0.16,
+  opacity = 0.72,
+  name = 'precipitate-cloud',
+} = {}) {
+  const texture = createSoftCircleTexture({
+    inner: 'rgba(255,246,190,0.92)',
+    middle: 'rgba(230,199,94,0.66)',
+    outer: 'rgba(230,199,94,0)',
+  });
+  const pool = createParticlePool({ parent, count, texture, color, size, opacity, name });
+
+  function burst(origin, intensity = 1, dt = 1 / 60) {
+    const amount = Math.max(0, Math.round((3 + intensity * 12) * dt * 24));
+    for (let index = 0; index < amount; index += 1) {
+      pool.spawn({
+        origin,
+        spread: new THREE.Vector3(0.72, 0.38, 0.72),
+        velocity: new THREE.Vector3(0.06, 0.05 + intensity * 0.04, 0.06),
+        lifetime: [2.4, 5.2],
+      });
+    }
+  }
+
+  function update(dt = 1 / 60, elapsed = 0) {
+    pool.update(dt, (particle, t, index) => {
+      particle.origin.addScaledVector(particle.velocity, dt);
+      particle.origin.x += Math.sin(elapsed * 1.2 + index) * dt * 0.035;
+      particle.origin.z += Math.cos(elapsed * 1.0 + index * 0.6) * dt * 0.035;
+      particle.velocity.y -= dt * 0.035;
+      pool.scales[index] = 0.55 + Math.sin(elapsed * 1.7 + index) * 0.12;
+      pool.alphas[index] = Math.max(0, 1 - t * 0.82);
+    });
+  }
+
+  return { ...pool, burst, update };
+}
+
+function createGasCollectionBubbles({
+  parent,
+  count = 130,
+  color = 0xdff8ff,
+  size = 0.2,
+  opacity = 0.78,
+  name = 'gas-collection-bubbles',
+} = {}) {
+  const texture = createSoftCircleTexture({
+    inner: 'rgba(255,255,255,0.96)',
+    middle: 'rgba(192,238,255,0.72)',
+    outer: 'rgba(116,202,255,0)',
+  });
+  const pool = createParticlePool({ parent, count, texture, color, size, opacity, name });
+  const source = new THREE.Vector3(-0.6, 1.5, 0);
+  const target = new THREE.Vector3(0.55, 2.05, 0);
+
+  function setEndpoints(from, to) {
+    if (typeof from?.getWorldPosition === 'function') {
+      from.getWorldPosition(source);
+    } else if (from?.isVector3) {
+      source.copy(from);
+    }
+    if (typeof to?.getWorldPosition === 'function') {
+      to.getWorldPosition(target);
+    } else if (to?.isVector3) {
+      target.copy(to);
+    }
+  }
+
+  function burst(origin = source, intensity = 1, dt = 1 / 60) {
+    const direction = target.clone().sub(source).normalize();
+    const amount = Math.max(0, Math.round((2 + intensity * 10) * dt * 26));
+    for (let index = 0; index < amount; index += 1) {
+      const particle = pool.spawn({
+        origin,
+        spread: new THREE.Vector3(0.14, 0.1, 0.14),
+        velocity: new THREE.Vector3(0.02, 0.02, 0.02),
+        lifetime: [0.9, 1.8],
+      });
+      if (particle) {
+        particle.velocity.copy(direction).multiplyScalar(0.42 + intensity * 0.55);
+        particle.velocity.y += 0.1 + intensity * 0.14;
+      }
+    }
+  }
+
+  function update(dt = 1 / 60, elapsed = 0) {
+    pool.update(dt, (particle, t, index) => {
+      particle.origin.addScaledVector(particle.velocity, dt);
+      particle.origin.x += Math.sin(elapsed * 2.2 + index) * dt * 0.05;
+      particle.origin.z += Math.cos(elapsed * 2 + index * 0.4) * dt * 0.05;
+      particle.velocity.y += dt * 0.05;
+      pool.scales[index] = (1 - t) * (0.6 + t * 0.7);
+      pool.alphas[index] = 1 - t;
+    });
+  }
+
+  return { ...pool, source, target, setEndpoints, burst, update };
+}
+
+function createHeatShimmer({
+  parent,
+  radius = 0.42,
+  height = 0.85,
+  color = 0xffd18a,
+  opacity = 0.2,
+  name = 'heat-shimmer',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  group.visible = false;
+  parent?.add(group);
+
+  const material = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending,
+  });
+
+  const ribbons = [];
+  for (let index = 0; index < 4; index += 1) {
+    const ribbon = new THREE.Mesh(new THREE.PlaneGeometry(radius * 0.42, height, 8, 1), material.clone());
+    ribbon.position.y = height * 0.5;
+    ribbon.rotation.y = (Math.PI / 4) * index;
+    ribbon.userData.phase = index * 1.7;
+    group.add(ribbon);
+    ribbons.push(ribbon);
+  }
+
+  function setIntensity(intensity = 0, elapsed = 0) {
+    const value = Math.max(0, Math.min(1, intensity));
+    group.visible = value > 0.01;
+    for (const ribbon of ribbons) {
+      const wave = Math.sin(elapsed * 4.2 + ribbon.userData.phase);
+      ribbon.scale.set(1 + wave * 0.18, 1 + value * 0.22, 1);
+      ribbon.position.x = Math.sin(elapsed * 2.5 + ribbon.userData.phase) * radius * 0.08;
+      ribbon.material.opacity = opacity * value * (0.72 + wave * 0.16);
+    }
+  }
+
+  function positionAt(target) {
+    if (typeof target?.getWorldPosition === 'function') {
+      target.getWorldPosition(group.position);
+    } else if (target?.isVector3) {
+      group.position.copy(target);
+    }
+  }
+
+  function reset() {
+    setIntensity(0, 0);
+  }
+
+  return { group, ribbons, setIntensity, positionAt, reset };
 }
 
 function createReactionFlow({
@@ -2453,6 +2731,55 @@ function createMethaneCombustionReaction({
   });
 }
 
+function getElectrolysisWorldPosition(target, out = new THREE.Vector3()) {
+  if (typeof target?.getWorldPosition === 'function') {
+    return target.getWorldPosition(out);
+  }
+  if (target?.isVector3) {
+    return out.copy(target);
+  }
+  return out.set(0, 0, 0);
+}
+
+function createWaterElectrolysisReaction({
+  electrodePair,
+  cathodeBubbleField,
+  anodeBubbleField,
+  duration = 6.2,
+} = {}) {
+  const cathodeOrigin = new THREE.Vector3();
+  const anodeOrigin = new THREE.Vector3();
+
+  function updateElectrolysisEffects({ progress = 1, dt = 1 / 60, elapsed = 0, sustained = false } = {}) {
+    const intensity = sustained ? 0.58 : Math.max(0.12, progress);
+    getElectrolysisWorldPosition(electrodePair?.anchors?.cathodeBubbleOrigin || electrodePair?.group, cathodeOrigin);
+    getElectrolysisWorldPosition(electrodePair?.anchors?.anodeBubbleOrigin || electrodePair?.group, anodeOrigin);
+
+    cathodeBubbleField?.burst?.(cathodeOrigin, intensity * 1.25, dt);
+    cathodeBubbleField?.update?.(dt, elapsed);
+    anodeBubbleField?.burst?.(anodeOrigin, intensity * 0.68, dt);
+    anodeBubbleField?.update?.(dt, elapsed);
+  }
+
+  return createReactionFlow({
+    id: 'water-electrolysis',
+    duration,
+    effects: [cathodeBubbleField, anodeBubbleField].filter(Boolean),
+    onStart() {
+      electrodePair?.controllers?.setPowered?.(true);
+    },
+    onUpdate({ state, dt, elapsed }) {
+      updateElectrolysisEffects({ progress: state.progress, dt, elapsed });
+    },
+    onAfterFinishUpdate({ dt, elapsed }) {
+      updateElectrolysisEffects({ progress: 1, dt, elapsed, sustained: true });
+    },
+    onReset() {
+      electrodePair?.controllers?.setPowered?.(false);
+    },
+  });
+}
+
 function getCanvasBox(renderer) {
   return renderer.domElement.getBoundingClientRect();
 }
@@ -2573,6 +2900,11 @@ const ChemSharedLib = {
   createFlamePlume,
   createColorTransition,
   createMaterialProgress,
+  createSmokeField,
+  createContainedGasField,
+  createPrecipitateCloud,
+  createGasCollectionBubbles,
+  createHeatShimmer,
   createReactionFlow,
   createPourIntoVesselReaction,
   createAcidBaseIndicatorReaction,
@@ -2580,6 +2912,7 @@ const ChemSharedLib = {
   createDehydrationCarbonizationReaction,
   createAcidMetalGasReaction,
   createMethaneCombustionReaction,
+  createWaterElectrolysisReaction,
   getCanvasBox,
   canvasPoint,
   projectWorldToCanvas,
