@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build:classic-apparatus-inline": "node scripts/build-classic-apparatus-inline-bundle.mjs",
     "build:apparatus-viewer": "node scripts/build-apparatus-library-viewer.mjs",
     "build:effect-viewer": "node scripts/build-effect-library-viewer.mjs",
     "verify:pw:smoke": "node scripts/pw-smoke-open-html.mjs \"$COURSEWARE_HTML\"",

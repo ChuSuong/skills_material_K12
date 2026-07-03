@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { ACTIVE_CLASSIC_PRESET_KEYS } from './classic-kit-active-config.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
@@ -71,9 +73,15 @@ scene.add(worldAxes);
 const anchorDebugRoot = new THREE.Group();
 scene.add(anchorDebugRoot);
 
-const presetDefinitions = listRegisteredApparatusPresets()
-  .slice()
-  .sort((a, b) => a.key.localeCompare(b.key));
+const activePresetOrder = ${JSON.stringify(ACTIVE_CLASSIC_PRESET_KEYS)};
+
+const presetDefinitionMap = new Map(
+  listRegisteredApparatusPresets().map((definition) => [definition.key, definition]),
+);
+
+const presetDefinitions = activePresetOrder
+  .map((key) => presetDefinitionMap.get(key))
+  .filter(Boolean);
 
 for (const definition of presetDefinitions) {
   const option = document.createElement('option');
@@ -90,24 +98,14 @@ const state = {
 };
 
 const appearanceByPreset = {
-  beaker: blueSolution(),
-  bottle: diluteAcid(),
-  'reagent-bottle': diluteAcid(),
-  erlenmeyer: clearWater(),
-  'test-tube': clearWater(),
-  'evaporating-dish': clearWater(),
-  'round-bottom-flask': clearWater(),
+  'classic-test-tube': clearWater(),
+  'classic-reagent-bottle': diluteAcid(),
+  'classic-solid-reagent-jar': clearWater(),
 };
 
 const debugScaleByPreset = {
-  'gas-delivery-tube': 2.4,
-  'litmus-paper': 2.2,
-  'filter-paper': 1.45,
-  'watch-glass': 1.35,
-  'glass-stirring-rod': 1.7,
-  spatula: 1.55,
-  dropper: 1.7,
-  'copper-piece': 1.8,
+  'classic-copper-piece': 1.8,
+  'zinc-granules': 1.3,
 };
 const benchSurfaceY = 1.34;
 
@@ -346,10 +344,6 @@ function applyDebugState(apparatus, definition) {
   if (typeof apparatus?.controllers?.setLoadedAmount === 'function') {
     apparatus.controllers.setLoadedAmount(0.72);
   }
-  if (typeof apparatus?.controllers?.setOccupiedSlot === 'function') {
-    apparatus.controllers.setOccupiedSlot(1, true);
-    apparatus.controllers.setOccupiedSlot(4, true);
-  }
   if (typeof apparatus?.controllers?.setStirPose === 'function') {
     apparatus.controllers.setStirPose(0.28);
   }
@@ -371,18 +365,22 @@ function createOptionsForPreset(definition) {
   if (appearanceByPreset[definition.key]) {
     options.appearance = appearanceByPreset[definition.key];
   }
-  if (definition.key === 'beaker') {
-    options.visualProfile = 'clear-inspection';
-    options.halo = 'soft';
-  }
-  if (definition.key === 'test-tube') {
+  if (definition.key === 'classic-test-tube') {
     options.fillRatio = 0.34;
   }
-  if (definition.key === 'reagent-bottle') {
+  if (definition.key === 'classic-reagent-bottle') {
     options.fillRatio = 0.68;
   }
-  if (definition.key === 'round-bottom-flask') {
-    options.fillRatio = 0.52;
+  if (definition.key === 'classic-copper-piece') {
+    options.rotation = [0, 0.18, 0.26];
+    options.width = 0.2;
+    options.length = 0.92;
+    options.thickness = 0.026;
+  }
+  if (definition.key === 'zinc-granules') {
+    options.radius = 0.07;
+    options.spread = 0.14;
+    options.count = 12;
   }
   return options;
 }
@@ -672,8 +670,8 @@ function buildHtml({ sharedInlineSnippet, apparatusInlineSnippet, sceneInlineCod
         <div class="panel-body">
           <div>
             <div class="eyebrow">Debug Viewer</div>
-            <h1>Apparatus Library</h1>
-            <p>Chọn một preset trong registry để kiểm tra mesh, label, anchor và metadata ngay trên bench runtime.</p>
+            <h1>Classic Asset Viewer</h1>
+            <p>Chỉ hiển thị active apparatus của classic-kit đang thực sự dùng trong pipeline experiment hiện tại.</p>
           </div>
           <div>
             <label for="presetSelect">Preset</label>

@@ -1,0 +1,14 @@
+{
+  "topic": "Phản ứng thế của một số muối halide",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "showcase-bench",
+  "recipe": "halogen-halide-displacement-compare",
+  "reaction": "halogen-halide-displacement",
+  "effects": [
+    "pour-stream",
+    "color-transition"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

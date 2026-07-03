@@ -30,11 +30,11 @@ These are useful as visual or interaction references, but they are not the sourc
   Standalone reference artifact used in past verification loops.
 - `generated/legacy/vsepr-geometry.html`
   Older standalone visualization reference.
-- `generated/experiment/litmus-paper-acid-base/index.html`
-- `generated/experiment/pressure-effect-gas-rate-3d/index.html`
-- `generated/experiment/reaction-rate-concentration-thiosulfate/index.html`
-- `generated/experiment/reaction-rate-specimens/index.html`
-- `generated/experiment/surface-area-contact-3d/index.html`
+- `generated/legacy/experiment/litmus-paper-acid-base/index.html`
+- `generated/legacy/experiment/pressure-effect-gas-rate-3d/index.html`
+- `generated/legacy/experiment/reaction-rate-concentration-thiosulfate/index.html`
+- `generated/legacy/experiment/reaction-rate-specimens/index.html`
+- `generated/legacy/experiment/surface-area-contact-3d/index.html`
 - `generated/visualization/molecular-geometry-ch4-nh3-h2o/index.html`
 
 ## Delete or archive candidates
@@ -54,3 +54,32 @@ Do not delete blindly. A file becomes a delete/archive candidate only when all o
 - Prefer `generated/<kind>/<slug>/` only for outputs created by the active assembler contract.
 - Prefer `generated/legacy/` for quarantined standalone references.
 - Treat older `generated/<kind>/<slug>/index.html` files as legacy references until they are explicitly rebuilt through the active pipeline.
+- Treat nested trees like `generated/experiment/experiment/<slug>/...` as stale artifacts, not canonical outputs.
+
+## Quarantined 2026-07 (classic-kit migration)
+
+Moved out of active lanes because they do not follow the classic-kit + `showcase-bench` visual contract described in `docs/classic-kit-migration-handoff.md`. They are preserved for reference and may be re-migrated in a separate handoff.
+
+Generated outputs moved to `generated/legacy/experiment/`:
+
+- `ch4-combustion-recipe-builder/`
+- `methane-blue-flame-natural-gas/`
+- `iron-cuso4-recipe-builder/`
+- `litmus-paper-acid-base/`
+- `pressure-effect-gas-rate-3d/`
+- `reaction-rate-concentration-thiosulfate/`
+- `reaction-rate-specimens/`
+- `surface-area-contact-3d/`
+
+Semantic drafts moved to `examples/drafts/legacy/experiment/`:
+
+- `ch4-combustion-flame-test/`
+- `ch4-combustion-recipe-builder/`
+- `methane-blue-flame-natural-gas/`
+- `iron-cuso4-recipe-builder/`
+
+Apparatus presets moved to `lib/legacy/apparatus/presets/`:
+
+- 25 non-classic factories (`beaker`, `bottle`, `dropper`, `erlenmeyer`, `test-tube`, `test-tube-rack`, `alcohol-burner`, `solid-reagent-jar`, `litmus-paper`, `funnel`, `iron-nail`, `copper-piece`, `gas-generator`, `gas-delivery-tube`, `glass-stirring-rod`, `spatula`, `tripod-gauze`, `evaporating-dish`, `round-bottom-flask`, `watch-glass`, `filter-paper`, `gas-jar`, `retort-stand-clamp`, `electrode-pair`, `dc-power-supply`).
+- `lib/apparatus/presets/` now contains only classic-kit assets (`classic-*`, `zinc-granules`, `classic-showcase`, `shared`).
+- `lib/apparatus/presets.js` aggregator is retained (still consumed by `scripts/build-apparatus-inline-bundle.mjs` and `tests/apparatus-public-surface.test.mjs`) but its 25 legacy imports now target `lib/legacy/apparatus/presets/`.

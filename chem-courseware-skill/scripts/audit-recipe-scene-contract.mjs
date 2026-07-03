@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { validateRecipeDefinition } from '../lib/contracts/recipe.js';
+import { isActiveClassicRecipeId } from './classic-kit-active-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,6 +98,64 @@ export async function auditRecipeSceneContract({ draft, sceneSource, recipe = nu
     for (const step of resolvedRecipe.steps || []) {
       if (step?.id && !sceneSource.includes(step.id)) {
         errors.push(`generated recipe scene is missing recipe step id: ${step.id}`);
+      }
+    }
+    if (isActiveClassicRecipeId(resolvedRecipe.id)) {
+      if (!/from '\.\.\/\.\.\/lib\/classic-kit\/apparatus\.js';/.test(sceneSource)) {
+        errors.push(`${resolvedRecipe.id} scene must import apparatus from lib/classic-kit/apparatus.js`);
+      }
+      if (/from '\.\.\/\.\.\/lib\/apparatus\/index\.js'/.test(sceneSource) || /from '\.\.\/\.\.\/lib\/apparatus\/presets\.js'/.test(sceneSource)) {
+        errors.push(`${resolvedRecipe.id} scene must not import from legacy lib/apparatus surface`);
+      }
+      if (
+        /\bcreateTestTubeApparatus\b/.test(sceneSource)
+        || /\bcreateReagentBottleApparatus\b/.test(sceneSource)
+        || /\bcreateSolidReagentJarApparatus\b/.test(sceneSource)
+        || /\bcreateBeakerApparatus\b/.test(sceneSource)
+        || /\bcreateErlenmeyerApparatus\b/.test(sceneSource)
+        || /\bcreateDropperApparatus\b/.test(sceneSource)
+        || /\bcreateGasJarApparatus\b/.test(sceneSource)
+        || /\bcreateFunnelApparatus\b/.test(sceneSource)
+        || /\bcreateLitmusPaperApparatus\b/.test(sceneSource)
+        || /\bcreateBottleApparatus\b/.test(sceneSource)
+        || /\bcreateCopperPieceApparatus\b/.test(sceneSource)
+      ) {
+        errors.push(`${resolvedRecipe.id} scene must not use legacy apparatus factories`);
+      }
+      if (/controllers\.setLabel\s*\(\{/.test(sceneSource) || /createContextualLabelPolicy\s*\(\{/.test(sceneSource)) {
+        errors.push(`${resolvedRecipe.id} scene must keep learner labels out of the 3D scene`);
+      }
+    }
+    if (resolvedRecipe.id === 'zinc-copper-hcl-compare') {
+      if (!/cameraPreset:\s*"?(rack-2tube-front|classic-lab-wide)"?/.test(sceneSource)) {
+        errors.push('zinc-copper comparison scene must use the classic close comparison camera');
+      }
+      if (!/createClassicTestTubeApparatus/.test(sceneSource)) {
+        errors.push('zinc-copper comparison scene must use classic showcase test-tube apparatus');
+      }
+    }
+    if (resolvedRecipe.id === 'hcl-nahco3-gas-release') {
+      if (!/cameraPreset:\s*"?(showcase-close|single-vessel-angle)"?/.test(sceneSource)) {
+        errors.push('hcl-nahco3 scene must use a close classic single-vessel camera');
+      }
+      if (!/createClassicTestTubeApparatus/.test(sceneSource) || !/createClassicSolidReagentJarApparatus/.test(sceneSource) || !/createClassicReagentBottleApparatus/.test(sceneSource)) {
+        errors.push('hcl-nahco3 scene must use classic showcase tube, jar, and bottle apparatus');
+      }
+    }
+    if (resolvedRecipe.id === 'halogen-halide-displacement-compare') {
+      if (!/cameraPreset:\s*"?(rack-3tube-front|classic-lab-wide)"?/.test(sceneSource)) {
+        errors.push('halogen-halide comparison scene must use the classic three-tube comparison camera');
+      }
+      if (!/createClassicTestTubeApparatus/.test(sceneSource) || !/createClassicReagentBottleApparatus/.test(sceneSource)) {
+        errors.push('halogen-halide comparison scene must use classic showcase tubes and bottles');
+      }
+    }
+    if (resolvedRecipe.id === 'moist-chlorine-bleaches-colored-paper') {
+      if (!/cameraPreset:\s*"?(flask-showcase-close|showcase-close)"?/.test(sceneSource)) {
+        errors.push('moist-chlorine scene must use the classic flask-showcase close camera');
+      }
+      if (!/createClassicErlenmeyerApparatus/.test(sceneSource) || !/createClassicMoistPaperApparatus/.test(sceneSource)) {
+        errors.push('moist-chlorine scene must use classic showcase erlenmeyer and moist paper apparatus');
       }
     }
   }

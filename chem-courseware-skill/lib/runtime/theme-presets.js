@@ -218,10 +218,164 @@ export const themePresets = {
       },
     },
   },
+  'showcase-bench': {
+    scene: {
+      background: 0x0a111c,
+      fog: { color: 0x0a111c, near: 16, far: 40 },
+      rendererExposure: 1.1,
+      toneMapping: THREE.ACESFilmicToneMapping,
+      ambientLight: { skyColor: 0xc7defc, groundColor: 0x1a1208, intensity: 1.5 },
+      keyLight: { color: 0xffffff, intensity: 2.6, position: [6, 12, 7] },
+      rimLight: { color: 0x6cb8ff, intensity: 14, distance: 26, decay: 2, position: [-6, 5, 5] },
+      warmLight: { color: 0xf2be78, intensity: 5.2, distance: 18, decay: 2, position: [4.5, 4.3, 3.8] },
+      bench: 0x5d4634,
+      benchLeg: 0x2d3647,
+      floor: 0x16202f,
+      room: 0x0d1727,
+      benchTopSize: [11.5, 0.4, 5],
+      benchTopY: 1.2,
+      benchLegSize: [0.4, 2.4, 0.4],
+      benchLegOffsets: [[-5, -2], [5, -2], [-5, 2], [5, 2]],
+      floorRadius: 18,
+      roomRadius: 30,
+      stagePad: {
+        visible: true,
+        width: 9.8,
+        depth: 2.2,
+        height: 0.08,
+        y: 1.42,
+        color: 0x101926,
+      },
+    },
+    ui: {
+      panel: 'rgba(12, 17, 28, 0.78)',
+      panelSoft: 'rgba(12, 17, 28, 0.6)',
+      border: 'rgba(255,255,255,0.12)',
+      text: '#f6f8fb',
+      muted: '#d1d8e2',
+      accent: '#8fd0ff',
+      warm: '#ffce6b',
+      buttonPrimary: 'linear-gradient(135deg, #8fd0ff, #4ca9e8)',
+      buttonSecondary: 'rgba(255,255,255,0.08)',
+    },
+    materials: {
+      ...baseMaterials,
+      glass: {
+        ...baseMaterials.glass,
+        color: 0xffffff,
+        opacity: 0.16,
+        roughness: 0.08,
+        transmission: 0.9,
+      },
+    },
+    chemistry: {
+      ...baseChemistry,
+      diluteAcid: {
+        color: 0xe6f8ff,
+        surfaceColor: 0xf5fcff,
+        opacity: 0.82,
+        materialType: 'standard',
+        depthTest: false,
+        depthWrite: false,
+      },
+    },
+    apparatusVariants: {
+      ...baseApparatusVariants,
+      bottle: {
+        ...baseApparatusVariants.bottle,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+            capColor: 0x2d3647,
+          },
+          liquid: {
+            opacity: 0.78,
+            transmission: 0.28,
+          },
+        },
+      },
+      jar: {
+        ...baseApparatusVariants.jar,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+            bandColor: 0xc6a77a,
+          },
+        },
+      },
+      tube: {
+        ...baseApparatusVariants.tube,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+          },
+          liquid: {
+            materialType: 'standard',
+            opacity: 0.48,
+            depthTest: false,
+            depthWrite: false,
+          },
+        },
+      },
+      flask: {
+        showcase: {
+          materials: {
+            glass: {
+              color: 0xffffff,
+              transparent: true,
+              opacity: 0.16,
+              transmission: 0.9,
+              roughness: 0.08,
+              thickness: 0.08,
+              ior: 1.38,
+              clearcoat: 0.28,
+              clearcoatRoughness: 0.24,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            },
+            glassRim: {
+              color: 0xe9f2f8,
+              roughness: 0.22,
+              metalness: 0.03,
+            },
+          },
+        },
+      },
+      tool: {
+        showcase: {
+          materials: {
+            strip: {
+              color: 0xf26b28,
+              roughness: 0.88,
+              metalness: 0,
+            },
+            contact: {
+              color: 0xe58b52,
+              roughness: 0.72,
+              metalness: 0,
+              transparent: true,
+              opacity: 0.88,
+            },
+            wire: {
+              color: 0x8d96a2,
+              roughness: 0.34,
+              metalness: 0.74,
+            },
+            stopper: {
+              color: 0xd0c5a0,
+              roughness: 0.82,
+              metalness: 0.04,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 themePresets['dark-lab'] = themePresets['chem-lab-dark'];
 themePresets['chem-lab-v1'] = themePresets['chem-lab-dark'];
+themePresets['classic-showcase-lab'] = themePresets['showcase-bench'];
 
 function cloneArray(value) {
   return Array.isArray(value) ? value.map(cloneValue) : value;

@@ -32,7 +32,8 @@ Build as a **single direct-openable self-contained 3D HTML experience**.
 ## Apparatus library hard gate
 For apparatus-driven scenes, the shared apparatus library is the source of truth.
 - Before writing scene code, list every learner-facing apparatus or specimen in `semantic-draft.json` under `scene.apparatus`.
-- Every listed apparatus must exist in `APPARATUS_PRESET_DEFINITIONS`. If a common object is missing, add a reusable preset under `lib/apparatus/presets/*.js`, expose it through `lib/apparatus/presets.js`, rebuild `templates/apparatus-inline-snippet.js`, and add/update apparatus tests before generating the scene.
+- For active experiment recipes, treat `lib/classic-kit/apparatus.js` plus `scripts/classic-kit-active-config.mjs` as the canonical surface. Add new active apparatus there, rebuild `templates/classic-apparatus-inline-snippet.js` via `rtk node scripts/build-classic-apparatus-inline-bundle.mjs`, and add/update apparatus tests before generating the scene.
+- Use `lib/apparatus/presets.js`, `lib/apparatus/index.js`, and `templates/apparatus-inline-snippet.js` only for compatibility or legacy scenes that have not migrated to `classic-kit`.
 - Instantiate apparatus through `createApparatusFromPreset('<key>', ...)` or the matching `create*Apparatus()` factory. Do not build registered apparatus locally with raw `THREE.Mesh`, `CylinderGeometry`, `BoxGeometry`, or ad-hoc helper functions inside the scene.
 - Use apparatus anchors (`anchors.mouth`, `anchors.pourTarget`, `anchors.tipAnchor`, `anchors.sampleZone`, `anchors.interactionZone`, `anchors.effectOrigin`, `anchors.labelAnchor`) for reaction zones, drag targets, pour/drip targets, labels, and visual effect origins.
 - Top-level placement may use a small number of initial `position`/`rotation` values, but chemistry-triggering coordinates must be derived from anchors.
@@ -90,7 +91,7 @@ Use apparatus library labels, not scene-local label systems.
 - For beakers, bottles, test tubes, Erlenmeyer flasks, and reagent jars, call `apparatus.controllers.setLabel(...)`; the preset renders a physical label on the vessel body.
 - For tools and specimens such as litmus paper, droppers, funnels, alcohol burners, and iron nails, call `apparatus.controllers.setLabel(...)`; the preset renders a readable badge from `labelAnchor`.
 - Do not create standalone DOM labels, boxed callout cards, or floating text sprites for registered apparatus unless the library preset is missing label support.
-- If label support is missing, update the apparatus preset first and rebuild `templates/apparatus-inline-snippet.js`.
+- If label support is missing on an active classic asset, update the `classic-kit` preset first and rebuild `templates/classic-apparatus-inline-snippet.js`. Only touch `templates/apparatus-inline-snippet.js` when you are intentionally maintaining a legacy scene.
 
 ## Reuse existing skills
 - use `threejs-fundamentals` for scene, camera, lights, renderer, timing, resize handling
@@ -176,13 +177,13 @@ Default the important learner-facing objects to be movable, but leave background
 - Drive liquid meshes through a small controller/helper that clamps fill level to the vessel interior so fluid does not spill through glass walls.
 - Add a lightweight geometry validation pass that warns when nozzle-to-mouth alignment, fill height, or effect origins fall outside the apparatus constraints.
 - Follow the repo contract in `docs/apparatus-standard.md` whenever building or refactoring apparatus-driven scenes.
-- Reuse `templates/apparatus-scaffold.js` as the browser-friendly entry for apparatus scenes; use the `lib/apparatus/index.js` barrel as the canonical module surface when you are working in module-based code.
+- For active chemistry experiments, use `lib/classic-kit/apparatus.js` as the default module surface and `templates/classic-apparatus-inline-snippet.js` as the self-contained apparatus bundle. Treat `templates/apparatus-scaffold.js` and `lib/apparatus/index.js` as compatibility surfaces for legacy scenes only.
 - Prefer `create*Apparatus()` presets plus `createPourInteraction()`, `createDripInteraction()`, `createHeatInteraction()`, or `createSteamInteraction()` instead of scene-local stream/effect logic.
-- When the repo already has a matching preset family such as beaker, bottle, `reagent-bottle`, erlenmeyer, `test-tube`, dropper, `alcohol-burner`, funnel, `solid-reagent-jar`, or `litmus-paper`, reuse that preset and its semantic anchors before inventing scene-local apparatus geometry.
+- When the recipe belongs to the active classic path, choose from the classic-kit presets exported by `lib/classic-kit/apparatus.js`: `createClassicTestTubeApparatus`, `createClassicReagentBottleApparatus`, `createClassicSolidReagentJarApparatus`, `createClassicCopperPieceApparatus`, `createZincGranulesApparatus`, `createClassicErlenmeyerApparatus`, `createClassicMoistPaperApparatus`. Do not import legacy names such as `beaker`, `erlenmeyer`, `test-tube`, `dropper`, `alcohol-burner`, `funnel`, `solid-reagent-jar`, or `litmus-paper` — those presets are now in `lib/legacy/apparatus/presets/` and are not part of the active lane. If none of the classic-kit presets fit, file a `recipe-proposal.json` to request a new classic preset; do not fall back to legacy presets in a new scene.
 - Prefer chemical appearance presets such as `clearWater()`, `diluteAcid()`, `blueSolution()`, `yellowPrecipitate()`, `denseSteam()`, and `burnerFlame()` over ad-hoc material tuning.
 - For apparatus-driven scenes, run the current `createSceneValidatorGate(...).validate()` surface and treat blocker failures as invalid output.
 - When generators need preset discovery or shared instantiation metadata, prefer the registry helpers `registerApparatusPreset()`, `getApparatusPreset()`, `listApparatusPresets()`, and `createApparatusFromPreset()` over ad-hoc preset catalogs.
-- When the output must stay self-contained, build and inline `templates/apparatus-inline-snippet.js` via `rtk node scripts/build-apparatus-inline-bundle.mjs`.
+- When the output must stay self-contained and the recipe is on the active classic path, build and inline `templates/classic-apparatus-inline-snippet.js` via `rtk node scripts/build-classic-apparatus-inline-bundle.mjs`. Use `templates/apparatus-inline-snippet.js` only for legacy outputs that still depend on the compatibility apparatus registry.
 - Do not regress to the legacy failure mode where LLM invents world-space pour/effect coordinates or duplicates bespoke apparatus helpers inside each HTML.
 - Only show visible precipitate solids, yellow streaks, residue clouds, or sediment when that visual is required by the learning objective. If the lesson only needs a solution to change color or become slightly cloudy, prefer that simpler representation.
 - When a phenomenon is visually important, actively use the relevant Three.js sub-skills for higher-quality effects instead of settling for a single primitive mesh:

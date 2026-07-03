@@ -27,6 +27,10 @@ Generated artifacts are the stable handoff from compiler to assembler and verifi
 
 `metadata.json` starts with `verify_status: "pending"` and should be updated by the verification pipeline.
 
+For active classic chemistry recipes, `index.html` must inline the classic-only apparatus bundle rather than the compatibility apparatus bundle.
+
+Nested output trees such as `generated/experiment/experiment/<slug>/...` are not canonical and should be treated as stale generated artifacts.
+
 ## Standalone policy
 
 - The final HTML must not import repo-local helper modules.

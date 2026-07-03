@@ -502,12 +502,87 @@ function clonePose(object) {
   return {
     position: object.position.clone(),
     rotation: object.rotation.clone(),
+    visible: object.visible,
   };
 }
 
 function applyPose(object, pose) {
   object.position.copy(pose.position);
   object.rotation.copy(pose.rotation);
+  if (typeof pose.visible === 'boolean') {
+    object.visible = pose.visible;
+  }
+}
+
+function isPoseAtHome(object, pose) {
+  return object.position.distanceTo(pose.position) < 0.015
+    && Math.abs(object.rotation.x - pose.rotation.x) < 0.01
+    && Math.abs(object.rotation.y - pose.rotation.y) < 0.01
+    && Math.abs(object.rotation.z - pose.rotation.z) < 0.01
+    && object.visible === pose.visible;
+}
+
+function getApparatusRef(target) {
+  return target?.apparatus
+    || target?.meta?.coursewareApparatus
+    || target?.userData?.coursewareApparatus
+    || target?.group?.userData?.coursewareApparatus
+    || target?.anchor?.userData?.coursewareApparatus
+    || target?.object?.userData?.coursewareApparatus
+    || null;
+}
+
+function isVesselFamily(family = '') {
+  return /vessel|open-vessel|heated-vessel|narrow-neck-vessel|gas-collection-vessel/i.test(String(family || ''));
+}
+
+function resolveSuccessBehavior({
+  sourceApparatus = null,
+  targetApparatus = null,
+  successBehavior = null,
+  successReturnDelayMs = null,
+} = {}) {
+  if (typeof successBehavior === 'string') {
+    return { type: successBehavior, delayMs: successReturnDelayMs ?? 0 };
+  }
+  if (successBehavior && typeof successBehavior === 'object') {
+    return {
+      type: successBehavior.type || 'return-home',
+      delayMs: successBehavior.delayMs ?? successReturnDelayMs ?? 0,
+    };
+  }
+
+  const sourceFamily = sourceApparatus?.family || '';
+  const targetFamily = targetApparatus?.family || '';
+
+  if ([
+    'transfer-tool',
+    'solid-reagent-container',
+    'showcase-solid-jar',
+    'showcase-bottle',
+    'gas-source',
+    'gas-transfer-tool',
+    'solid-transfer-tool',
+  ].includes(sourceFamily)) {
+    return { type: 'return-home', delayMs: successReturnDelayMs ?? 0 };
+  }
+
+  if ([
+    'solid-metal-sample',
+    'showcase-metal-sample',
+    'indicator-tool',
+    'mixing-tool',
+    'sample-dish',
+    'separation-tool',
+  ].includes(sourceFamily)) {
+    return { type: 'stay-at-target', delayMs: 0 };
+  }
+
+  if (isVesselFamily(targetFamily)) {
+    return { type: 'stay-at-target', delayMs: 0 };
+  }
+
+  return { type: 'return-home', delayMs: successReturnDelayMs ?? 0 };
 }
 
 function normalizeTarget(target, fallbackRadius = 0.35) {
@@ -515,14 +590,24 @@ function normalizeTarget(target, fallbackRadius = 0.35) {
     return null;
   }
   if (typeof target.getWorldPosition === 'function' || target.isVector3) {
-    return { id: target.name || 'target', anchor: target, radius: fallbackRadius };
+    return {
+      id: target.name || 'target',
+      anchor: target,
+      apparatus: getApparatusRef(target),
+      radius: fallbackRadius,
+      successBehavior: null,
+      successReturnDelayMs: 0,
+    };
   }
   return {
     id: target.id || target.key || target.anchor?.name || 'target',
     anchor: target.anchor || target.object || target,
+    apparatus: getApparatusRef(target),
     overlapObject: target.overlapObject || target.targetObject || target.object || null,
     overlapPadding: target.overlapPadding ?? target.padding ?? 0,
     radius: target.radius ?? fallbackRadius,
+    successBehavior: target.successBehavior || null,
+    successReturnDelayMs: target.successReturnDelayMs ?? 0,
     onNearTarget: target.onNearTarget,
     onDropTarget: target.onDropTarget,
   };
@@ -587,6 +672,93 @@ function createFreeDragController({
 
   const entries = new Map();
   const returning = new Set();
+  const pendingReturns = new Map();
+
+  function clearPendingReturn(id) {
+    const timerId = pendingReturns.get(id);
+    if (timerId !== undefined) {
+      globalThis.clearTimeout?.(timerId);
+      pendingReturns.delete(id);
+    }
+  }
+
+  function markEntryState(entry, next = {}) {
+    Object.assign(entry.state, next, {
+      hidden: entry.object.visible === false,
+    });
+  }
+
+  function scheduleReturnHome(entry, delayMs = 0) {
+    const delay = Math.max(0, Number(delayMs) || 0);
+    clearPendingReturn(entry.id);
+    returning.delete(entry.id);
+    markEntryState(entry, {
+      phase: delay > 0 ? 'success-pending-return' : 'returning-home',
+      pendingReturn: true,
+      isAtHome: false,
+    });
+
+    const activateReturn = () => {
+      pendingReturns.delete(entry.id);
+      returning.add(entry.id);
+      markEntryState(entry, {
+        phase: 'returning-home',
+        pendingReturn: true,
+        isAtHome: false,
+      });
+    };
+
+    if (delay > 0 && typeof globalThis.setTimeout === 'function') {
+      const timerId = globalThis.setTimeout(activateReturn, delay);
+      pendingReturns.set(entry.id, timerId);
+      return true;
+    }
+
+    activateReturn();
+    return true;
+  }
+
+  function commitSuccess(id, { target = null, successBehavior = null, successReturnDelayMs = null } = {}) {
+    const entry = entries.get(id);
+    if (!entry) {
+      return false;
+    }
+
+    clearPendingReturn(id);
+    returning.delete(id);
+    const behavior = resolveSuccessBehavior({
+      sourceApparatus: entry.sourceApparatus,
+      targetApparatus: target?.apparatus || null,
+      successBehavior: successBehavior || target?.successBehavior || entry.successBehavior,
+      successReturnDelayMs: successReturnDelayMs ?? target?.successReturnDelayMs ?? entry.successReturnDelayMs,
+    });
+
+    markEntryState(entry, {
+      lastTargetId: target?.id || null,
+      lastSuccessBehavior: behavior.type,
+    });
+
+    if (behavior.type === 'consume-and-hide') {
+      entry.object.visible = false;
+      markEntryState(entry, {
+        phase: 'consumed',
+        pendingReturn: false,
+        isAtHome: false,
+      });
+      return true;
+    }
+
+    if (behavior.type === 'return-home') {
+      return scheduleReturnHome(entry, behavior.delayMs);
+    }
+
+    markEntryState(entry, {
+      phase: behavior.type === 'restore-home-on-reset-only' ? 'placed-reset-only' : 'placed',
+      pendingReturn: false,
+      isAtHome: isPoseAtHome(entry.object, entry.homePose),
+    });
+    return true;
+  }
 
   function registerDraggable({
     id,
@@ -595,6 +767,8 @@ function createFreeDragController({
     anchors = null,
     dragAnchor = null,
     homePose = null,
+    successBehavior = null,
+    successReturnDelayMs = 0,
     validTargets = [],
     autoTiltTarget = null,
     autoTiltRange = [-0.32, -1.18],
@@ -616,7 +790,10 @@ function createFreeDragController({
       pickObjects,
       anchors,
       dragAnchor,
+      sourceApparatus: getApparatusRef(object),
       homePose: homePose || clonePose(object),
+      successBehavior,
+      successReturnDelayMs,
       validTargets: validTargets.map((target) => normalizeTarget(target, targetRadius)).filter(Boolean),
       autoTiltTarget: normalizeTarget(autoTiltTarget, Number.POSITIVE_INFINITY),
       autoTiltRange,
@@ -624,6 +801,14 @@ function createFreeDragController({
       onNearTarget,
       onDropTarget,
       onReturnHome,
+      state: {
+        phase: 'idle',
+        isAtHome: isPoseAtHome(object, homePose || clonePose(object)),
+        hidden: object.visible === false,
+        pendingReturn: false,
+        lastTargetId: null,
+        lastSuccessBehavior: null,
+      },
     };
     entries.set(id, entry);
 
@@ -636,7 +821,13 @@ function createFreeDragController({
       bounds,
       dragPlane,
       onDragStart(args) {
+        clearPendingReturn(id);
         returning.delete(id);
+        markEntryState(entry, {
+          phase: 'dragging',
+          pendingReturn: false,
+          isAtHome: false,
+        });
         onDragStart?.({ ...args, freeDragEntry: entry });
       },
       onDrag(args) {
@@ -666,8 +857,14 @@ function createFreeDragController({
           const payload = { ...args, target: closest, freeDragEntry: entry };
           entry.onDropTarget?.(payload);
           closest.onDropTarget?.(payload);
+          commitSuccess(id, { target: closest });
         } else {
           returning.add(id);
+          markEntryState(entry, {
+            phase: 'returning-home',
+            pendingReturn: true,
+            isAtHome: false,
+          });
         }
         onDragEnd?.({ ...args, target: closest, freeDragEntry: entry });
       },
@@ -687,6 +884,11 @@ function createFreeDragController({
       if (complete) {
         applyPose(entry.object, entry.homePose);
         returning.delete(id);
+        markEntryState(entry, {
+          phase: 'idle',
+          pendingReturn: false,
+          isAtHome: true,
+        });
         entry.onReturnHome?.({ id, entry: entry.freeDragEntry || entry });
       }
     }
@@ -698,14 +900,82 @@ function createFreeDragController({
       if (!entry) {
         continue;
       }
+      clearPendingReturn(entryId);
       applyPose(entry.object, entry.homePose);
       returning.delete(entryId);
+      markEntryState(entry, {
+        phase: 'idle',
+        pendingReturn: false,
+        isAtHome: true,
+        lastTargetId: null,
+        lastSuccessBehavior: null,
+      });
     }
   }
 
   return {
     state: manipulation.state,
     registerDraggable,
+    commitSuccess,
+    getEntryState(id) {
+      const entry = entries.get(id);
+      return entry ? { ...entry.state } : null;
+    },
+    isAtHome(id) {
+      return entries.get(id)?.state?.isAtHome ?? false;
+    },
+    // Test-harness helper: simulate a drag-drop without pointer events.
+    // Sets isAtHome = false (as a real drag would), then fires onDropTarget for targetId.
+    simulateDrop(sourceId, targetId) {
+      const entry = entries.get(sourceId);
+      if (!entry) return false;
+      markEntryState(entry, { phase: 'dragging', pendingReturn: false, isAtHome: false });
+      const target = entry.validTargets.find((t) => t.id === targetId) || null;
+      if (!target) {
+        returning.add(sourceId);
+        markEntryState(entry, { phase: 'returning-home', pendingReturn: true, isAtHome: false });
+        return false;
+      }
+      const payload = { freeDragEntry: entry, target };
+      entry.onDropTarget?.(payload);
+      target.onDropTarget?.(payload);
+      commitSuccess(sourceId, { target });
+      return true;
+    },
+    canStartSequencedMotion(id, { allowStaged = false } = {}) {
+      if (!id || !entries.has(id)) {
+        return false;
+      }
+      if (allowStaged) {
+        return !this.hasActiveTransition(id);
+      }
+      return this.isAtHome(id) && !this.hasActiveTransition(id);
+    },
+    hasActiveTransition(id = null) {
+      if (id) {
+        const entry = entries.get(id);
+        return Boolean(
+          entry
+          && (
+            returning.has(id)
+            || pendingReturns.has(id)
+            || entry.state?.phase === 'returning-home'
+            || entry.state?.phase === 'success-pending-return'
+          )
+        );
+      }
+      for (const [entryId, entry] of entries.entries()) {
+        if (
+          returning.has(entryId)
+          || pendingReturns.has(entryId)
+          || entry.state?.phase === 'returning-home'
+          || entry.state?.phase === 'success-pending-return'
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
     update,
     reset,
     dispose: manipulation.dispose,
@@ -748,6 +1018,94 @@ const cameraPresets = {
     maxDistance: 18,
     minPolarAngle: 0.62,
     maxPolarAngle: 1.4,
+  },
+  'showcase-close': {
+    position: [0, 3.6, 7.6],
+    target: [0, 1.7, 0],
+    fov: 42,
+    near: 0.1,
+    far: 120,
+    minDistance: 6,
+    maxDistance: 14,
+    minPolarAngle: 0.5,
+    maxPolarAngle: 1.32,
+  },
+  'single-vessel-angle': {
+    position: [1.9, 3.9, 8.1],
+    target: [0, 1.75, 0],
+    fov: 40,
+    near: 0.1,
+    far: 120,
+    minDistance: 6.2,
+    maxDistance: 14.8,
+    minPolarAngle: 0.46,
+    maxPolarAngle: 1.26,
+  },
+  'flask-showcase-close': {
+    position: [0.72, 3.8, 7.7],
+    target: [0, 1.82, 0],
+    fov: 40,
+    near: 0.1,
+    far: 120,
+    minDistance: 6.2,
+    maxDistance: 14.2,
+    minPolarAngle: 0.48,
+    maxPolarAngle: 1.22,
+  },
+  'rack-2tube-front': {
+    position: [0, 4.55, 9.8],
+    target: [0, 2.35, 0],
+    fov: 36,
+    near: 0.1,
+    far: 140,
+    minDistance: 7.6,
+    maxDistance: 15.5,
+    minPolarAngle: 0.54,
+    maxPolarAngle: 1.2,
+  },
+  'rack-3tube-front': {
+    position: [0, 5.2, 11.4],
+    target: [0, 2.4, 0],
+    fov: 37,
+    near: 0.1,
+    far: 140,
+    minDistance: 8.2,
+    maxDistance: 17.2,
+    minPolarAngle: 0.54,
+    maxPolarAngle: 1.18,
+  },
+  'flask-compare-front': {
+    position: [0, 5.9, 10.2],
+    target: [0, 2.05, 0],
+    fov: 39,
+    near: 0.1,
+    far: 140,
+    minDistance: 7.8,
+    maxDistance: 16.2,
+    minPolarAngle: 0.42,
+    maxPolarAngle: 1.02,
+  },
+  'classic-lab-wide': {
+    position: [0, 4.55, 9.8],
+    target: [0, 2.35, 0],
+    fov: 36,
+    near: 0.1,
+    far: 140,
+    minDistance: 7.6,
+    maxDistance: 15.5,
+    minPolarAngle: 0.54,
+    maxPolarAngle: 1.2,
+  },
+  'rack-4tube-front': {
+    position: [0, 5.6, 12.8],
+    target: [0, 2.4, 0],
+    fov: 39,
+    near: 0.1,
+    far: 140,
+    minDistance: 9.0,
+    maxDistance: 19.0,
+    minPolarAngle: 0.54,
+    maxPolarAngle: 1.18,
   },
 };
 
@@ -980,10 +1338,164 @@ const themePresets = {
       },
     },
   },
+  'showcase-bench': {
+    scene: {
+      background: 0x0a111c,
+      fog: { color: 0x0a111c, near: 16, far: 40 },
+      rendererExposure: 1.1,
+      toneMapping: THREE.ACESFilmicToneMapping,
+      ambientLight: { skyColor: 0xc7defc, groundColor: 0x1a1208, intensity: 1.5 },
+      keyLight: { color: 0xffffff, intensity: 2.6, position: [6, 12, 7] },
+      rimLight: { color: 0x6cb8ff, intensity: 14, distance: 26, decay: 2, position: [-6, 5, 5] },
+      warmLight: { color: 0xf2be78, intensity: 5.2, distance: 18, decay: 2, position: [4.5, 4.3, 3.8] },
+      bench: 0x5d4634,
+      benchLeg: 0x2d3647,
+      floor: 0x16202f,
+      room: 0x0d1727,
+      benchTopSize: [11.5, 0.4, 5],
+      benchTopY: 1.2,
+      benchLegSize: [0.4, 2.4, 0.4],
+      benchLegOffsets: [[-5, -2], [5, -2], [-5, 2], [5, 2]],
+      floorRadius: 18,
+      roomRadius: 30,
+      stagePad: {
+        visible: true,
+        width: 9.8,
+        depth: 2.2,
+        height: 0.08,
+        y: 1.42,
+        color: 0x101926,
+      },
+    },
+    ui: {
+      panel: 'rgba(12, 17, 28, 0.78)',
+      panelSoft: 'rgba(12, 17, 28, 0.6)',
+      border: 'rgba(255,255,255,0.12)',
+      text: '#f6f8fb',
+      muted: '#d1d8e2',
+      accent: '#8fd0ff',
+      warm: '#ffce6b',
+      buttonPrimary: 'linear-gradient(135deg, #8fd0ff, #4ca9e8)',
+      buttonSecondary: 'rgba(255,255,255,0.08)',
+    },
+    materials: {
+      ...baseMaterials,
+      glass: {
+        ...baseMaterials.glass,
+        color: 0xffffff,
+        opacity: 0.16,
+        roughness: 0.08,
+        transmission: 0.9,
+      },
+    },
+    chemistry: {
+      ...baseChemistry,
+      diluteAcid: {
+        color: 0xe6f8ff,
+        surfaceColor: 0xf5fcff,
+        opacity: 0.82,
+        materialType: 'standard',
+        depthTest: false,
+        depthWrite: false,
+      },
+    },
+    apparatusVariants: {
+      ...baseApparatusVariants,
+      bottle: {
+        ...baseApparatusVariants.bottle,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+            capColor: 0x2d3647,
+          },
+          liquid: {
+            opacity: 0.78,
+            transmission: 0.28,
+          },
+        },
+      },
+      jar: {
+        ...baseApparatusVariants.jar,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+            bandColor: 0xc6a77a,
+          },
+        },
+      },
+      tube: {
+        ...baseApparatusVariants.tube,
+        showcase: {
+          materials: {
+            glassTint: 0xffffff,
+          },
+          liquid: {
+            materialType: 'standard',
+            opacity: 0.48,
+            depthTest: false,
+            depthWrite: false,
+          },
+        },
+      },
+      flask: {
+        showcase: {
+          materials: {
+            glass: {
+              color: 0xffffff,
+              transparent: true,
+              opacity: 0.16,
+              transmission: 0.9,
+              roughness: 0.08,
+              thickness: 0.08,
+              ior: 1.38,
+              clearcoat: 0.28,
+              clearcoatRoughness: 0.24,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            },
+            glassRim: {
+              color: 0xe9f2f8,
+              roughness: 0.22,
+              metalness: 0.03,
+            },
+          },
+        },
+      },
+      tool: {
+        showcase: {
+          materials: {
+            strip: {
+              color: 0xf26b28,
+              roughness: 0.88,
+              metalness: 0,
+            },
+            contact: {
+              color: 0xe58b52,
+              roughness: 0.72,
+              metalness: 0,
+              transparent: true,
+              opacity: 0.88,
+            },
+            wire: {
+              color: 0x8d96a2,
+              roughness: 0.34,
+              metalness: 0.74,
+            },
+            stopper: {
+              color: 0xd0c5a0,
+              roughness: 0.82,
+              metalness: 0.04,
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 themePresets['dark-lab'] = themePresets['chem-lab-dark'];
 themePresets['chem-lab-v1'] = themePresets['chem-lab-dark'];
+themePresets['classic-showcase-lab'] = themePresets['showcase-bench'];
 
 function cloneArray(value) {
   return Array.isArray(value) ? value.map(cloneValue) : value;
@@ -1092,6 +1604,14 @@ function createSceneShell({
 
   const resolvedTheme = getThemePreset(theme);
   const resolvedCameraPreset = getCameraPreset(cameraPreset);
+  const stageTheme = resolvedTheme.scene || {};
+  const benchTopSize = stageTheme.benchTopSize || [12.8, 0.34, 5.8];
+  const benchTopY = stageTheme.benchTopY ?? 1.32;
+  const benchLegSize = stageTheme.benchLegSize || [0.35, 2.6, 0.35];
+  const benchLegOffsets = stageTheme.benchLegOffsets || [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]];
+  const floorRadius = stageTheme.floorRadius || 24;
+  const roomRadius = stageTheme.roomRadius || 40;
+  const stagePadConfig = stageTheme.stagePad || { visible: false };
   const renderer = new THREE.WebGLRenderer({ canvas: resolvedCanvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1140,12 +1660,12 @@ function createSceneShell({
   lights.key.shadow.camera.bottom = -16;
 
   const room = new THREE.Mesh(
-    new THREE.SphereGeometry(40, 42, 28),
+    new THREE.SphereGeometry(roomRadius, 42, 28),
     new THREE.MeshBasicMaterial({ side: THREE.BackSide }),
   );
 
   const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(24, 72),
+    new THREE.CircleGeometry(floorRadius, 72),
     new THREE.MeshStandardMaterial({ roughness: 0.96, metalness: 0.04 }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -1153,27 +1673,42 @@ function createSceneShell({
 
   const bench = new THREE.Group();
   const benchTop = new THREE.Mesh(
-    new THREE.BoxGeometry(12.8, 0.34, 5.8),
+    new THREE.BoxGeometry(benchTopSize[0], benchTopSize[1], benchTopSize[2]),
     new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.06 }),
   );
-  benchTop.position.y = 1.32;
+  benchTop.position.y = benchTopY;
   benchTop.castShadow = true;
   benchTop.receiveShadow = true;
   bench.add(benchTop);
 
-  const legGeometry = new THREE.BoxGeometry(0.35, 2.6, 0.35);
+  const legGeometry = new THREE.BoxGeometry(benchLegSize[0], benchLegSize[1], benchLegSize[2]);
   const legMaterial = new THREE.MeshStandardMaterial({ roughness: 0.72, metalness: 0.24 });
-  for (const [x, z] of [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]]) {
+  for (const [x, z] of benchLegOffsets) {
     const leg = new THREE.Mesh(legGeometry, legMaterial);
-    leg.position.set(x, 0, z);
+    leg.position.set(x, (benchTopY - benchTopSize[1] * 0.5) - benchLegSize[1] * 0.5, z);
     leg.castShadow = true;
+    leg.receiveShadow = true;
     bench.add(leg);
   }
 
+  let stagePad = null;
+  if (stagePadConfig.visible) {
+    stagePad = new THREE.Mesh(
+      new THREE.BoxGeometry(stagePadConfig.width || 9.6, stagePadConfig.height || 0.08, stagePadConfig.depth || 2),
+      new THREE.MeshStandardMaterial({ color: stagePadConfig.color || 0x111824, roughness: 0.9, metalness: 0.02 }),
+    );
+    stagePad.position.set(0, stagePadConfig.y ?? (benchTopY + benchTopSize[1] * 0.5 + (stagePadConfig.height || 0.08) * 0.5), 0);
+    stagePad.castShadow = true;
+    stagePad.receiveShadow = true;
+    stagePad.name = 'stagePad';
+    bench.add(stagePad);
+  }
+
+  let activeTheme = resolvedTheme;
   scene.add(lights.ambient, lights.key, lights.rim, room, floor, bench);
 
   function applyTheme(nextTheme = resolvedTheme) {
-    const activeTheme = getThemePreset(nextTheme);
+    activeTheme = getThemePreset(nextTheme);
     const sceneTheme = activeTheme.scene;
 
     scene.background = new THREE.Color(sceneTheme.background);
@@ -1216,6 +1751,9 @@ function createSceneShell({
     floor.material.color.setHex(sceneTheme.floor);
     benchTop.material.color.setHex(sceneTheme.bench);
     legMaterial.color.setHex(sceneTheme.benchLeg);
+    if (stagePad && sceneTheme.stagePad?.color != null) {
+      stagePad.material.color.setHex(sceneTheme.stagePad.color);
+    }
 
     applyUiTheme(resolvedHud, activeTheme);
     return activeTheme;
@@ -1256,6 +1794,8 @@ function createSceneShell({
     bench,
     floor,
     room,
+    stagePad,
+    theme: activeTheme,
     resize,
     applyTheme,
     installHarness,
@@ -1488,6 +2028,421 @@ function createGuidedAnchorMotion({
   };
 }
 
+function createGuidedPourMotion({
+  source,
+  sourceAnchor,
+  target,
+  targetAnchor,
+  parent = null,
+  offset = [0, 0, 0],
+  rotation = null,
+  approachDuration = 0.9,
+  pourDuration = 0.95,
+  easing = (value) => THREE.MathUtils.smoothstep(value, 0, 1),
+  dragController = null,
+  stream = null,
+  streamSource = null,
+  streamTarget = null,
+  intensityCurve = (value) => THREE.MathUtils.clamp(0.18 + (value * 0.92), 0, 1),
+  successId = null,
+  successBehavior = 'return-home',
+  successReturnDelayMs = 0,
+  onStart,
+  onApproachStart,
+  onApproachUpdate,
+  onPourStart,
+  onPourUpdate,
+  onPourComplete,
+  onComplete,
+} = {}) {
+  const sourceObject = source?.group || source;
+  const state = {
+    active: false,
+    phase: 'idle',
+    t: 0,
+    progress: 0,
+    approachProgress: 0,
+    pourProgress: 0,
+    fromPosition: new THREE.Vector3(),
+    toPosition: new THREE.Vector3(),
+    fromRotation: new THREE.Euler(),
+    toRotation: new THREE.Euler(),
+    options: {
+      target,
+      targetAnchor,
+      offset,
+      rotation,
+      streamSource,
+      streamTarget,
+    },
+  };
+
+  function getResolvedAnchor(targetRef, anchorName = null) {
+    if (!targetRef) {
+      return null;
+    }
+    if (anchorName && targetRef.anchors?.[anchorName]) {
+      return targetRef.anchors[anchorName];
+    }
+    if (typeof targetRef?.getWorldPosition === 'function' || targetRef?.isVector3) {
+      return targetRef;
+    }
+    return targetRef.group || targetRef;
+  }
+
+  function resetStream() {
+    stream?.reset?.();
+  }
+
+  function finishPour() {
+    state.active = false;
+    state.phase = 'complete';
+    state.progress = 1;
+    state.approachProgress = 1;
+    state.pourProgress = 1;
+    resetStream();
+    dragController?.setEnabled?.(true);
+    if (successId && dragController?.commitSuccess) {
+      dragController.commitSuccess(successId, {
+        successBehavior,
+        successReturnDelayMs,
+      });
+    }
+    onPourComplete?.({ state });
+    onComplete?.({ state });
+    return true;
+  }
+
+  function start(extra = {}) {
+    if (!sourceObject || state.active) {
+      return false;
+    }
+
+    state.options = {
+      target: extra.target || target,
+      targetAnchor: extra.targetAnchor || targetAnchor,
+      offset: extra.offset || offset,
+      rotation: extra.rotation || rotation,
+      streamSource: extra.streamSource || streamSource,
+      streamTarget: extra.streamTarget || streamTarget,
+    };
+
+    const pose = computeAnchorPlacementPose({
+      source,
+      sourceAnchor,
+      target: state.options.target,
+      targetAnchor: state.options.targetAnchor,
+      parent,
+      offset: state.options.offset,
+      rotation: state.options.rotation,
+    });
+
+    state.active = true;
+    state.phase = 'approach';
+    state.t = 0;
+    state.progress = 0;
+    state.approachProgress = 0;
+    state.pourProgress = 0;
+    state.fromPosition.copy(sourceObject.position);
+    state.toPosition.copy(pose.position);
+    state.fromRotation.copy(sourceObject.rotation);
+    state.toRotation.copy(pose.rotation);
+    dragController?.setEnabled?.(false);
+    onStart?.({ state, pose });
+    onApproachStart?.({ state, pose });
+    return true;
+  }
+
+  function update(dt = 1 / 60) {
+    if (!state.active || !sourceObject) {
+      return state;
+    }
+
+    if (state.phase === 'approach') {
+      state.t += dt;
+      state.approachProgress = Math.min(1, state.t / Math.max(approachDuration, 0.001));
+      state.progress = state.approachProgress;
+      const eased = easing(state.approachProgress);
+      sourceObject.position.lerpVectors(state.fromPosition, state.toPosition, eased);
+      sourceObject.rotation.x = THREE.MathUtils.lerp(state.fromRotation.x, state.toRotation.x, eased);
+      sourceObject.rotation.y = THREE.MathUtils.lerp(state.fromRotation.y, state.toRotation.y, eased);
+      sourceObject.rotation.z = THREE.MathUtils.lerp(state.fromRotation.z, state.toRotation.z, eased);
+      onApproachUpdate?.({ state, eased });
+
+      if (state.approachProgress >= 1) {
+        sourceObject.position.copy(state.toPosition);
+        sourceObject.rotation.copy(state.toRotation);
+        state.phase = 'pour';
+        state.t = 0;
+        state.progress = 0;
+        onPourStart?.({ state });
+      }
+      return state;
+    }
+
+    if (state.phase === 'pour') {
+      state.t += dt;
+      state.pourProgress = Math.min(1, state.t / Math.max(pourDuration, 0.001));
+      state.progress = state.pourProgress;
+      sourceObject.position.copy(state.toPosition);
+      sourceObject.rotation.copy(state.toRotation);
+      const resolvedStreamSource = getResolvedAnchor(state.options.streamSource || source, sourceAnchor);
+      const resolvedStreamTarget = getResolvedAnchor(
+        state.options.streamTarget
+          || state.options.target?.meshes?.liquidSurface
+          || state.options.target?.anchors?.pourTarget
+          || state.options.target?.anchors?.mouth
+          || (state.options.targetAnchor ? state.options.target : null)
+          || state.options.target,
+        state.options.streamTarget
+          ? null
+          : (state.options.target?.anchors?.pourTarget ? 'pourTarget'
+            : state.options.target?.anchors?.mouth ? 'mouth' : state.options.targetAnchor),
+      );
+      stream?.setEndpoints?.(
+        resolvedStreamSource,
+        resolvedStreamTarget,
+        intensityCurve(state.pourProgress),
+      );
+      onPourUpdate?.({ state });
+      if (state.pourProgress >= 1) {
+        finishPour();
+      }
+    }
+
+    return state;
+  }
+
+  function cancel({ restoreDrag = true } = {}) {
+    state.active = false;
+    state.phase = 'idle';
+    state.t = 0;
+    state.progress = 0;
+    state.approachProgress = 0;
+    state.pourProgress = 0;
+    resetStream();
+    if (restoreDrag) {
+      dragController?.setEnabled?.(true);
+    }
+    return state;
+  }
+
+  return {
+    state,
+    start,
+    update,
+    cancel,
+    finish: finishPour,
+    get active() {
+      return state.active;
+    },
+  };
+}
+
+function createSequencedPourController({
+  dragController = null,
+  steps = [],
+  isMotionActive = () => false,
+  onPendingStart,
+  onStepStart,
+  onStepComplete,
+  onStateChange,
+} = {}) {
+  const stepMap = new Map(
+    steps
+      .filter((step) => step?.stepId && step?.sourceId && step?.motion)
+      .map((step) => [step.stepId, step]),
+  );
+
+  const state = {
+    mode: 'idle',
+    queue: [],
+    pendingStepId: null,
+    pendingMode: null,
+    activeStepId: null,
+    stagedSourceId: null,
+  };
+
+  function notifyStateChange() {
+    onStateChange?.({ state });
+  }
+
+  function getStepConfig(stepId) {
+    return stepMap.get(stepId) || null;
+  }
+
+  function nextQueuedStepUsesSource(sourceId) {
+    const nextStepId = state.queue[0];
+    if (!nextStepId) {
+      return false;
+    }
+    return getStepConfig(nextStepId)?.sourceId === sourceId;
+  }
+
+  function canStartStep(stepId) {
+    const config = getStepConfig(stepId);
+    if (!config || state.pendingStepId || state.activeStepId || isMotionActive()) {
+      return false;
+    }
+    if (!dragController?.canStartSequencedMotion) {
+      return true;
+    }
+    return dragController.canStartSequencedMotion(config.sourceId, {
+      allowStaged: state.stagedSourceId === config.sourceId,
+    });
+  }
+
+  function beginStep(stepId, mode = 'manual') {
+    const config = getStepConfig(stepId);
+    if (!config || !canStartStep(stepId)) {
+      return false;
+    }
+    state.pendingStepId = stepId;
+    state.pendingMode = mode;
+    state.mode = mode === 'autoplay' ? 'autoplay' : 'manual';
+    notifyStateChange();
+    onPendingStart?.({ state, config, mode });
+
+    const started = config.motion.start(
+      typeof config.startArgs === 'function' ? config.startArgs({ state, config, mode }) : (config.startArgs || {}),
+    );
+    if (!started) {
+      state.pendingStepId = null;
+      state.pendingMode = null;
+      state.mode = state.queue.length ? 'autoplay' : 'idle';
+      notifyStateChange();
+      return false;
+    }
+    return true;
+  }
+
+  // Like beginStep but skips the dragController.canStartSequencedMotion check.
+  // Use this when the source is being actively dragged (isAtHome === false by design).
+  function beginStepFromActiveDrag(stepId) {
+    const config = getStepConfig(stepId);
+    if (!config || state.pendingStepId || state.activeStepId || isMotionActive()) {
+      return false;
+    }
+    state.pendingStepId = stepId;
+    state.pendingMode = 'manual';
+    state.mode = 'manual';
+    notifyStateChange();
+    onPendingStart?.({ state, config, mode: 'manual' });
+    const started = config.motion.start(
+      typeof config.startArgs === 'function'
+        ? config.startArgs({ state, config, mode: 'manual' })
+        : (config.startArgs || {}),
+    );
+    if (!started) {
+      state.pendingStepId = null;
+      state.pendingMode = null;
+      state.mode = state.queue.length ? 'autoplay' : 'idle';
+      notifyStateChange();
+      return false;
+    }
+    return true;
+  }
+
+  function activatePendingStep(sourceId = null) {
+    if (!state.pendingStepId) {
+      return false;
+    }
+    const config = getStepConfig(state.pendingStepId);
+    if (!config || (sourceId && config.sourceId !== sourceId)) {
+      return false;
+    }
+    const mode = state.pendingMode || state.mode || 'manual';
+    state.activeStepId = state.pendingStepId;
+    state.pendingStepId = null;
+    state.pendingMode = null;
+    state.stagedSourceId = config.sourceId;
+    notifyStateChange();
+    onStepStart?.({ state, config, mode });
+    return true;
+  }
+
+  function completeActiveStep(sourceId = null) {
+    if (!state.activeStepId) {
+      return false;
+    }
+    const config = getStepConfig(state.activeStepId);
+    if (!config || (sourceId && config.sourceId !== sourceId)) {
+      return false;
+    }
+
+    const completedMode = state.mode;
+    onStepComplete?.({ state, config, mode: completedMode });
+
+    const keepStaged = completedMode === 'autoplay' && nextQueuedStepUsesSource(config.sourceId);
+    if (keepStaged) {
+      state.stagedSourceId = config.sourceId;
+    } else {
+      dragController?.commitSuccess?.(config.sourceId, {
+        successBehavior: 'return-home',
+        successReturnDelayMs: config.returnDelayMs ?? 0,
+      });
+      state.stagedSourceId = null;
+    }
+
+    state.activeStepId = null;
+    state.mode = state.queue.length ? 'autoplay' : 'idle';
+    notifyStateChange();
+    return true;
+  }
+
+  function queueAutoplay(stepIds = []) {
+    state.queue = stepIds.filter((stepId) => stepMap.has(stepId));
+    state.mode = state.queue.length ? 'autoplay' : 'idle';
+    notifyStateChange();
+    return state.queue.length;
+  }
+
+  function shiftQueuedStep() {
+    const nextStepId = state.queue.shift() || null;
+    state.mode = state.queue.length || state.pendingStepId || state.activeStepId ? 'autoplay' : 'idle';
+    notifyStateChange();
+    return nextStepId;
+  }
+
+  function updateAutoplay() {
+    if (!state.queue.length || state.pendingStepId || state.activeStepId || isMotionActive()) {
+      return false;
+    }
+    const nextStepId = state.queue[0];
+    if (!canStartStep(nextStepId)) {
+      return false;
+    }
+    shiftQueuedStep();
+    return beginStep(nextStepId, 'autoplay');
+  }
+
+  function reset() {
+    state.mode = 'idle';
+    state.queue = [];
+    state.pendingStepId = null;
+    state.pendingMode = null;
+    state.activeStepId = null;
+    state.stagedSourceId = null;
+    notifyStateChange();
+    return true;
+  }
+
+  return {
+    state,
+    getStepConfig,
+    nextQueuedStepUsesSource,
+    canStartStep,
+    beginStep,
+    beginStepFromActiveDrag,
+    activatePendingStep,
+    completeActiveStep,
+    queueAutoplay,
+    shiftQueuedStep,
+    updateAutoplay,
+    reset,
+  };
+}
+
 function createContextualLabelPolicy({
   apparatus,
   label = {},
@@ -1684,6 +2639,12 @@ function createBubbleField({
   size = 0.24,
   opacity = 0.82,
   name = 'bubble-field',
+  spread = new THREE.Vector3(0.7, 0.12, 0.7),
+  velocity = new THREE.Vector3(0.12, 0.45, 0.12),
+  lifetime = [0.45, 1.1],
+  container = null,
+  radiusPadding = 0.04,
+  yPadding = 0.04,
 } = {}) {
   const texture = createSoftCircleTexture({
     inner: 'rgba(255,255,255,0.96)',
@@ -1697,9 +2658,9 @@ function createBubbleField({
     for (let index = 0; index < amount; index += 1) {
       pool.spawn({
         origin,
-        spread: new THREE.Vector3(0.7, 0.12, 0.7),
-        velocity: new THREE.Vector3(0.12, 0.45 + intensity * 0.55, 0.12),
-        lifetime: [0.45, 1.1],
+        spread,
+        velocity: new THREE.Vector3(velocity.x, velocity.y + intensity * 0.55, velocity.z),
+        lifetime,
       });
     }
   }
@@ -1710,6 +2671,15 @@ function createBubbleField({
       particle.velocity.y += dt * 0.2;
       particle.velocity.x *= 0.98;
       particle.velocity.z *= 0.98;
+      if (container) {
+        clampParticleToReactionZone({
+          particle,
+          pool,
+          zone: container,
+          radiusPadding,
+          yPadding,
+        });
+      }
       pool.scales[index] = (1 - t) * (0.55 + Math.sin((index + elapsed) * 1.7) * 0.08);
       pool.alphas[index] = 1 - t;
     });
@@ -1816,6 +2786,30 @@ function resolveWorldPosition(target, out = new THREE.Vector3()) {
   return out.set(0, 0, 0);
 }
 
+function worldToParentLocal(parent, point, out = new THREE.Vector3()) {
+  out.copy(point);
+  if (typeof parent?.worldToLocal === 'function') {
+    parent.worldToLocal(out);
+  }
+  return out;
+}
+
+function placeSegment(mesh, from, to, radiusScale = 1) {
+  const direction = new THREE.Vector3().subVectors(to, from);
+  const length = direction.length();
+  if (length <= 0.0001) {
+    mesh.visible = false;
+    return false;
+  }
+
+  const midpoint = new THREE.Vector3().copy(from).lerp(to, 0.5);
+  mesh.position.copy(midpoint);
+  mesh.scale.set(radiusScale, length, radiusScale);
+  mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
+  mesh.visible = true;
+  return true;
+}
+
 function createPourStream({
   parent,
   color = 0xbcecff,
@@ -1823,52 +2817,116 @@ function createPourStream({
   opacity = 0.72,
   emissive = 0x67d8ff,
   name = 'pour-stream',
+  segmentCount = 6,
 } = {}) {
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius * 1.5, 1, 18),
-    new THREE.MeshPhysicalMaterial({
-      color,
-      transparent: true,
-      opacity,
-      emissive,
-      emissiveIntensity: 0.42,
-      roughness: 0.08,
-      transmission: 0.25,
-    }),
-  );
+  const material = new THREE.MeshPhysicalMaterial({
+    color,
+    transparent: true,
+    opacity,
+    emissive,
+    emissiveIntensity: 0.18,
+    roughness: 0.18,
+    transmission: 0.16,
+    depthWrite: false,
+  });
+
+  const mesh = new THREE.Group();
   mesh.name = name;
   mesh.visible = false;
-  mesh.castShadow = false;
+  mesh.material = material;
   parent?.add(mesh);
 
+  const droplets = [];
+  const segments = [];
+  const pointCount = Math.max(4, segmentCount + 1);
+  const localPoints = Array.from({ length: pointCount }, () => new THREE.Vector3());
+  const worldPoints = Array.from({ length: pointCount }, () => new THREE.Vector3());
   const start = new THREE.Vector3();
   const end = new THREE.Vector3();
-  const midpoint = new THREE.Vector3();
-  const direction = new THREE.Vector3();
-  const yAxis = new THREE.Vector3(0, 1, 0);
+  const control1 = new THREE.Vector3();
+  const control2 = new THREE.Vector3();
+  const temp = new THREE.Vector3();
+  const curve = new THREE.CubicBezierCurve3();
+
+  for (let index = 0; index < pointCount; index += 1) {
+    const droplet = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 12, 12),
+      material,
+    );
+    droplet.castShadow = false;
+    droplet.visible = false;
+    droplets.push(droplet);
+    mesh.add(droplet);
+  }
+
+  for (let index = 0; index < pointCount - 1; index += 1) {
+    const segment = new THREE.Mesh(
+      new THREE.CylinderGeometry(radius * 0.72, radius * 0.92, 1, 12),
+      material,
+    );
+    segment.castShadow = false;
+    segment.visible = false;
+    segments.push(segment);
+    mesh.add(segment);
+  }
 
   function setEndpoints(source, target, intensity = 1) {
     resolveWorldPosition(source, start);
     resolveWorldPosition(target, end);
-    direction.copy(end).sub(start);
-    const length = direction.length();
-    if (length <= 0.01 || intensity <= 0.01) {
-      mesh.visible = false;
+
+    const verticalDrop = Math.max(0.12, start.y - end.y);
+    const horizontal = temp.subVectors(end, start).setY(0).length();
+    if (verticalDrop <= 0.02 || intensity <= 0.01) {
+      reset();
       return false;
     }
-    midpoint.copy(start).lerp(end, 0.5);
-    mesh.position.copy(midpoint);
-    mesh.scale.set(1, length, 1);
-    mesh.quaternion.setFromUnitVectors(yAxis, direction.normalize());
-    mesh.material.opacity = opacity * Math.min(1, intensity);
+
+    control1.copy(start);
+    control1.y = start.y - Math.max(0.08, Math.min(0.16, verticalDrop * 0.24));
+    control2.copy(end);
+    control2.y = end.y + Math.max(0.24, (verticalDrop * 0.78) + (horizontal * 0.22));
+
+    curve.v0.copy(start);
+    curve.v1.copy(control1);
+    curve.v2.copy(control2);
+    curve.v3.copy(end);
+
+    for (let index = 0; index < pointCount; index += 1) {
+      const t = index / (pointCount - 1);
+      curve.getPoint(t, worldPoints[index]);
+      worldToParentLocal(parent, worldPoints[index], localPoints[index]);
+    }
+
+    for (let index = 0; index < droplets.length; index += 1) {
+      const droplet = droplets[index];
+      const sizeFactor = THREE.MathUtils.lerp(0.62, 1.08, Math.sin((index / Math.max(1, droplets.length - 1)) * Math.PI));
+      droplet.position.copy(localPoints[index]);
+      droplet.scale.setScalar(Math.max(0.16, intensity) * sizeFactor);
+      droplet.visible = true;
+    }
+
+    for (let index = 0; index < segments.length; index += 1) {
+      const scaleFactor = THREE.MathUtils.lerp(0.56, 0.98, 1 - Math.abs(((index + 0.5) / segments.length) - 0.5) * 1.2);
+      placeSegment(segments[index], localPoints[index], localPoints[index + 1], Math.max(0.14, intensity) * scaleFactor);
+    }
+
+    material.opacity = opacity * Math.min(1, intensity);
+    material.emissiveIntensity = 0.08 + (0.14 * Math.min(1, intensity));
     mesh.visible = true;
     return true;
   }
 
   function reset() {
     mesh.visible = false;
-    mesh.scale.set(1, 1, 1);
-    mesh.quaternion.identity();
+    for (const droplet of droplets) {
+      droplet.visible = false;
+      droplet.scale.setScalar(1);
+    }
+    for (const segment of segments) {
+      segment.visible = false;
+      segment.scale.set(1, 1, 1);
+      segment.quaternion.identity();
+    }
   }
 
   return { mesh, setEndpoints, reset };
@@ -2039,6 +3097,12 @@ function createSmokeField({
   color = 0x9aa0a6,
   size = 1.15,
   opacity = 0.34,
+  spread = [0.7, 0.12, 0.7],
+  velocity = [0.14, 0.16, 0.14],
+  lifetime = [2.2, 4.6],
+  driftStrength = 0.1,
+  scaleRange = [0.55, 2.95],
+  alphaRange = [0.58, 0.08],
   name = 'smoke-field',
 } = {}) {
   const texture = createSoftCircleTexture({
@@ -2047,15 +3111,21 @@ function createSmokeField({
     outer: 'rgba(50,55,62,0)',
   });
   const pool = createParticlePool({ parent, count, texture, color, size, opacity, name });
+  const spreadVector = new THREE.Vector3(...spread);
+  const velocityVector = new THREE.Vector3(...velocity);
 
   function burst(origin, intensity = 1, dt = 1 / 60) {
     const amount = Math.max(0, Math.round((2 + intensity * 9) * dt * 24));
     for (let index = 0; index < amount; index += 1) {
       pool.spawn({
         origin,
-        spread: new THREE.Vector3(0.7, 0.12, 0.7),
-        velocity: new THREE.Vector3(0.14, 0.16 + intensity * 0.24, 0.14),
-        lifetime: [2.2, 4.6],
+        spread: spreadVector,
+        velocity: new THREE.Vector3(
+          velocityVector.x,
+          velocityVector.y + intensity * velocityVector.y * 1.5,
+          velocityVector.z,
+        ),
+        lifetime,
       });
     }
   }
@@ -2063,11 +3133,11 @@ function createSmokeField({
   function update(dt = 1 / 60, elapsed = 0) {
     pool.update(dt, (particle, t, index) => {
       particle.origin.addScaledVector(particle.velocity, dt);
-      particle.origin.x += Math.sin(elapsed * 0.55 + index * 0.7) * dt * 0.1;
-      particle.origin.z += Math.cos(elapsed * 0.42 + index * 0.5) * dt * 0.1;
+      particle.origin.x += Math.sin(elapsed * 0.55 + index * 0.7) * dt * driftStrength;
+      particle.origin.z += Math.cos(elapsed * 0.42 + index * 0.5) * dt * driftStrength;
       particle.velocity.y *= 0.992;
-      pool.scales[index] = 0.55 + t * 2.4;
-      pool.alphas[index] = (1 - t) * (0.58 + Math.sin(index) * 0.08);
+      pool.scales[index] = scaleRange[0] + t * Math.max(0.01, scaleRange[1] - scaleRange[0]);
+      pool.alphas[index] = (1 - t) * (alphaRange[0] + Math.sin(index) * alphaRange[1]);
     });
   }
 
@@ -2144,6 +3214,223 @@ function createContainedGasField({
   }
 
   return { ...pool, emit, update };
+}
+
+function resolveZoneObject(zone) {
+  return zone?.object || zone?.group || zone?.apparatus?.group || null;
+}
+
+function resolveZoneValue(value, fallback) {
+  return typeof value === 'function' ? value() : value ?? fallback;
+}
+
+function resolveZoneRadius(zone) {
+  const apparatus = zone?.apparatus || null;
+  const baseRadius = apparatus?.constraints?.innerRadius ?? 0.5;
+  const radiusScale = resolveZoneValue(zone?.radiusScale, 1);
+  const radiusPadding = resolveZoneValue(zone?.radiusPadding, 0);
+  return Math.max(0.001, resolveZoneValue(zone?.radius, baseRadius * radiusScale) - radiusPadding);
+}
+
+function resolveZoneMinY(zone) {
+  return resolveZoneValue(zone?.minY, 0);
+}
+
+function resolveZoneMaxY(zone) {
+  const apparatus = zone?.apparatus || null;
+  const minY = resolveZoneMinY(zone);
+  const fillHeight = apparatus?.state?.fillHeight;
+  const fallbackMax = apparatus?.constraints?.safeFillHeight
+    ?? apparatus?.constraints?.innerHeight
+    ?? apparatus?.anchors?.mouth?.position?.y
+    ?? 1;
+  const headroom = resolveZoneValue(zone?.headroom, zone?.liquidOnly ? 0.03 : 0.08);
+  const maxY = zone?.liquidOnly && Number.isFinite(fillHeight)
+    ? fillHeight + headroom
+    : resolveZoneValue(zone?.maxY, fallbackMax + headroom);
+  return Math.max(minY + 0.001, maxY);
+}
+
+function createVesselReactionZone({
+  apparatus = null,
+  object = null,
+  group = null,
+  name = 'vessel-reaction-zone',
+  radius = null,
+  radiusScale = 0.92,
+  radiusPadding = 0,
+  minY = 0,
+  maxY = null,
+  headroom = null,
+  liquidOnly = false,
+} = {}) {
+  const zone = {
+    name,
+    apparatus,
+    object: object || group || apparatus?.group || null,
+    radius,
+    radiusScale,
+    radiusPadding,
+    minY,
+    maxY,
+    headroom,
+    liquidOnly,
+  };
+
+  zone.getRadius = () => resolveZoneRadius(zone);
+  zone.getMinY = () => resolveZoneMinY(zone);
+  zone.getMaxY = () => resolveZoneMaxY(zone);
+  return zone;
+}
+
+function reactionZoneContainsLocalPoint(zone, localPoint, {
+  radiusPadding = 0,
+  yPadding = 0,
+} = {}) {
+  if (!zone || !localPoint) {
+    return true;
+  }
+  const radius = Math.max(0.001, resolveZoneRadius(zone) - radiusPadding);
+  const minY = resolveZoneMinY(zone) + yPadding;
+  const maxY = resolveZoneMaxY(zone) - yPadding;
+  return Math.hypot(localPoint.x, localPoint.z) <= radius
+    && localPoint.y >= minY
+    && localPoint.y <= maxY;
+}
+
+function clampLocalPointToReactionZone(zone, localPoint, {
+  radiusPadding = 0,
+  yPadding = 0,
+} = {}) {
+  const result = {
+    ok: true,
+    radial: false,
+    minY: false,
+    maxY: false,
+  };
+  if (!zone || !localPoint) {
+    return result;
+  }
+
+  const radius = Math.max(0.001, resolveZoneRadius(zone) - radiusPadding);
+  const minY = resolveZoneMinY(zone) + yPadding;
+  const maxY = resolveZoneMaxY(zone) - yPadding;
+  const radialDistance = Math.hypot(localPoint.x, localPoint.z);
+  if (radialDistance > radius) {
+    const scale = radius / Math.max(radialDistance, 0.001);
+    localPoint.x *= scale;
+    localPoint.z *= scale;
+    result.radial = true;
+    result.ok = false;
+  }
+  if (localPoint.y < minY) {
+    localPoint.y = minY;
+    result.minY = true;
+    result.ok = false;
+  }
+  if (localPoint.y > maxY) {
+    localPoint.y = maxY;
+    result.maxY = true;
+    result.ok = false;
+  }
+  return result;
+}
+
+function reactionZoneWorldToLocal(zone, worldPoint, out = new THREE.Vector3()) {
+  const object = resolveZoneObject(zone);
+  out.copy(worldPoint);
+  if (object?.worldToLocal) {
+    object.worldToLocal(out);
+  }
+  return out;
+}
+
+function reactionZoneLocalToWorld(zone, localPoint, out = new THREE.Vector3()) {
+  const object = resolveZoneObject(zone);
+  out.copy(localPoint);
+  if (object?.localToWorld) {
+    object.localToWorld(out);
+  }
+  return out;
+}
+
+function clampParticleToReactionZone({
+  particle,
+  pool,
+  zone,
+  radiusPadding = 0,
+  yPadding = 0,
+} = {}) {
+  const object = resolveZoneObject(zone);
+  if (!particle || !object?.worldToLocal || !object?.localToWorld) {
+    return { ok: true, radial: false, minY: false, maxY: false };
+  }
+
+  const world = particle.origin.clone();
+  pool?.points?.parent?.localToWorld?.(world);
+  object.worldToLocal(world);
+  const result = clampLocalPointToReactionZone(zone, world, { radiusPadding, yPadding });
+  object.localToWorld(world);
+  pool?.points?.parent?.worldToLocal?.(world);
+  particle.origin.copy(world);
+  return result;
+}
+
+function particlePoolContainedInReactionZone(pool, zone, {
+  activeOnly = true,
+  radiusPadding = 0,
+  yPadding = 0,
+} = {}) {
+  const object = resolveZoneObject(zone);
+  if (!pool?.particles || !object?.worldToLocal) {
+    return true;
+  }
+
+  const world = new THREE.Vector3();
+  const local = new THREE.Vector3();
+  return pool.particles.every((particle) => {
+    if (activeOnly && !particle.active) {
+      return true;
+    }
+    world.copy(particle.origin);
+    pool.points?.parent?.localToWorld?.(world);
+    object.worldToLocal(local.copy(world));
+    return reactionZoneContainsLocalPoint(zone, local, { radiusPadding, yPadding });
+  });
+}
+
+function objectContainedInReactionZone(objectOrApparatus, zone, {
+  present = true,
+  radiusPadding = 0,
+  yPadding = 0,
+} = {}) {
+  if (!present) {
+    return true;
+  }
+
+  const object = objectOrApparatus?.group || objectOrApparatus;
+  const zoneObject = resolveZoneObject(zone);
+  if (!object || !zoneObject?.worldToLocal) {
+    return true;
+  }
+
+  const box = new THREE.Box3().setFromObject(object);
+  if (box.isEmpty()) {
+    return true;
+  }
+
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+  zoneObject.worldToLocal(center);
+
+  const radialHalfExtent = Math.max(size.x, size.z) * 0.5;
+  const verticalHalfExtent = size.y * 0.5;
+  return reactionZoneContainsLocalPoint(zone, center, {
+    radiusPadding: radiusPadding + radialHalfExtent,
+    yPadding: yPadding + verticalHalfExtent,
+  });
 }
 
 function createPrecipitateCloud({
@@ -2888,6 +4175,8 @@ const ChemSharedLib = {
   computeAnchorPlacementPose,
   applyAnchorPlacement,
   createGuidedAnchorMotion,
+  createGuidedPourMotion,
+  createSequencedPourController,
   createContextualLabelPolicy,
   createSpriteTexture,
   createSoftCircleTexture,
@@ -2901,6 +4190,9 @@ const ChemSharedLib = {
   createColorTransition,
   createMaterialProgress,
   createSmokeField,
+  createVesselReactionZone,
+  particlePoolContainedInReactionZone,
+  objectContainedInReactionZone,
   createContainedGasField,
   createPrecipitateCloud,
   createGasCollectionBubbles,

@@ -1,0 +1,14 @@
+{
+  "topic": "So sánh màu kết tủa AgX để nhận biết ion halide",
+  "level": "THPT",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "showcase-bench",
+  "recipe": "agno3-halide-identification",
+  "reaction": "agno3-halide-precipitate",
+  "effects": [
+    "pour-stream",
+    "color-transition"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

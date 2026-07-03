@@ -1,0 +1,17 @@
+{
+  "topic": "Vì sao khí metan trong bếp gas cháy với ngọn lửa xanh?",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "chem-lab-dark",
+  "recipe": "ch4-combustion-flame-test",
+  "reaction": "methane-combustion",
+  "effects": [
+    "bubble-field",
+    "steam-field",
+    "spark-field",
+    "glow-ring",
+    "flame-plume"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

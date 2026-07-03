@@ -1,8 +1,8 @@
 {
   "id": "moist-chlorine-bleaches-colored-paper",
-  "theme": "chem-lab-dark",
-  "cameraPreset": "lab-close",
-  "requiredApparatus": ["litmus-paper", "gas-jar"],
+  "theme": "showcase-bench",
+  "cameraPreset": "flask-showcase-close",
+  "requiredApparatus": ["classic-moist-paper", "classic-erlenmeyer"],
   "interaction": "free-drag-contact",
   "reaction": "moist-chlorine-bleaching",
   "effects": ["color-transition", "smoke-field"],
@@ -11,13 +11,13 @@
     {
       "id": "insert-moist-paper",
       "type": "drag-drop-anchor",
-      "source": "litmus-paper.gripAnchor",
-      "sourcePlacementAnchor": "litmus-paper.sampleZone",
-      "target": "gas-jar.gasVolume",
-      "targetRadius": 0.7,
-      "overlapPadding": 0.3,
-      "placementOffset": [0, 0.02, 0.12],
-      "placementRotation": [0.12, 0, -0.1],
+      "source": "classic-moist-paper.probeGrip",
+      "sourcePlacementAnchor": "classic-moist-paper.stopperSeat",
+      "target": "classic-erlenmeyer.mouth",
+      "targetRadius": 0.52,
+      "overlapPadding": 0.24,
+      "placementOffset": [0, 0.025, 0.01],
+      "placementRotation": [0.02, 0, 0],
       "onComplete": "start-reaction"
     },
     {
@@ -37,7 +37,10 @@
     "initialPaperColor": "#f26b28",
     "finalPaperColor": "#f7f1d8",
     "gasColor": "#d6e86a",
+    "wireColor": "#8993a0",
+    "stopperColor": "#d0c59c",
     "mustShowMoisturePatch": true,
+    "mustShowWireAndStopper": true,
     "mustKeepGasVisibleAfterResult": true
   }
 }

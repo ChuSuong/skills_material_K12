@@ -14,23 +14,32 @@ Xem thêm:
 
 ## Shared library entrypoints
 
-Public apparatus surface hiện đi qua barrel `lib/apparatus/index.js`, gồm các nhóm chính:
+Active experiment recipes dùng `classic-kit` làm default surface:
 
-- `lib/apparatus/core.js`
+- `lib/classic-kit/apparatus.js`
+
+Entry này export đúng apparatus/chemical surface đang dùng cho active classic recipes:
+
+- `createClassicTestTubeApparatus`
+- `createClassicSolidReagentJarApparatus`
+- `createClassicCopperPieceApparatus`
+- `createClassicReagentBottleApparatus`
+- `createZincGranulesApparatus`
+- `clearWater`
+- `diluteAcid`
+
+Self-contained browser entry mặc định cho active classic recipes là:
+
+- `templates/classic-apparatus-inline-snippet.js`
+
+Compatibility surface cho legacy/debug scenes vẫn tồn tại, nhưng không phải default path cho active recipes:
+
+- `lib/apparatus/index.js`
 - `lib/apparatus/presets.js`
-- `lib/apparatus/interactions.js`
-- `lib/apparatus/chemicals.js`
-- `lib/apparatus/contract.js`
-- `lib/apparatus/capabilities.js`
-- `lib/apparatus/registry.js`
-
-Browser entry mặc định vẫn là:
-
 - `templates/apparatus-scaffold.js`
+- `templates/apparatus-inline-snippet.js`
 
-Entry này re-export cùng public surface với barrel để scene browser và test import cùng một API.
-
-Generator mới nên compose scene theo trình tự:
+Generator active nên compose scene theo trình tự:
 
 1. Chọn apparatus preset
 2. Chọn chemical appearance preset
@@ -395,45 +404,51 @@ Khi gọi LLM sinh một chemistry experiment mới, prompt phải yêu cầu r�
 
 ## Library layout cho repo này
 
-Library apparatus chuẩn hiện được tách thành 4 tầng:
+Library apparatus hiện có hai mặt tiền khác nhau:
 
-1. Core helpers:
+1. Active classic surface:
+   - `lib/classic-kit/apparatus.js`
+   - `templates/classic-apparatus-inline-snippet.js`
+   - `scripts/build-classic-apparatus-inline-bundle.mjs`
+   - đây là đường mặc định cho active experiment recipes và các HTML self-contained tương ứng
+2. Shared core + compatibility metadata:
    - `lib/apparatus/core.js`
-   - chứa anchor helpers, liquid controllers, validator runners, và apparatus composer
-2. Contract metadata:
+   - `lib/apparatus/chemicals.js`
    - `lib/apparatus/contract.js`
    - `lib/apparatus/capabilities.js`
    - `lib/apparatus/registry.js`
-   - chuẩn hóa contract metadata, capability matching, và registry query
-3. Preset apparatus:
+   - các helper contract/anchor/controller vẫn là nền chung cho cả classic và legacy surfaces
+3. Legacy preset surface:
    - `lib/apparatus/presets.js`
-   - hiện export các preset factory dùng chung như `createBeakerApparatus`, `createBottleApparatus`, `createReagentBottleApparatus`, `createErlenmeyerApparatus`, `createTestTubeApparatus`, `createDropperApparatus`, `createAlcoholBurnerApparatus`, `createSolidReagentJarApparatus`, `createLitmusPaperApparatus`, và `createFunnelApparatus`
-4. Integration layer:
-   - `lib/apparatus/index.js` là public barrel cho Node/test/browser facade
-   - `templates/apparatus-scaffold.js` là browser module facade để import nhanh
-   - `scripts/build-apparatus-inline-bundle.mjs` sinh ra `templates/apparatus-inline-snippet.js` cho các HTML self-contained
-   - inline bundle được giữ gần với public surface của apparatus để scene self-contained vẫn dùng được các helper/preset/registry chính, nhưng nếu cần canonical module surface đầy đủ thì ưu tiên import từ barrel hoặc scaffold tùy môi trường dùng thật sự của scene đó.
+   - `lib/apparatus/index.js`
+   - `templates/apparatus-scaffold.js`
+   - `templates/apparatus-inline-snippet.js`
+   - `scripts/build-apparatus-inline-bundle.mjs`
+   - chỉ dùng cho legacy scenes hoặc debug tooling chưa migrate sang classic path
 
 ## Cách dùng khuyến nghị
 
-### 1. Scene module bình thường
+### 1. Active scene module bình thường
 
 ```js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
 import {
-  createBeakerApparatus,
-  createBottleApparatus,
-  createErlenmeyerApparatus,
+  createClassicTestTubeApparatus,
+  createClassicReagentBottleApparatus,
+  createZincGranulesApparatus,
+  diluteAcid,
+} from '../lib/classic-kit/apparatus.js';
+import {
   makeContract,
   ApparatusContractRegistry,
   validatePourAlignment,
   runApparatusValidators,
-} from '../templates/apparatus-scaffold.js';
+} from '../lib/apparatus/core.js';
 
 const registry = new ApparatusContractRegistry();
 registry.register(makeContract({
-  kind: 'erlenmeyer',
-  family: 'narrow-neck-vessel',
+  kind: 'classic-test-tube',
+  family: 'narrow-vessel',
   capabilities: ['pour-target', 'effect-origin'],
 }));
 
@@ -441,15 +456,17 @@ const pourableTargets = registry.findByCapabilities(['pour-target']);
 console.log(pourableTargets.length);
 ```
 
-### 2. Scene cần self-contained
+### 2. Active scene cần self-contained
 
 1. Chạy:
 
 ```bash
-rtk node scripts/build-apparatus-inline-bundle.mjs
+rtk node scripts/build-classic-apparatus-inline-bundle.mjs
 ```
 
-2. Paste nội dung `templates/apparatus-inline-snippet.js` vào trong `<script type="module">` sau khi đã import `THREE`.
+2. Paste nội dung `templates/classic-apparatus-inline-snippet.js` vào trong `<script type="module">` sau khi đã import `THREE`.
+
+3. Chỉ dùng `templates/apparatus-inline-snippet.js` nếu bạn đang làm legacy/debug scene cần compatibility surface cũ.
 
 ### 3. Cảnh báo tham số khởi tạo (Initialization Parameters Warning)
 
@@ -477,3 +494,67 @@ const tubeApparatus = createTestTubeApparatus({
 File tham chiếu import-library tối thiểu:
 
 - `examples/apparatus-library-smoke.html`
+
+## Free-drag-pour contract
+
+Khi recipe có cả hai mode — autoplay và free drag-drop tự do — phải theo contract sau. Sai contract này là lý do phổ biến nhất khiến drag-drop build nhưng không hoạt động.
+
+### Tại sao `beginStep` bị block trong drag
+
+`createSequencedPourController.beginStep` gọi `dragController.canStartSequencedMotion(sourceId)`, hàm này kiểm tra `isAtHome(sourceId) === true`. Trong suốt quá trình drag, `isAtHome` luôn là `false` (đây là hành vi đúng — nguồn đang di chuyển). Kết quả: `beginStep` luôn trả `false` khi người dùng kéo thả, khiến pour không bao giờ bắt đầu.
+
+### API chuẩn cho manual drag-drop
+
+**Scene side — khi drop xảy ra:**
+
+Dùng `pourSequence.beginStepFromActiveDrag(stepId)` thay vì `pourSequence.beginStep(stepId, 'manual')`.
+
+```js
+// Trong onDropTarget callback của validTargets:
+onDropTarget() {
+  beginPour(addToNafStep.id, 'manual');
+},
+
+// Trong beginPour:
+function beginPour(stepId, mode = 'manual') {
+  if (mode === 'autoplay') return pourSequence.beginStep(stepId, mode);
+  return pourSequence.beginStepFromActiveDrag(stepId);  // bypasses isAtHome guard
+}
+```
+
+`beginStepFromActiveDrag` bỏ qua đúng một check: `dragController.canStartSequencedMotion`. Tất cả check còn lại (đang có pending/active step, motion đang chạy) vẫn được giữ nguyên.
+
+**KHÔNG làm:** mutate `pourSequence.state` trực tiếp từ ngoài closure.
+
+```js
+// SAI — fragile, phụ thuộc vào implementation detail:
+const seqState = pourSequence.state;
+seqState.pendingStepId = stepId;
+seqState.pendingMode = 'manual';
+```
+
+### API chuẩn cho test harness
+
+Dùng `dragController.simulateDrop(sourceId, targetId)` trong `dragFromPageApi`.
+
+```js
+dragFromPageApi() {
+  return dragController.simulateDrop('agno3_bottle', 'tube_naf.pourTarget');
+},
+```
+
+`simulateDrop`:
+1. Set `isAtHome = false` trên entry (đúng như drag thật).
+2. Tìm target bằng `targetId` trong `entry.validTargets`.
+3. Gọi `entry.onDropTarget(payload)` và `target.onDropTarget(payload)` — cùng path như drag thật.
+4. Gọi `commitSuccess` để trigger return-home.
+
+**KHÔNG dùng** `dragFromPageApi` gọi trực tiếp `beginPour(stepId, 'manual')` — cách đó bypass `isAtHome = false` và không test code path thật của drag.
+
+### Checklist khi implement free-drag-pour
+
+- [ ] Mỗi `onDropTarget` trong `validTargets` gọi `beginPour(stepId, 'manual')`.
+- [ ] `beginPour` với mode manual dùng `pourSequence.beginStepFromActiveDrag(stepId)`.
+- [ ] `dragFromPageApi` dùng `dragController.simulateDrop(sourceId, targetId)`.
+- [ ] `pourSequence` được tạo với `dragController` được truyền vào, `startArgs` đúng cho mỗi step.
+- [ ] Playwright test (golden path) dùng `runVerifierStep` cho autoplay; `dragFromPageApi` cho manual test.

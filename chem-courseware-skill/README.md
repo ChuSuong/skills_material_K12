@@ -46,8 +46,12 @@ The long-term goal is not to handcraft one fixed type of learning material, but 
 
 ### Runtime and verification
 
+- `lib/classic-kit/`
+  Active entry surface for chemistry experiment scenes: close camera families, showcase glass assets, and default interaction policy for containment plus home-return behavior.
+- `lib/apparatus/`
+  Compatibility surface for legacy apparatus/runtime. Scene mới không nên import trực tiếp từ đây nếu đã có `classic-kit`.
 - `templates/`
-  Base templates and lightweight references.
+  Base templates and lightweight references. Active classic recipes assemble with `templates/classic-apparatus-inline-snippet.js`; the full `apparatus-inline-snippet.js` remains the compatibility bundle for legacy/debug tooling.
 - `docs/apparatus-standard.md`
   Shared contract for anchor-based apparatus geometry, constraints, controllers, and validation in 3D experiment scenes.
 - `docs/semantic-draft-contract.md`
@@ -80,6 +84,16 @@ The long-term goal is not to handcraft one fixed type of learning material, but 
 9. Save screenshots or other verification evidence alongside the generated output or under `generated/verify/` when the artifact is standalone evidence.
 10. Run reviewer agents for chemistry clarity and UI/UX polish.
 11. If the reviewers find issues, loop back and refine the draft/runtime/output rather than hand-copying more scene-local helpers.
+
+## Active experiment pipeline
+
+- `classic-kit` is the default surface for chemistry experiment scenes.
+- `scripts/build-classic-apparatus-inline-bundle.mjs` is the active apparatus bundle builder for migrated classic recipes.
+- Current migrated reference recipes:
+  - `zinc-copper-hcl-compare`
+  - `hcl-nahco3-gas-release`
+  - `halogen-halide-displacement-compare`
+- Legacy experiment scenes may still run through `lib/apparatus/`, but they are compatibility-only until migrated.
 
 ## Important current gaps
 

@@ -13,7 +13,15 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
 const exampleDraftPath = path.join(
   repoRoot,
-  'examples/drafts/experiment/iron-cuso4-recipe-builder/semantic-draft.json'
+  'examples/drafts/legacy/experiment/iron-cuso4-recipe-builder/semantic-draft.json'
+);
+const activeExampleDraftPath = path.join(
+  repoRoot,
+  'examples/drafts/experiment/zinc-copper-hcl-compare/semantic-draft.json'
+);
+const activeMoistChlorineDraftPath = path.join(
+  repoRoot,
+  'examples/drafts/experiment/moist-chlorine-bleaches-colored-paper/semantic-draft.json'
 );
 
 test('assembleCourseware writes metadata.json with pending verify status', async () => {
@@ -72,4 +80,66 @@ test('assembleCourseware writes metadata.json with pending verify status', async
   if (/createSceneShell/.test(scene)) {
     assert.match(scene, /const \{ createSceneShell \} = globalThis\.ChemSharedLib;/);
   }
+});
+
+test('assembleCourseware uses the classic-only apparatus bundle for active classic recipes', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'chem-assemble-active-'));
+  const draftsDir = path.join(tempDir, 'drafts');
+  const generatedDir = path.join(tempDir, 'generated');
+
+  await compileSemanticDraft({
+    slug: 'zinc-copper-hcl-compare',
+    draftsDir,
+    draft: JSON.parse(await fs.readFile(activeExampleDraftPath, 'utf8')),
+  });
+
+  await assembleCourseware({
+    kind: 'experiment',
+    slug: 'zinc-copper-hcl-compare',
+    draftsDir,
+    generatedDir,
+  });
+
+  const outputDir = path.join(generatedDir, 'experiment', 'zinc-copper-hcl-compare');
+  const html = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
+
+  assert.match(html, /createClassicTestTubeApparatus/);
+  assert.match(html, /createClassicSolidReagentJarApparatus/);
+  assert.match(html, /createClassicCopperPieceApparatus/);
+  assert.match(html, /createZincGranulesApparatus/);
+  assert.doesNotMatch(html, /\bcreateBeakerApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateErlenmeyerApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateDropperApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateGasJarApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateClassicTestTubeRackApparatus\b/);
+});
+
+test('assembleCourseware uses the classic-only bundle for moist chlorine bleaching', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'chem-assemble-moist-classic-'));
+  const draftsDir = path.join(tempDir, 'drafts');
+  const generatedDir = path.join(tempDir, 'generated');
+
+  await compileSemanticDraft({
+    slug: 'moist-chlorine-bleaches-colored-paper',
+    draftsDir,
+    draft: JSON.parse(await fs.readFile(activeMoistChlorineDraftPath, 'utf8')),
+  });
+
+  await assembleCourseware({
+    kind: 'experiment',
+    slug: 'moist-chlorine-bleaches-colored-paper',
+    draftsDir,
+    generatedDir,
+  });
+
+  const outputDir = path.join(generatedDir, 'experiment', 'moist-chlorine-bleaches-colored-paper');
+  const html = await fs.readFile(path.join(outputDir, 'index.html'), 'utf8');
+
+  assert.match(html, /createClassicErlenmeyerApparatus/);
+  assert.match(html, /createClassicMoistPaperApparatus/);
+  assert.doesNotMatch(html, /\bcreateErlenmeyerApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateLitmusPaperApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateBeakerApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateDropperApparatus\b/);
+  assert.doesNotMatch(html, /\bcreateGasJarApparatus\b/);
 });

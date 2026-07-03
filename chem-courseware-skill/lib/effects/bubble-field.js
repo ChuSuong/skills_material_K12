@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
 import { createParticlePool, createSoftCircleTexture } from './particle-pool.js';
+import { clampParticleToReactionZone } from './reaction-zone.js';
 
 export function createBubbleField({
   parent,
@@ -8,6 +9,12 @@ export function createBubbleField({
   size = 0.24,
   opacity = 0.82,
   name = 'bubble-field',
+  spread = new THREE.Vector3(0.7, 0.12, 0.7),
+  velocity = new THREE.Vector3(0.12, 0.45, 0.12),
+  lifetime = [0.45, 1.1],
+  container = null,
+  radiusPadding = 0.04,
+  yPadding = 0.04,
 } = {}) {
   const texture = createSoftCircleTexture({
     inner: 'rgba(255,255,255,0.96)',
@@ -21,9 +28,9 @@ export function createBubbleField({
     for (let index = 0; index < amount; index += 1) {
       pool.spawn({
         origin,
-        spread: new THREE.Vector3(0.7, 0.12, 0.7),
-        velocity: new THREE.Vector3(0.12, 0.45 + intensity * 0.55, 0.12),
-        lifetime: [0.45, 1.1],
+        spread,
+        velocity: new THREE.Vector3(velocity.x, velocity.y + intensity * 0.55, velocity.z),
+        lifetime,
       });
     }
   }
@@ -34,6 +41,15 @@ export function createBubbleField({
       particle.velocity.y += dt * 0.2;
       particle.velocity.x *= 0.98;
       particle.velocity.z *= 0.98;
+      if (container) {
+        clampParticleToReactionZone({
+          particle,
+          pool,
+          zone: container,
+          radiusPadding,
+          yPadding,
+        });
+      }
       pool.scales[index] = (1 - t) * (0.55 + Math.sin((index + elapsed) * 1.7) * 0.08);
       pool.alphas[index] = 1 - t;
     });

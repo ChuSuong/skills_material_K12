@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { isActiveClassicRecipeId } from './classic-kit-active-config.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
@@ -41,19 +43,46 @@ function toRepoRelative(filePath) {
   return path.relative(repoRoot, filePath).replace(/\\/g, '/');
 }
 
-function classifyGenerated(filePath) {
+async function classifyGenerated(filePath) {
   const relativePath = toRepoRelative(filePath);
+  const relativeDir = path.dirname(relativePath);
 
   if (/^generated\/legacy\/.+\.html$/.test(relativePath)) {
     return { category: 'legacy-reference', reason: 'top-level standalone legacy artifact moved under generated/legacy/' };
   }
 
+  if (/^generated\/[^/]+\/[^/]+\/[^/]+\//.test(`${relativeDir}/`)) {
+    return { category: 'stale-generated', reason: 'nested generated output tree is not a canonical assembled artifact path' };
+  }
+
   if (/^generated\/[^/]+\/[^/]+\/index\.html$/.test(relativePath)) {
+    const hasCanonicalSiblings = await Promise.all([
+      pathExists(path.join(repoRoot, relativeDir, 'hud.html')),
+      pathExists(path.join(repoRoot, relativeDir, 'scene.js')),
+      pathExists(path.join(repoRoot, relativeDir, 'metadata.json')),
+    ]);
+
+    if (hasCanonicalSiblings.every(Boolean)) {
+      const slug = relativeDir.split('/').at(-1) || '';
+      return {
+        category: isActiveClassicRecipeId(slug) ? 'active-contract' : 'legacy-reference',
+        reason: isActiveClassicRecipeId(slug)
+          ? 'matches canonical assembled output for an active classic recipe'
+          : 'canonical assembled output exists, but recipe is not in the active classic set',
+      };
+    }
+
     return { category: 'legacy-reference', reason: 'generated HTML exists outside the active compiler metadata contract' };
   }
 
   if (/^generated\/[^/]+\/[^/]+\/(hud\.html|scene\.js|metadata\.json)$/.test(relativePath)) {
-    return { category: 'active-contract', reason: 'matches assembled V1 compiler output contract' };
+    const slug = relativeDir.split('/').at(-1) || '';
+    return {
+      category: isActiveClassicRecipeId(slug) ? 'active-contract' : 'legacy-reference',
+      reason: isActiveClassicRecipeId(slug)
+        ? 'matches canonical assembled output companion file for an active classic recipe'
+        : 'assembled companion file belongs to a non-active generated output',
+    };
   }
 
   if (/^generated\/verify\//.test(relativePath)) {
@@ -98,10 +127,10 @@ function printSection(title, records) {
 }
 
 async function main() {
-  const generatedFiles = (await listFiles(generatedRoot)).map((filePath) => ({
+  const generatedFiles = await Promise.all((await listFiles(generatedRoot)).map(async (filePath) => ({
     path: toRepoRelative(filePath),
-    ...classifyGenerated(filePath),
-  }));
+    ...(await classifyGenerated(filePath)),
+  })));
 
   const exampleFiles = (await listFiles(examplesRoot)).map((filePath) => ({
     path: toRepoRelative(filePath),
@@ -111,6 +140,7 @@ async function main() {
   const sections = [
     ['active-contract', generatedFiles.filter((item) => item.category === 'active-contract')],
     ['legacy-reference', generatedFiles.filter((item) => item.category === 'legacy-reference')],
+    ['stale-generated', generatedFiles.filter((item) => item.category === 'stale-generated')],
     ['verification-artifact', generatedFiles.filter((item) => item.category === 'verification-artifact')],
     ['stable-fixture', exampleFiles.filter((item) => item.category === 'stable-fixture')],
     ['active-draft-fixture', exampleFiles.filter((item) => item.category === 'active-draft-fixture')],

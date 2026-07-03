@@ -1,29 +1,35 @@
 import { registerApparatusPreset } from './registry.js';
-import { createBeakerApparatus } from './presets/beaker.js';
-import { createBottleApparatus, createReagentBottleApparatus } from './presets/bottle.js';
-import { createErlenmeyerApparatus } from './presets/erlenmeyer.js';
-import { createTestTubeApparatus } from './presets/test-tube.js';
-import { createDropperApparatus } from './presets/dropper.js';
-import { createAlcoholBurnerApparatus } from './presets/alcohol-burner.js';
-import { createSolidReagentJarApparatus } from './presets/solid-reagent-jar.js';
-import { createLitmusPaperApparatus } from './presets/litmus-paper.js';
-import { createFunnelApparatus } from './presets/funnel.js';
-import { createIronNailApparatus } from './presets/iron-nail.js';
-import { createCopperPieceApparatus } from './presets/copper-piece.js';
-import { createGasGeneratorApparatus } from './presets/gas-generator.js';
-import { createGasDeliveryTubeApparatus } from './presets/gas-delivery-tube.js';
-import { createTestTubeRackApparatus } from './presets/test-tube-rack.js';
-import { createGlassStirringRodApparatus } from './presets/glass-stirring-rod.js';
-import { createSpatulaApparatus } from './presets/spatula.js';
-import { createTripodGauzeApparatus } from './presets/tripod-gauze.js';
-import { createEvaporatingDishApparatus } from './presets/evaporating-dish.js';
-import { createRoundBottomFlaskApparatus } from './presets/round-bottom-flask.js';
-import { createWatchGlassApparatus } from './presets/watch-glass.js';
-import { createFilterPaperApparatus } from './presets/filter-paper.js';
-import { createGasJarApparatus } from './presets/gas-jar.js';
-import { createRetortStandClampApparatus } from './presets/retort-stand-clamp.js';
-import { createElectrodePairApparatus } from './presets/electrode-pair.js';
-import { createDcPowerSupplyApparatus } from './presets/dc-power-supply.js';
+import { createBeakerApparatus } from '../legacy/apparatus/presets/beaker.js';
+import { createBottleApparatus, createReagentBottleApparatus } from '../legacy/apparatus/presets/bottle.js';
+import { createErlenmeyerApparatus } from '../legacy/apparatus/presets/erlenmeyer.js';
+import { createTestTubeApparatus } from '../legacy/apparatus/presets/test-tube.js';
+import { createDropperApparatus } from '../legacy/apparatus/presets/dropper.js';
+import { createAlcoholBurnerApparatus } from '../legacy/apparatus/presets/alcohol-burner.js';
+import { createSolidReagentJarApparatus } from '../legacy/apparatus/presets/solid-reagent-jar.js';
+import { createLitmusPaperApparatus } from '../legacy/apparatus/presets/litmus-paper.js';
+import { createFunnelApparatus } from '../legacy/apparatus/presets/funnel.js';
+import { createIronNailApparatus } from '../legacy/apparatus/presets/iron-nail.js';
+import { createCopperPieceApparatus } from '../legacy/apparatus/presets/copper-piece.js';
+import { createZincGranulesApparatus } from './presets/zinc-granules.js';
+import { createGasGeneratorApparatus } from '../legacy/apparatus/presets/gas-generator.js';
+import { createGasDeliveryTubeApparatus } from '../legacy/apparatus/presets/gas-delivery-tube.js';
+import { createTestTubeRackApparatus } from '../legacy/apparatus/presets/test-tube-rack.js';
+import { createGlassStirringRodApparatus } from '../legacy/apparatus/presets/glass-stirring-rod.js';
+import { createSpatulaApparatus } from '../legacy/apparatus/presets/spatula.js';
+import { createTripodGauzeApparatus } from '../legacy/apparatus/presets/tripod-gauze.js';
+import { createEvaporatingDishApparatus } from '../legacy/apparatus/presets/evaporating-dish.js';
+import { createRoundBottomFlaskApparatus } from '../legacy/apparatus/presets/round-bottom-flask.js';
+import { createWatchGlassApparatus } from '../legacy/apparatus/presets/watch-glass.js';
+import { createFilterPaperApparatus } from '../legacy/apparatus/presets/filter-paper.js';
+import { createGasJarApparatus } from '../legacy/apparatus/presets/gas-jar.js';
+import { createRetortStandClampApparatus } from '../legacy/apparatus/presets/retort-stand-clamp.js';
+import { createElectrodePairApparatus } from '../legacy/apparatus/presets/electrode-pair.js';
+import { createDcPowerSupplyApparatus } from '../legacy/apparatus/presets/dc-power-supply.js';
+import { createClassicTestTubeApparatus } from './presets/classic-test-tube.js';
+import { createClassicTestTubeRackApparatus } from './presets/classic-test-tube-rack.js';
+import { createClassicSolidReagentJarApparatus } from './presets/classic-solid-reagent-jar.js';
+import { createClassicCopperPieceApparatus } from './presets/classic-copper-piece.js';
+import { createClassicReagentBottleApparatus } from './presets/classic-reagent-bottle.js';
 
 export {
   createBeakerApparatus,
@@ -38,6 +44,7 @@ export {
   createFunnelApparatus,
   createIronNailApparatus,
   createCopperPieceApparatus,
+  createZincGranulesApparatus,
   createGasGeneratorApparatus,
   createGasDeliveryTubeApparatus,
   createTestTubeRackApparatus,
@@ -52,6 +59,11 @@ export {
   createRetortStandClampApparatus,
   createElectrodePairApparatus,
   createDcPowerSupplyApparatus,
+  createClassicTestTubeApparatus,
+  createClassicTestTubeRackApparatus,
+  createClassicSolidReagentJarApparatus,
+  createClassicCopperPieceApparatus,
+  createClassicReagentBottleApparatus,
 };
 
 const presetDefinitions = [
@@ -162,6 +174,15 @@ const presetDefinitions = [
     interactionAnchors: ['gripAnchor', 'interactionZone', 'labelAnchor'],
     interactionMode: 'manual-placement',
     create: createCopperPieceApparatus,
+  },
+  {
+    key: 'zinc-granules',
+    kind: 'zinc-granules',
+    family: 'solid-metal-sample',
+    capabilities: ['solid-sample', 'metal-sample', 'grip-point', 'effect-origin', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['interactionZone', 'effectOrigin'],
+    interactionMode: 'manual-placement',
+    create: createZincGranulesApparatus,
   },
   {
     key: 'gas-generator',
@@ -289,6 +310,52 @@ const presetDefinitions = [
     interactionAnchors: ['gripAnchor', 'interactionZone', 'positiveTerminal', 'negativeTerminal', 'wireExit'],
     interactionMode: 'manual-placement',
     create: createDcPowerSupplyApparatus,
+  },
+  {
+    key: 'classic-test-tube',
+    kind: 'classic-test-tube',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'effect-origin', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'sampleFloor'],
+    interactionMode: 'manual-placement',
+    create: createClassicTestTubeApparatus,
+  },
+  {
+    key: 'classic-test-tube-rack',
+    kind: 'classic-test-tube-rack',
+    family: 'showcase-support',
+    capabilities: ['support-target', 'tube-holder', 'slot-layout', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'supportPlane'],
+    interactionMode: 'manual-placement',
+    create: createClassicTestTubeRackApparatus,
+    meta: { defaultSlots: 2, dynamicAnchors: 'slot0..slotN-1' },
+  },
+  {
+    key: 'classic-solid-reagent-jar',
+    kind: 'classic-solid-reagent-jar',
+    family: 'showcase-solid-jar',
+    capabilities: ['solid-fill', 'transfer-source', 'grip-point', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'dropAnchor'],
+    interactionMode: 'manual-placement',
+    create: createClassicSolidReagentJarApparatus,
+  },
+  {
+    key: 'classic-copper-piece',
+    kind: 'classic-copper-piece',
+    family: 'showcase-metal-sample',
+    capabilities: ['solid-sample', 'metal-sample', 'grip-point', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'sampleZone'],
+    interactionMode: 'manual-placement',
+    create: createClassicCopperPieceApparatus,
+  },
+  {
+    key: 'classic-reagent-bottle',
+    kind: 'classic-reagent-bottle',
+    family: 'showcase-bottle',
+    capabilities: ['liquid-container', 'transfer-source', 'grip-point', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'pourAlign', 'nozzle'],
+    interactionMode: 'manual-placement',
+    create: createClassicReagentBottleApparatus,
   },
 ];
 

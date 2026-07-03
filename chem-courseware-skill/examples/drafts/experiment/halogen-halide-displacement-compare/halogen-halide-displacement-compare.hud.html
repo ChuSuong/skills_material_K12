@@ -1,0 +1,57 @@
+<div class="hud hud--lab-showcase" data-courseware-ui="learner-lab">
+  <div class="panel" data-courseware-role="intro">
+    <h1 class="lesson-title">Phản ứng thế của một số muối halide</h1>
+    <p class="lesson-desc lesson-prompt">Cho nước Cl2 vào ống (1), (2) và nước Br2 vào ống (3) để so sánh màu tạo thành trong từng ống nghiệm.</p>
+    <p class="lesson-desc lesson-hint">Recipe: halogen-halide-displacement-compare</p>
+  </div>
+
+  <div class="legend" data-courseware-role="legend">
+    <div class="legend-title">Góc nhìn và thao tác</div>
+    <ul>
+      <li>Camera giữ bình, lọ, ống nghiệm đủ gần để quan sát rõ.</li>
+      <li>Thả mẫu vào đúng miệng dụng cụ để bắt đầu hoặc so sánh phản ứng.</li>
+      <li>Hiện tượng luôn bị khóa trong phạm vi bình, lọ, ống nghiệm.</li>
+    </ul>
+  </div>
+
+
+
+  <div class="comparison-table" data-learner-widget="halogen-comparison">
+    <div class="comparison-head">So sánh màu sau phản ứng</div>
+    <div class="comparison-row" data-step="tube1" data-state="idle">
+      <div class="sample-pill sample-pill--zinc">Ống 1</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">NaBr + Cl2</div>
+        <div class="comparison-detail" id="halideTube1">Chưa thao tác.</div>
+      </div>
+    </div>
+    <div class="comparison-row" data-step="tube2" data-state="idle">
+      <div class="sample-pill sample-pill--zinc">Ống 2</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">NaI + Cl2</div>
+        <div class="comparison-detail" id="halideTube2">Chưa thao tác.</div>
+      </div>
+    </div>
+    <div class="comparison-row" data-step="tube3" data-state="idle">
+      <div class="sample-pill sample-pill--copper">Ống 3</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">NaI + Br2</div>
+        <div class="comparison-detail" id="halideTube3">Chưa thao tác.</div>
+      </div>
+    </div>
+    <div class="equation-strip" id="halideConclusion">Kết luận sẽ hiện sau khi hoàn tất ba ống nghiệm.</div>
+  </div>
+
+
+
+  <div class="status" data-courseware-role="status">
+    <div class="status-label">Trạng thái thí nghiệm</div>
+    <div id="statusText">Sẵn sàng. Hãy nhỏ Cl2 vào ống (1), (2) rồi nhỏ Br2 vào ống (3).</div>
+    <div id="statusSub">Theo dõi màu của từng ống nghiệm để suy ra Cl2 > Br2 > I2 về tính oxi hóa.</div>
+  </div>
+
+  <div class="controls" data-courseware-role="controls">
+    <button class="secondary" id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+    <button id="primaryAction" data-action="autoplay" type="button">Chạy tự động</button>
+  </div>
+</div>

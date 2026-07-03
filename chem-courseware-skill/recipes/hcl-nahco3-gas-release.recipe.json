@@ -1,0 +1,48 @@
+{
+  "id": "hcl-nahco3-gas-release",
+  "theme": "showcase-bench",
+  "cameraPreset": "showcase-close",
+  "requiredApparatus": [
+    "classic-solid-reagent-jar",
+    "classic-test-tube",
+    "classic-reagent-bottle"
+  ],
+  "interaction": "free-drag-pour",
+  "reaction": "acid-carbonate-gas",
+  "effects": [
+    
+    "bubble-field"
+  ],
+  "resultSustainEffects": [
+    "bubble-field"
+  ],
+  "steps": [
+    {
+      "id": "add-solid",
+      "type": "drag-drop-anchor",
+      "source": "classic-solid-reagent-jar.gripAnchor",
+      "sourcePlacementAnchor": "classic-solid-reagent-jar.dropAnchor",
+      "target": "classic-test-tube.mouth",
+      "targetRadius": 0.42,
+      "overlapPadding": 0.22,
+      "onComplete": "stage-solid"
+    },
+    {
+      "id": "add-acid",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.mouth",
+      "targetRadius": 0.38,
+      "overlapPadding": 0.2,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "acid-carbonate-gas",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

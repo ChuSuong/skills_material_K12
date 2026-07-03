@@ -1,0 +1,50 @@
+<div class="hud hud--lab-showcase" data-courseware-ui="learner-lab">
+  <div class="panel" data-courseware-role="intro">
+    <h1 class="lesson-title">Dung dịch HCl tác dụng với kim loại</h1>
+    <p class="lesson-desc lesson-prompt">Thả hạt Zn vào ống (1), thả lá Cu vào ống (2), rồi so sánh hiện tượng giữa hai kim loại.</p>
+    <p class="lesson-desc lesson-hint">Recipe: zinc-copper-hcl-compare</p>
+  </div>
+
+  <div class="legend" data-courseware-role="legend">
+    <div class="legend-title">Góc nhìn và thao tác</div>
+    <ul>
+      <li>Camera giữ bình, lọ, ống nghiệm đủ gần để quan sát rõ.</li>
+      <li>Thả mẫu vào đúng miệng dụng cụ để bắt đầu hoặc so sánh phản ứng.</li>
+      <li>Hiện tượng luôn bị khóa trong phạm vi bình, lọ, ống nghiệm.</li>
+    </ul>
+  </div>
+
+
+  <div class="comparison-table" data-learner-widget="metal-comparison">
+    <div class="comparison-head">So sánh hiện tượng</div>
+    <div class="comparison-row" data-sample="zinc" data-state="idle">
+      <div class="sample-pill sample-pill--zinc">Zn</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">Ống (1)</div>
+        <div class="comparison-detail" id="comparisonZinc">Chưa thao tác.</div>
+      </div>
+    </div>
+    <div class="comparison-row" data-sample="copper" data-state="idle">
+      <div class="sample-pill sample-pill--copper">Cu</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">Ống (2)</div>
+        <div class="comparison-detail" id="comparisonCopper">Chưa thao tác.</div>
+  </div>
+    </div>
+    <div class="equation-strip" id="equationStrip">Zn + 2HCl -> ZnCl2 + H2</div>
+  </div>
+
+
+
+
+  <div class="status" data-courseware-role="status">
+    <div class="status-label">Trạng thái thí nghiệm</div>
+    <div id="statusText">Sẵn sàng. Hãy đưa Zn vào ống nghiệm (1) và thả Cu vào ống nghiệm (2).</div>
+    <div id="statusSub">So sánh kim loại đứng trước và đứng sau H trong dãy hoạt động hóa học.</div>
+  </div>
+
+  <div class="controls" data-courseware-role="controls">
+    <button class="secondary" id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+    <button id="primaryAction" data-action="autoplay" type="button">Chạy tự động</button>
+  </div>
+</div>

@@ -1,0 +1,91 @@
+{
+  "kind": "recipe-proposal",
+  "status": "needs-builder",
+  "topic": "Khí chlorine ẩm tẩy màu giấy màu: Cl2 phản ứng với nước tạo HClO có tính oxi hóa mạnh",
+  "level": "THCS",
+  "language": "vi",
+  "matchedPattern": "drag-drop-contact",
+  "referenceCases": [
+    "iron-cuso4-displacement"
+  ],
+  "proposedRecipe": {
+    "id": "moist-chlorine-bleaches-colored-paper",
+    "theme": "chem-lab-dark",
+    "cameraPreset": "lab-close",
+    "requiredApparatus": [
+      "litmus-paper",
+      "gas-jar"
+    ],
+    "interaction": "free-drag-contact",
+    "reaction": "moist-chlorine-bleaching",
+      "effects": [
+        "color-transition",
+        "glow-ring",
+        "contained-gas-field"
+      ],
+      "resultSustainEffects": [
+        "contained-gas-field"
+      ],
+    "steps": [
+      {
+        "id": "insert-moist-paper",
+        "type": "drag-drop-anchor",
+        "source": "litmus-paper.gripAnchor",
+        "sourcePlacementAnchor": "litmus-paper.sampleZone",
+        "target": "gas-jar.gasVolume",
+        "targetRadius": 0.7,
+        "overlapPadding": 0.3,
+        "placementOffset": [
+          0,
+          0.14,
+          0
+        ],
+        "placementRotation": [
+          0.12,
+          0,
+          -0.1
+        ],
+        "onComplete": "start-reaction"
+      },
+      {
+        "id": "finish-reaction",
+        "type": "reaction-progress",
+        "reaction": "moist-chlorine-bleaching",
+        "successPhase": "result"
+      }
+    ],
+    "verifier": "run-reaction-golden-path",
+    "chemistryNotes": {
+      "equation": "Cl2 + H2O ⇌ HCl + HClO",
+      "observableChange": "Mẩu giấy màu ẩm chuyển từ màu cam/đỏ sang gần trắng khi đi vào vùng khí Cl2 ẩm.",
+      "explanation": "HClO tạo thành trong nước có tính oxi hóa mạnh, phá hủy chất màu trên giấy; chlorine vừa bị khử thành HCl vừa bị oxi hóa thành HClO."
+    },
+    "visualRequirements": {
+      "initialPaperColor": "#f26b28",
+      "finalPaperColor": "#f7f1d8",
+      "gasColor": "#d6e86a",
+      "mustShowMoisturePatch": true,
+      "mustKeepGasVisibleAfterResult": true
+    }
+  },
+  "builder": {
+    "supported": false,
+    "reason": "No recipe-scene-builder implementation exists yet for gas-contact bleaching in a chlorine gas jar.",
+    "nextActions": [
+      "Add a moist-chlorine-bleaching reaction runtime that drives paper color from colored to pale and keeps the gas haze alive in result phase.",
+      "Use createContainedGasField for gas confined inside a gas jar rather than a free smoke field.",
+      "Implement recipe support in scripts/build-recipe-scene.mjs using gas-jar.gasVolume for overlap completion.",
+      "Add recipe contract, source audit, Playwright contract smoke, and interaction tests."
+    ]
+  },
+  "verification": {
+    "validateOnly": true,
+    "mustNotGenerateHtml": true,
+    "requiredChecksBeforeHtml": [
+      "validateRecipeProposal",
+      "validateRecipeDefinition",
+      "recipe-scene-builder support",
+      "verify:pw:contract"
+    ]
+  }
+}
