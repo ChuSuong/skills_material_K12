@@ -17,6 +17,7 @@ const files = [
   path.join(repoRoot, 'lib/apparatus/core/validation.js'),
 
   path.join(repoRoot, 'lib/apparatus/chemicals.js'),
+  path.join(repoRoot, 'lib/apparatus/solids.js'),
 
   // Interaction implementations (do not rely on lib/apparatus/interactions.js re-exports
   // because stripModuleSyntax removes them).
@@ -63,6 +64,12 @@ const files = [
   path.join(repoRoot, 'lib/apparatus/presets/classic-solid-reagent-jar.js'),
   path.join(repoRoot, 'lib/apparatus/presets/classic-copper-piece.js'),
   path.join(repoRoot, 'lib/apparatus/presets/classic-reagent-bottle.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-beaker.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-graduated-cylinder.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-round-bottom-flask.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-funnel.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-widemouth-jar.js'),
+  path.join(repoRoot, 'lib/apparatus/presets/classic-alcohol-lamp.js'),
 ];
 
 const outputPath = path.join(repoRoot, 'templates/apparatus-inline-snippet.js');
@@ -154,6 +161,23 @@ const ChemApparatusLib = {
   createClassicSolidReagentJarApparatus,
   createClassicCopperPieceApparatus,
   createClassicReagentBottleApparatus,
+  createClassicBeakerApparatus,
+  createClassicGraduatedCylinderApparatus,
+  createClassicRoundBottomFlaskApparatus,
+  createClassicFunnelApparatus,
+  createClassicWideMouthJarApparatus,
+  createClassicAlcoholLampApparatus,
+  zincGranules,
+  ironFilings,
+  copperTurnings,
+  magnesiumRibbon,
+  sulfurPowder,
+  copperOxidePowder,
+  calciumCarbonateChips,
+  sodiumChunk,
+  solidPresets,
+  resolveSolidAppearance,
+  createGranulePile,
   APPARATUS_PRESET_DEFINITIONS,
   listRegisteredApparatusPresets,
   getRegisteredApparatusPresetDefinition,

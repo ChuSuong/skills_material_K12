@@ -5,6 +5,7 @@ Standard chung để sinh chemistry 3D experiment mà không để LLM tự đo�
 Xem thêm:
 
 - [Chemistry 3D Edge-Case Checklist](./edge-case-checklist.md)
+- [Apparatus content-fit matrix](./apparatus-fit-matrix.md)
 
 ## Mục tiêu
 
@@ -489,11 +490,7 @@ const tubeApparatus = createTestTubeApparatus({
 });
 ```
 
-### 4. Smoke reference
 
-File tham chiếu import-library tối thiểu:
-
-- `examples/apparatus-library-smoke.html`
 
 ## Free-drag-pour contract
 

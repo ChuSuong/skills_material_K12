@@ -122,6 +122,7 @@ test('apparatus scaffold mirrors the public barrel entrypoint', async () => {
 
   assert.match(indexSource, /export \* from '\.\/core\.js';/);
   assert.match(indexSource, /export \* from '\.\/chemicals\.js';/);
+  assert.match(indexSource, /export \* from '\.\/solids\.js';/);
   assert.match(indexSource, /export \* from '\.\/interactions\.js';/);
   assert.match(indexSource, /export \* from '\.\/presets\.js';/);
   assert.match(indexSource, /export \* from '\.\/capabilities\.js';/);

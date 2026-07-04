@@ -5,7 +5,19 @@ import { clearWater } from '../chemicals.js';
 export { THREE, clamp, makeAnchor, validateFillLevel };
 
 export function cloneMaterial(material, fallback) {
-  return (material || fallback).clone();
+  if (!material) {
+    return fallback.clone();
+  }
+  if (typeof material.clone === 'function') {
+    return material.clone();
+  }
+  const clone = fallback.clone();
+  if (typeof clone.setValues === 'function') {
+    clone.setValues(material);
+  } else {
+    Object.assign(clone, material);
+  }
+  return clone;
 }
 
 export function applyTransform(group, position = [0, 0, 0], rotation = [0, 0, 0]) {

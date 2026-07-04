@@ -52,7 +52,7 @@ test('classic showcase tube uses rounded liquid volume with rim geometry and no 
 test('classic showcase glass assets share glass and rim grammar without fake highlight overlays', async () => {
   const sources = await Promise.all([
     readRepoFile('lib/apparatus/presets/classic-test-tube.js'),
-    readRepoFile('lib/apparatus/presets/classic-solid-reagent-jar.js'),
+    readRepoFile('lib/apparatus/presets/classic-widemouth-jar.js'),
     readRepoFile('lib/apparatus/presets/classic-reagent-bottle.js'),
   ]);
 
@@ -63,22 +63,4 @@ test('classic showcase glass assets share glass and rim grammar without fake hig
     assert.doesNotMatch(source, /new THREE\.PlaneGeometry\(radius \* 0\.[0-9]+, height \* 0\.[0-9]+\)/);
     assert.match(source, /visualFamily: 'classic-showcase'/);
   }
-});
-
-test('generated recipe HUD keeps the learner-facing lab showcase pattern', async () => {
-  const [builderSource, assemblerSource] = await Promise.all([
-    readRepoFile('scripts/build-recipe-scene.mjs'),
-    readRepoFile('scripts/assemble-courseware.mjs'),
-  ]);
-
-  assert.match(builderSource, /data-courseware-ui="learner-lab"/);
-  assert.match(builderSource, /hud--lab-showcase/);
-  assert.match(builderSource, /lesson-prompt/);
-  assert.match(builderSource, /data-learner-widget="metal-comparison"/);
-  assert.match(builderSource, /data-learner-widget="moist-chlorine-compare"/);
-  assert.match(builderSource, /comparisonState: getComparisonState\(\)/);
-
-  assert.match(assemblerSource, /\.panel \.lesson-title/);
-  assert.match(assemblerSource, /#statusText/);
-  assert.match(assemblerSource, /button\.secondary/);
 });

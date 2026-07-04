@@ -87,6 +87,12 @@ function buildHtml({ topic, hudMarkup, sceneInlineCode, sharedInlineSnippet, app
         line-height: 1.5;
         font-size: 14px;
       }
+      .panel .formula {
+        margin: 0 0 10px;
+        color: #f7d07e;
+        font-size: 14px;
+        line-height: 1.45;
+      }
       .panel .lesson-hint {
         margin-top: 12px;
         color: #d7f4ff;
@@ -97,7 +103,7 @@ function buildHtml({ topic, hudMarkup, sceneInlineCode, sharedInlineSnippet, app
         width: 280px;
         padding: 16px 18px;
       }
-      .legend-title {
+      .legend h2 {
         margin: 0 0 10px;
         font-size: 15px;
         letter-spacing: 0.02em;
@@ -111,7 +117,19 @@ function buildHtml({ topic, hudMarkup, sceneInlineCode, sharedInlineSnippet, app
         font-size: 13px;
         line-height: 1.55;
       }
-      .hud--lab-showcase .lesson-prompt {
+      .questions {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .questions .answer {
+        margin-top: 4px;
+        color: #d7f4ff;
+      }
+      .hud--pedagogical-info .lesson-prompt {
         color: rgba(255, 255, 255, 0.88);
       }
       .comparison-table {

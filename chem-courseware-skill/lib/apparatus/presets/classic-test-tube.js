@@ -16,7 +16,22 @@ import {
   createClassicLiquidMaterial,
   createClassicLiquidSurfaceMaterial,
   createRoundedTubeGeometry,
+  latheFromProfile,
 } from './classic-showcase.js';
+
+function testTubeProfile(radius, height, curveSegments = 14) {
+  const pts = [];
+  for (let i = 0; i <= curveSegments; i += 1) {
+    const t = i / curveSegments;
+    const phi = t * Math.PI * 0.5;
+    const x = Math.max(0.0001, radius * Math.sin(phi));
+    const y = radius * (1 - Math.cos(phi));
+    pts.push([x, y]);
+  }
+  pts.push([radius, height - radius * 0.04]);
+  pts.push([radius * 1.02, height]);
+  return pts;
+}
 
 export function createClassicTestTubeApparatus({
   parent,
@@ -37,7 +52,6 @@ export function createClassicTestTubeApparatus({
   addToParent(parent, group);
 
   const glassMaterial = createClassicGlassMaterial(materials);
-  const baseGlassMaterial = cloneMaterial(materials.baseGlass, glassMaterial);
   const rimMaterial = createClassicGlassRimMaterial(materials);
   const liquidMaterial = createClassicLiquidMaterial(materials, liquidColor ?? appearance?.color ?? 0xe8f8ff);
   const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, surfaceColor ?? appearance?.surfaceColor ?? 0xf8fdff);
@@ -45,26 +59,16 @@ export function createClassicTestTubeApparatus({
   const innerRadius = radius * 0.84;
   const innerHeight = height * 0.78;
 
-  const tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius, height, 48, 1, true),
-    glassMaterial,
+  const body = new THREE.Mesh(
+    latheFromProfile(testTubeProfile(radius, height), 72),
+    cloneMaterial(materials.body, glassMaterial),
   );
-  tube.position.y = height * 0.5;
-  tube.castShadow = true;
-  tube.receiveShadow = true;
-  group.add(tube);
-
-  const bottom = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 48, 28, 0, Math.PI * 2, 0, Math.PI * 0.5),
-    baseGlassMaterial,
-  );
-  bottom.rotation.x = Math.PI;
-  bottom.castShadow = true;
-  bottom.receiveShadow = true;
-  group.add(bottom);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
 
   const mouthRim = new THREE.Mesh(
-    new THREE.TorusGeometry(radius * 1.02, radius * 0.06, 16, 48),
+    new THREE.TorusGeometry(radius * 1.03, radius * 0.05, 16, 48),
     rimMaterial,
   );
   mouthRim.position.y = height;
@@ -143,12 +147,13 @@ export function createClassicTestTubeApparatus({
     kind: 'classic-test-tube',
     family: 'showcase-vessel',
     group,
-    meshes: { tube, bottom, mouthRim, liquid, liquidSurface },
+    meshes: { tube: body, body, bottom: body, mouthRim, liquid, liquidSurface },
     anchors,
     constraints,
     state,
     meta: {
       visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
       appearance: appearance.name,
       liquidProfile,
     },

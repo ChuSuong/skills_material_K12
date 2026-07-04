@@ -9,6 +9,20 @@ export const DEFAULT_HUD = {
     '[data-action="autoplay"]',
     '[data-action="reset"]',
   ],
+  pedagogy: {
+    title: '',
+    formulaHtml: '',
+    intro: '',
+    hint: '',
+    observationTitle: 'Điểm nhấn trực quan',
+    observations: [],
+    questions: [],
+    statusLabel: 'Trạng thái thí nghiệm',
+    initialStatusText: 'Sẵn sàng',
+    initialStatusSub: 'Hãy thao tác với mẫu thử.',
+    primaryActionLabel: 'Chạy tự động',
+    resetLabel: 'Đặt lại',
+  },
 };
 
 export const DEFAULT_OUTPUT = {

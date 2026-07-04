@@ -88,6 +88,7 @@ The long-term goal is not to handcraft one fixed type of learning material, but 
 ## Active experiment pipeline
 
 - `classic-kit` is the default surface for chemistry experiment scenes.
+- `hud.pedagogy` in `semantic-draft.json` is the default learner-facing HTML lane. New experiment outputs should render through the shared pedagogical HUD pattern instead of ad-hoc `Recipe:`/generic legend shells.
 - `scripts/build-classic-apparatus-inline-bundle.mjs` is the active apparatus bundle builder for migrated classic recipes.
 - Current migrated reference recipes:
   - `zinc-copper-hcl-compare`

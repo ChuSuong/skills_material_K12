@@ -5,9 +5,9 @@ The repository keeps the standalone HTML delivery model, but moves fragile repea
 ## Pipeline
 
 1. Route the lesson request to a chemistry courseware skill.
-2. Produce one semantic draft.
-3. Compile the draft into HUD, scene, and metadata artifacts.
-4. Assemble those artifacts into standalone HTML.
+2. Produce one semantic draft (`semantic-draft.json`).
+3. Write HUD, scene, and metadata draft artifacts by hand using `lib/` as the authoritative source.
+4. Assemble those artifacts into standalone HTML via `scripts/assemble-courseware.mjs`.
 5. Run format, smoke, canvas, interaction, visibility, and packaging checks.
 6. Iterate on the draft or runtime, not by hand-copying scene-local helpers.
 

@@ -17,11 +17,10 @@ Start from the chemistry teaching goal, not from the rendering technology.
 ## Architecture conventions
 
 - **Skill boundary:** This orchestrator decides the courseware route and verification gates. It must not duplicate detailed 3D apparatus, interaction, effect, or reaction rules; those belong in `chem-3d-experiment`.
-- **Compiler-first pipeline:** Prefer producing a semantic draft and assembling through `scripts/compile-semantic-draft.mjs` + `scripts/assemble-courseware.mjs` before hand-writing standalone HTML. See `docs/semantic-draft-contract.md` and `docs/generated-artifact-contract.md`.
-- **Recipe-builder first experiments:** For common 3D experiments, choose an existing `recipes/*.recipe.json` before writing scene code. If `scripts/build-recipe-scene.mjs` supports the recipe, generate only `semantic-draft.json` and run `rtk node scripts/compile-semantic-draft.mjs <draft-dir>/semantic-draft.json`; do not hand-write `<slug>.scene.js`.
-- **Active classic path:** For migrated experiment recipes, assume `classic-kit` is the default apparatus/runtime surface and the assembled HTML should use the classic-only apparatus bundle instead of the full compatibility apparatus registry.
-- **Proposal-first unsupported experiments:** If a lesson maps to a known chemistry pattern but no supported recipe builder exists, create `recipe-proposal.json` from `recipes/pattern-catalog.json` instead of generating HTML. See `docs/recipe-proposal-workflow.md`.
-- **3D implementation contract:** After routing to `chem-3d-experiment`, follow that skill's apparatus, recipe, interaction, effect, and reaction hard gates. Do not restate or override them here.
+- **Assemble-first pipeline:** Produce `hud.html + scene.js + meta.json` draft artifacts and bundle into standalone HTML through `scripts/assemble-courseware.mjs`. See `docs/semantic-draft-contract.md` and `docs/generated-artifact-contract.md`.
+- **Pedagogy-first HUD default:** Default learner-facing HTML must come from `hud.pedagogy` and the shared pedagogical HUD pattern. Do not fall back to generic `Recipe:`/interaction-legend shells for new outputs.
+- **Active classic path:** Assume `classic-kit` is the default apparatus/runtime surface; assembled HTML should use the classic-only apparatus bundle instead of the full compatibility apparatus registry.
+- **3D implementation contract:** After routing to `chem-3d-experiment`, follow that skill's apparatus, interaction, effect, and reaction hard gates. Do not restate or override them here.
 
 ## Supported courseware types
 1. **3D experiment simulation**
@@ -51,11 +50,8 @@ Before picking a route, extract:
 
 ## New 3D experiment request flow
 For `chem-3d-experiment` requests:
-- First check whether the request maps to a recipe supported by `scripts/build-recipe-scene.mjs`.
-- If supported, create `semantic-draft.json`, compile, assemble, and verify.
-- If a recipe exists but is not builder-supported, stop before HTML and create a `recipe-proposal.json` or builder backlog item.
-- If no recipe exists but the request matches a pattern in `recipes/pattern-catalog.json`, generate `recipe-proposal.json` using `scripts/propose-recipe-from-pattern.mjs`, then validate with `scripts/validate-recipe-proposal.mjs`.
-- Do not hand-write `<slug>.scene.js` for unsupported or missing recipes.
+- Write `hud.html`, `scene.js`, and `meta.json` using `lib/apparatus/presets/`, `lib/reactions/`, `lib/effects/`, and `lib/runtime/camera-presets.js` + `theme-presets.js` as the authoritative source for apparatus, reaction modules, effect modules, and preset names.
+- Assemble into standalone HTML with `scripts/assemble-courseware.mjs` and verify.
 
 ## Phenomenon mapping (avoid dry diagrams)
 When the prompt sounds like a graph/table/definition (e.g., rate vs time, amount vs time), **do not default to schematic diagrams**.
@@ -126,8 +122,6 @@ Before reporting completion:
 ## Playwright verification order
 Run these checks against the generated HTML output:
 - `node scripts/audit-experiment-scene-contract.mjs <draft-dir>` for apparatus-driven experiments
-- `node scripts/audit-recipe-scene-contract.mjs <draft-dir>` when `semantic-draft.json.recipe` is set
-- `npm run verify:pw:contract` for recipe-builder generated HTML
 - `npm run test:format` with `COURSEWARE_HTML` pointing to the generated file
 - `node scripts/pw-smoke-open-html.mjs <html-path>`
 - `node scripts/pw-assert-canvas-visible.mjs <html-path>`

@@ -76,6 +76,30 @@ export function createClassicShadowMaterial(materials = {}) {
   );
 }
 
+export function latheFromProfile(points2d, radialSegments = 96) {
+  const vecs = points2d.map((p) => new THREE.Vector2(Math.max(0.0001, p[0]), p[1]));
+  return new THREE.LatheGeometry(vecs, radialSegments);
+}
+
+export function closedShellProfile(outerProfile, wallThickness = 0.03) {
+  const outer = outerProfile.map((p) => [Math.max(0.0001, p[0]), p[1]]);
+  const top = outer[outer.length - 1];
+  const bottom = outer[0];
+  const inner = [];
+  for (let i = outer.length - 1; i >= 0; i -= 1) {
+    const [x, y] = outer[i];
+    const shrunkX = Math.max(0.0001, x - wallThickness);
+    const shiftedY = i === 0 ? y + wallThickness : y - (i === outer.length - 1 ? 0.0001 : 0);
+    inner.push([shrunkX, shiftedY]);
+  }
+  return [
+    ...outer,
+    [Math.max(0.0001, top[0] - wallThickness), top[1] - 0.0001],
+    ...inner.slice(1),
+    [0.0001, bottom[1] + wallThickness],
+  ];
+}
+
 export function createRoundedTubeGeometry(
   radius,
   height,

@@ -30,6 +30,12 @@ import { createClassicTestTubeRackApparatus } from './presets/classic-test-tube-
 import { createClassicSolidReagentJarApparatus } from './presets/classic-solid-reagent-jar.js';
 import { createClassicCopperPieceApparatus } from './presets/classic-copper-piece.js';
 import { createClassicReagentBottleApparatus } from './presets/classic-reagent-bottle.js';
+import { createClassicBeakerApparatus } from './presets/classic-beaker.js';
+import { createClassicGraduatedCylinderApparatus } from './presets/classic-graduated-cylinder.js';
+import { createClassicRoundBottomFlaskApparatus } from './presets/classic-round-bottom-flask.js';
+import { createClassicFunnelApparatus } from './presets/classic-funnel.js';
+import { createClassicWideMouthJarApparatus } from './presets/classic-widemouth-jar.js';
+import { createClassicAlcoholLampApparatus } from './presets/classic-alcohol-lamp.js';
 
 export {
   createBeakerApparatus,
@@ -64,6 +70,12 @@ export {
   createClassicSolidReagentJarApparatus,
   createClassicCopperPieceApparatus,
   createClassicReagentBottleApparatus,
+  createClassicBeakerApparatus,
+  createClassicGraduatedCylinderApparatus,
+  createClassicRoundBottomFlaskApparatus,
+  createClassicFunnelApparatus,
+  createClassicWideMouthJarApparatus,
+  createClassicAlcoholLampApparatus,
 };
 
 const presetDefinitions = [
@@ -356,6 +368,60 @@ const presetDefinitions = [
     interactionAnchors: ['gripAnchor', 'interactionZone', 'pourAlign', 'nozzle'],
     interactionMode: 'manual-placement',
     create: createClassicReagentBottleApparatus,
+  },
+  {
+    key: 'classic-beaker',
+    kind: 'classic-beaker',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'heatable', 'steam-origin', 'effect-origin', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'steamOrigin', 'heatZone'],
+    interactionMode: 'manual-placement',
+    create: createClassicBeakerApparatus,
+  },
+  {
+    key: 'classic-graduated-cylinder',
+    kind: 'classic-graduated-cylinder',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'effect-origin', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'readOffset'],
+    interactionMode: 'manual-placement',
+    create: createClassicGraduatedCylinderApparatus,
+  },
+  {
+    key: 'classic-round-bottom-flask',
+    kind: 'classic-round-bottom-flask',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'heatable', 'steam-origin', 'effect-origin', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'steamOrigin', 'heatZone', 'standAnchor', 'clampZone'],
+    interactionMode: 'manual-placement',
+    create: createClassicRoundBottomFlaskApparatus,
+  },
+  {
+    key: 'classic-funnel',
+    kind: 'classic-funnel',
+    family: 'showcase-tool',
+    capabilities: ['pour-target', 'transfer-source', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'stemTip', 'effectOrigin'],
+    interactionMode: 'manual-placement',
+    create: createClassicFunnelApparatus,
+  },
+  {
+    key: 'classic-widemouth-jar',
+    kind: 'classic-widemouth-jar',
+    family: 'showcase-solid-jar',
+    capabilities: ['solid-fill', 'scoop-target', 'transfer-source', 'grip-point', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'dropAnchor', 'scoopTarget', 'sampleFloor', 'stopperRest', 'stopperMount'],
+    interactionMode: 'manual-placement',
+    create: createClassicWideMouthJarApparatus,
+  },
+  {
+    key: 'classic-alcohol-lamp',
+    kind: 'classic-alcohol-lamp',
+    family: 'showcase-heat-source',
+    capabilities: ['heat-source', 'effect-origin', 'label-anchor', 'interaction-anchor', 'ignition-contact', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'ignitionTip', 'heatZone', 'flameOrigin', 'capRest', 'capMount'],
+    interactionMode: 'manual-placement',
+    create: createClassicAlcoholLampApparatus,
   },
 ];
 

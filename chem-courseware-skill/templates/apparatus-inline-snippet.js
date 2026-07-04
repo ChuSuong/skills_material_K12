@@ -14,11 +14,58 @@ function hasCapabilities(contract, required = []) {
   return req.every((cap) => contractCaps.includes(cap));
 }
 
+const CONTENT_KINDS = Object.freeze(['liquid', 'solid', 'gas', 'burner', 'tool']);
+
+const FAMILY_CONTENT_ALLOW_LIST = Object.freeze({
+  'showcase-vessel': ['liquid'],
+  'showcase-solid-jar': ['solid'],
+  'showcase-bottle': ['liquid'],
+  'showcase-heat-source': ['burner'],
+  'showcase-tool': ['tool'],
+  'showcase-metal-sample': ['solid'],
+  'showcase-support': ['tool'],
+  'showcase-moist-paper': ['tool', 'solid'],
+});
+
+function getContentKind(apparatusOrContract) {
+  if (!apparatusOrContract) return null;
+  const direct = apparatusOrContract.contentKind;
+  if (typeof direct === 'string' && direct.trim()) return direct.trim();
+  const fromMeta = apparatusOrContract.meta?.contentKind;
+  if (typeof fromMeta === 'string' && fromMeta.trim()) return fromMeta.trim();
+  const fromContract = apparatusOrContract.contract?.meta?.contentKind
+    ?? apparatusOrContract.contract?.contentKind;
+  if (typeof fromContract === 'string' && fromContract.trim()) return fromContract.trim();
+  return null;
+}
+
+function allowedContentKindsForFamily(family) {
+  if (!family) return null;
+  return FAMILY_CONTENT_ALLOW_LIST[family] ?? null;
+}
+
+function isCompatibleContent(apparatusOrContract, contentKind) {
+  if (!contentKind || !CONTENT_KINDS.includes(contentKind)) return false;
+  const family = apparatusOrContract?.family ?? apparatusOrContract?.contract?.family;
+  const declared = getContentKind(apparatusOrContract);
+  if (declared && declared === contentKind) return true;
+  const allowed = allowedContentKindsForFamily(family);
+  if (allowed && allowed.includes(contentKind)) return true;
+  return false;
+}
+
 function normalizeInteractionAnchors(interactionAnchors = []) {
   if (!Array.isArray(interactionAnchors)) {
     return [];
   }
   return interactionAnchors.filter((anchor) => typeof anchor === 'string' && anchor.trim()).map((anchor) => anchor.trim());
+}
+
+function normalizeContentKind(contentKind) {
+  if (typeof contentKind !== 'string') return undefined;
+  const trimmed = contentKind.trim();
+  if (!trimmed) return undefined;
+  return CONTENT_KINDS.includes(trimmed) ? trimmed : undefined;
 }
 
 function normalizeContract(contract = {}) {
@@ -29,6 +76,7 @@ function normalizeContract(contract = {}) {
   const interactionMode = typeof contract.interactionMode === 'string' && contract.interactionMode.trim()
     ? contract.interactionMode.trim()
     : undefined;
+  const contentKind = normalizeContentKind(contract.contentKind);
   const version = contract.version ?? 1;
 
   return {
@@ -38,12 +86,30 @@ function normalizeContract(contract = {}) {
     capabilities,
     interactionAnchors,
     interactionMode,
+    contentKind,
     version,
   };
 }
 
-function makeContract({ kind, family, capabilities = [], version = 1, ...rest } = {}) {
-  return normalizeContract({ kind, family, capabilities, version, ...rest });
+function makeContract({ kind, family, capabilities = [], contentKind, version = 1, ...rest } = {}) {
+  return normalizeContract({ kind, family, capabilities, contentKind, version, ...rest });
+}
+
+function assertContentFit(apparatus, contentKind) {
+  if (!apparatus) {
+    throw new Error(`assertContentFit: missing apparatus for contentKind='${contentKind}'`);
+  }
+  if (!CONTENT_KINDS.includes(contentKind)) {
+    throw new Error(`assertContentFit: unknown contentKind='${contentKind}'. Allowed: ${CONTENT_KINDS.join(', ')}`);
+  }
+  if (!isCompatibleContent(apparatus, contentKind)) {
+    const kind = apparatus.kind ?? apparatus.contract?.kind ?? 'apparatus';
+    throw new Error(
+      `assertContentFit: ${kind} cannot hold contentKind='${contentKind}'. `
+      + 'Use a container whose family matches this content (e.g. classic-widemouth-jar for solids, classic-reagent-bottle for liquids).',
+    );
+  }
+  return true;
 }
 
 function defineApparatusPreset(definition = {}) {
@@ -660,6 +726,201 @@ function burnerFlame() {
     effectOpacity: 0.48,
     emissiveIntensity: 1.1,
   });
+}
+
+function mulberry32(seed) {
+  let state = seed >>> 0;
+  return function next() {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function buildSolidAppearance(config) {
+  return {
+    kind: 'solid',
+    ...config,
+    createGranuleMaterial(overrides = {}) {
+      return new THREE.MeshStandardMaterial({
+        color: config.color,
+        roughness: config.roughness ?? 0.6,
+        metalness: config.metalness ?? 0.2,
+        flatShading: config.flatShading ?? true,
+        ...overrides,
+      });
+    },
+  };
+}
+
+function zincGranules() {
+  return buildSolidAppearance({
+    name: 'zincGranules',
+    color: 0x8f97a2,
+    size: 0.11,
+    roughness: 0.58,
+    metalness: 0.42,
+    count: 110,
+    mound: 4.5,
+  });
+}
+
+function ironFilings() {
+  return buildSolidAppearance({
+    name: 'ironFilings',
+    color: 0x3c4147,
+    size: 0.075,
+    roughness: 0.72,
+    metalness: 0.5,
+    count: 140,
+    mound: 4.2,
+  });
+}
+
+function copperTurnings() {
+  return buildSolidAppearance({
+    name: 'copperTurnings',
+    color: 0xb95c2b,
+    size: 0.13,
+    roughness: 0.38,
+    metalness: 0.68,
+    count: 90,
+    mound: 4.6,
+  });
+}
+
+function magnesiumRibbon() {
+  return buildSolidAppearance({
+    name: 'magnesiumRibbon',
+    color: 0xcfd2d6,
+    size: 0.09,
+    roughness: 0.46,
+    metalness: 0.55,
+    count: 60,
+    mound: 3.8,
+  });
+}
+
+function sulfurPowder() {
+  return buildSolidAppearance({
+    name: 'sulfurPowder',
+    color: 0xe6c34a,
+    size: 0.045,
+    roughness: 0.9,
+    metalness: 0.02,
+    count: 220,
+    mound: 3.6,
+    flatShading: false,
+  });
+}
+
+function copperOxidePowder() {
+  return buildSolidAppearance({
+    name: 'copperOxidePowder',
+    color: 0x1a1c22,
+    size: 0.05,
+    roughness: 0.88,
+    metalness: 0.08,
+    count: 200,
+    mound: 3.6,
+    flatShading: false,
+  });
+}
+
+function calciumCarbonateChips() {
+  return buildSolidAppearance({
+    name: 'calciumCarbonateChips',
+    color: 0xeae2d0,
+    size: 0.14,
+    roughness: 0.68,
+    metalness: 0.04,
+    count: 70,
+    mound: 4.4,
+  });
+}
+
+function sodiumChunk() {
+  return buildSolidAppearance({
+    name: 'sodiumChunk',
+    color: 0xd6d7d9,
+    size: 0.18,
+    roughness: 0.36,
+    metalness: 0.6,
+    count: 6,
+    mound: 2.4,
+  });
+}
+
+const solidPresets = {
+  zincGranules,
+  ironFilings,
+  copperTurnings,
+  magnesiumRibbon,
+  sulfurPowder,
+  copperOxidePowder,
+  calciumCarbonateChips,
+  sodiumChunk,
+};
+
+function resolveSolidAppearance(input) {
+  if (!input) return null;
+  if (typeof input === 'string') {
+    const factory = solidPresets[input];
+    return factory ? factory() : null;
+  }
+  if (typeof input === 'function') return input();
+  if (typeof input === 'object' && input.kind === 'solid') return input;
+  return null;
+}
+
+function createGranulePile({
+  parent,
+  radius = 0.4,
+  appearance,
+  baseY = 0,
+  count,
+  seed = 1337,
+  jitter = 0.35,
+  material,
+  name = 'granule-pile',
+} = {}) {
+  const resolved = resolveSolidAppearance(appearance) ?? zincGranules();
+  const instanceCount = Math.max(1, Math.round(count ?? resolved.count ?? 90));
+  const granuleMaterial = material ?? resolved.createGranuleMaterial();
+  const geometry = new THREE.IcosahedronGeometry(1, 0);
+  const mesh = new THREE.InstancedMesh(geometry, granuleMaterial, instanceCount);
+  mesh.name = name;
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  const rand = mulberry32(seed);
+  const dummy = new THREE.Object3D();
+  const baseSize = resolved.size ?? 0.1;
+  const mound = resolved.mound ?? 4.2;
+
+  for (let i = 0; i < instanceCount; i += 1) {
+    const r = Math.sqrt(rand()) * radius;
+    const angle = rand() * Math.PI * 2;
+    const x = Math.cos(angle) * r;
+    const z = Math.sin(angle) * r;
+    const pileH = (1 - r / Math.max(radius, 0.0001)) * baseSize * mound;
+    const y = baseY + pileH + (rand() - 0.5) * baseSize * jitter;
+    dummy.position.set(x, y, z);
+    dummy.rotation.set(rand() * Math.PI * 2, rand() * Math.PI * 2, rand() * Math.PI * 2);
+    const s = baseSize * (0.7 + rand() * 0.6);
+    dummy.scale.setScalar(s);
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+
+  if (parent) {
+    parent.add(mesh);
+  }
+
+  return { mesh, appearance: resolved, instanceCount };
 }
 
 const WORLD_UP = new THREE.Vector3(0, 1, 0);
@@ -1609,6 +1870,60 @@ const presetDefinitions = [
     interactionMode: 'manual-placement',
     create: createClassicReagentBottleApparatus,
   },
+  {
+    key: 'classic-beaker',
+    kind: 'classic-beaker',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'heatable', 'steam-origin', 'effect-origin', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'steamOrigin', 'heatZone'],
+    interactionMode: 'manual-placement',
+    create: createClassicBeakerApparatus,
+  },
+  {
+    key: 'classic-graduated-cylinder',
+    kind: 'classic-graduated-cylinder',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'effect-origin', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'readOffset'],
+    interactionMode: 'manual-placement',
+    create: createClassicGraduatedCylinderApparatus,
+  },
+  {
+    key: 'classic-round-bottom-flask',
+    kind: 'classic-round-bottom-flask',
+    family: 'showcase-vessel',
+    capabilities: ['liquid-container', 'pour-target', 'heatable', 'steam-origin', 'effect-origin', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'steamOrigin', 'heatZone', 'standAnchor', 'clampZone'],
+    interactionMode: 'manual-placement',
+    create: createClassicRoundBottomFlaskApparatus,
+  },
+  {
+    key: 'classic-funnel',
+    kind: 'classic-funnel',
+    family: 'showcase-tool',
+    capabilities: ['pour-target', 'transfer-source', 'label-anchor', 'interaction-anchor', 'overlap-target', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'pourTarget', 'stemTip', 'effectOrigin'],
+    interactionMode: 'manual-placement',
+    create: createClassicFunnelApparatus,
+  },
+  {
+    key: 'classic-widemouth-jar',
+    kind: 'classic-widemouth-jar',
+    family: 'showcase-solid-jar',
+    capabilities: ['solid-fill', 'scoop-target', 'transfer-source', 'grip-point', 'label-anchor', 'interaction-anchor', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'mouth', 'dropAnchor', 'scoopTarget', 'sampleFloor', 'stopperRest', 'stopperMount'],
+    interactionMode: 'manual-placement',
+    create: createClassicWideMouthJarApparatus,
+  },
+  {
+    key: 'classic-alcohol-lamp',
+    kind: 'classic-alcohol-lamp',
+    family: 'showcase-heat-source',
+    capabilities: ['heat-source', 'effect-origin', 'label-anchor', 'interaction-anchor', 'ignition-contact', 'manual-placement'],
+    interactionAnchors: ['gripAnchor', 'interactionZone', 'ignitionTip', 'heatZone', 'flameOrigin', 'capRest', 'capMount'],
+    interactionMode: 'manual-placement',
+    create: createClassicAlcoholLampApparatus,
+  },
 ];
 
 const APPARATUS_PRESET_DEFINITIONS = presetDefinitions;
@@ -1631,7 +1946,19 @@ function ensureDefaultApparatusPresetsRegistered() {
 ensureDefaultApparatusPresetsRegistered();
 
 function cloneMaterial(material, fallback) {
-  return (material || fallback).clone();
+  if (!material) {
+    return fallback.clone();
+  }
+  if (typeof material.clone === 'function') {
+    return material.clone();
+  }
+  const clone = fallback.clone();
+  if (typeof clone.setValues === 'function') {
+    clone.setValues(material);
+  } else {
+    Object.assign(clone, material);
+  }
+  return clone;
 }
 
 function applyTransform(group, position = [0, 0, 0], rotation = [0, 0, 0]) {
@@ -1881,6 +2208,30 @@ function createClassicShadowMaterial(materials = {}) {
       depthWrite: false,
     }),
   );
+}
+
+function latheFromProfile(points2d, radialSegments = 96) {
+  const vecs = points2d.map((p) => new THREE.Vector2(Math.max(0.0001, p[0]), p[1]));
+  return new THREE.LatheGeometry(vecs, radialSegments);
+}
+
+function closedShellProfile(outerProfile, wallThickness = 0.03) {
+  const outer = outerProfile.map((p) => [Math.max(0.0001, p[0]), p[1]]);
+  const top = outer[outer.length - 1];
+  const bottom = outer[0];
+  const inner = [];
+  for (let i = outer.length - 1; i >= 0; i -= 1) {
+    const [x, y] = outer[i];
+    const shrunkX = Math.max(0.0001, x - wallThickness);
+    const shiftedY = i === 0 ? y + wallThickness : y - (i === outer.length - 1 ? 0.0001 : 0);
+    inner.push([shrunkX, shiftedY]);
+  }
+  return [
+    ...outer,
+    [Math.max(0.0001, top[0] - wallThickness), top[1] - 0.0001],
+    ...inner.slice(1),
+    [0.0001, bottom[1] + wallThickness],
+  ];
 }
 
 function createRoundedTubeGeometry(
@@ -5224,6 +5575,20 @@ function createDcPowerSupplyApparatus({
   return apparatus;
 }
 
+function testTubeProfile(radius, height, curveSegments = 14) {
+  const pts = [];
+  for (let i = 0; i <= curveSegments; i += 1) {
+    const t = i / curveSegments;
+    const phi = t * Math.PI * 0.5;
+    const x = Math.max(0.0001, radius * Math.sin(phi));
+    const y = radius * (1 - Math.cos(phi));
+    pts.push([x, y]);
+  }
+  pts.push([radius, height - radius * 0.04]);
+  pts.push([radius * 1.02, height]);
+  return pts;
+}
+
 function createClassicTestTubeApparatus({
   parent,
   position = [0, 0, 0],
@@ -5243,7 +5608,6 @@ function createClassicTestTubeApparatus({
   addToParent(parent, group);
 
   const glassMaterial = createClassicGlassMaterial(materials);
-  const baseGlassMaterial = cloneMaterial(materials.baseGlass, glassMaterial);
   const rimMaterial = createClassicGlassRimMaterial(materials);
   const liquidMaterial = createClassicLiquidMaterial(materials, liquidColor ?? appearance?.color ?? 0xe8f8ff);
   const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, surfaceColor ?? appearance?.surfaceColor ?? 0xf8fdff);
@@ -5251,26 +5615,16 @@ function createClassicTestTubeApparatus({
   const innerRadius = radius * 0.84;
   const innerHeight = height * 0.78;
 
-  const tube = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius, height, 48, 1, true),
-    glassMaterial,
+  const body = new THREE.Mesh(
+    latheFromProfile(testTubeProfile(radius, height), 72),
+    cloneMaterial(materials.body, glassMaterial),
   );
-  tube.position.y = height * 0.5;
-  tube.castShadow = true;
-  tube.receiveShadow = true;
-  group.add(tube);
-
-  const bottom = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 48, 28, 0, Math.PI * 2, 0, Math.PI * 0.5),
-    baseGlassMaterial,
-  );
-  bottom.rotation.x = Math.PI;
-  bottom.castShadow = true;
-  bottom.receiveShadow = true;
-  group.add(bottom);
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
 
   const mouthRim = new THREE.Mesh(
-    new THREE.TorusGeometry(radius * 1.02, radius * 0.06, 16, 48),
+    new THREE.TorusGeometry(radius * 1.03, radius * 0.05, 16, 48),
     rimMaterial,
   );
   mouthRim.position.y = height;
@@ -5349,12 +5703,13 @@ function createClassicTestTubeApparatus({
     kind: 'classic-test-tube',
     family: 'showcase-vessel',
     group,
-    meshes: { tube, bottom, mouthRim, liquid, liquidSurface },
+    meshes: { tube: body, body, bottom: body, mouthRim, liquid, liquidSurface },
     anchors,
     constraints,
     state,
     meta: {
       visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
       appearance: appearance.name,
       liquidProfile,
     },
@@ -5514,133 +5869,15 @@ function createClassicTestTubeRackApparatus({
   return apparatus;
 }
 
-function createClassicSolidReagentJarApparatus({
-  parent,
-  position = [0, 0, 0],
-  rotation = [0, 0, 0],
-  radius = 0.62,
-  height = 1.74,
-  materials = {},
-  name = 'classic-solid-reagent-jar',
-} = {}) {
-  const group = new THREE.Group();
-  group.name = name;
-  applyTransform(group, position, rotation);
-  addToParent(parent, group);
+// deprecated: use classic-widemouth-jar
 
-  const glassMaterial = createClassicGlassMaterial(materials);
-  const rimMaterial = createClassicGlassRimMaterial(materials);
-  const zincMaterial = cloneMaterial(
-    materials.zinc,
-    new THREE.MeshStandardMaterial({
-      color: 0xc5ced5,
-      roughness: 0.54,
-      metalness: 0.72,
-    }),
-  );
-
-  const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius * 0.96, height, 40),
-    glassMaterial,
-  );
-  body.position.y = height * 0.5;
-  body.castShadow = true;
-  body.receiveShadow = true;
-  group.add(body);
-
-  const bottom = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius * 0.92, radius * 0.94, 0.12, 40),
-    cloneMaterial(materials.base, rimMaterial),
-  );
-  bottom.position.y = 0.06;
-  bottom.castShadow = true;
-  bottom.receiveShadow = true;
-  group.add(bottom);
-
-  const mouthRim = new THREE.Mesh(
-    new THREE.TorusGeometry(radius * 1.01, 0.06, 14, 40),
-    rimMaterial,
-  );
-  mouthRim.position.y = height + 0.02;
-  mouthRim.rotation.x = Math.PI * 0.5;
-  mouthRim.castShadow = true;
-  mouthRim.receiveShadow = true;
-  group.add(mouthRim);
-
-  const granules = [];
-  const baseGranuleScales = [];
-  for (let index = 0; index < 10; index += 1) {
-    const granule = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.11 + (index % 3) * 0.018, 0),
-      zincMaterial,
-    );
-    granule.position.set(
-      ((index % 4) - 1.5) * 0.18,
-      0.2 + Math.floor(index / 4) * 0.16 + (index % 2) * 0.03,
-      (Math.floor(index / 2) % 2 === 0 ? 1 : -1) * 0.11,
-    );
-    granule.rotation.set(index * 0.2, index * 0.34, index * 0.15);
-    granule.castShadow = true;
-    granule.receiveShadow = true;
-    group.add(granule);
-    granules.push(granule);
-    baseGranuleScales.push(granule.scale.clone());
+function createClassicSolidReagentJarApparatus(options = {}) {
+  const apparatus = createClassicWideMouthJarApparatus(options);
+  const controllers = apparatus.controllers ?? {};
+  if (typeof controllers.setFillAmount === 'function' && typeof controllers.setLoadedAmount !== 'function') {
+    controllers.setLoadedAmount = controllers.setFillAmount;
   }
-
-  const shadow = new THREE.Mesh(
-    new THREE.PlaneGeometry(radius * 2.2, radius * 2.1),
-    createClassicShadowMaterial(materials),
-  );
-  shadow.rotation.x = -Math.PI * 0.5;
-  shadow.position.y = 0.01;
-  group.add(shadow);
-
-  const anchors = {
-    labelAnchor: makeAnchor(group, 0, height * 0.72, radius + 0.2, `${name}:labelAnchor`),
-    gripAnchor: makeAnchor(group, 0, height * 0.88, 0, `${name}:gripAnchor`),
-    interactionZone: makeAnchor(group, 0, height * 0.86, 0, `${name}:interactionZone`),
-    dropAnchor: makeAnchor(group, 0, height + 0.14, 0, `${name}:dropAnchor`),
-  };
-
-  const apparatus = composeApparatus({
-    kind: 'classic-solid-reagent-jar',
-    family: 'showcase-solid-jar',
-    group,
-    meshes: { body, bottom, mouthRim, granules, shadow },
-    anchors,
-    constraints: {
-      effectBounds: {
-        min: new THREE.Vector3(-radius, 0, -radius),
-        max: new THREE.Vector3(radius, height + 0.2, radius),
-      },
-    },
-    state: {
-      loadedAmount: 1,
-    },
-    meta: { visualFamily: 'classic-showcase' },
-  });
-
-  apparatus.controllers = {
-    ...(apparatus.controllers || {}),
-    setLoadedAmount(amount = 1) {
-      const value = Math.max(0, Math.min(1, amount));
-      apparatus.state.loadedAmount = value;
-      for (const [index, granule] of granules.entries()) {
-        const visibility = index / Math.max(1, granules.length - 1) <= value + 0.04;
-        granule.visible = visibility;
-        granule.scale.copy(baseGranuleScales[index]).multiplyScalar(visibility ? 1 : 0.0001);
-      }
-    },
-  };
-
-  const { labelPlane } = attachFixedPlaneLabel({
-    group,
-    labelAnchor: anchors.labelAnchor,
-    planeGeometry: new THREE.PlaneGeometry(1.18, 0.42),
-    role: 'floating-badge',
-  });
-  attachLabelController(apparatus, labelPlane, { defaultAccent: '#d7edf8' });
-  apparatus.controllers.setLoadedAmount(1);
+  apparatus.controllers = controllers;
   return apparatus;
 }
 
@@ -5707,6 +5944,38 @@ function createClassicCopperPieceApparatus({
   return apparatus;
 }
 
+function reagentBottleProfile({
+  radius,
+  height,
+  neckRadius,
+  neckHeight,
+  shoulderSegments = 14,
+}) {
+  const pts = [];
+  pts.push([0.0001, 0]);
+  pts.push([radius * 0.94, 0]);
+  pts.push([radius * 0.98, 0.05]);
+  pts.push([radius, height * 0.06]);
+  pts.push([radius, height * 0.82]);
+
+  const shoulderStartY = height * 0.82;
+  const shoulderEndY = height + 0.22;
+  const shoulderStartR = radius;
+  const shoulderEndR = neckRadius * 1.02;
+  for (let i = 1; i <= shoulderSegments; i += 1) {
+    const t = i / shoulderSegments;
+    const eased = t * t * (3 - 2 * t);
+    const y = shoulderStartY + (shoulderEndY - shoulderStartY) * t;
+    const r = shoulderStartR + (shoulderEndR - shoulderStartR) * eased;
+    pts.push([r, y]);
+  }
+
+  const neckTopY = height + 0.22 + neckHeight;
+  pts.push([neckRadius, neckTopY - 0.04]);
+  pts.push([neckRadius * 1.05, neckTopY]);
+  return pts;
+}
+
 function createClassicReagentBottleApparatus({
   parent,
   position = [0, 0, 0],
@@ -5729,63 +5998,66 @@ function createClassicReagentBottleApparatus({
   const rimMaterial = createClassicGlassRimMaterial(materials);
   const liquidMaterial = createClassicLiquidMaterial(materials, appearance?.color ?? 0xe8f8ff);
   const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, appearance?.surfaceColor ?? 0xf8fdff);
-  const capMaterial = cloneMaterial(
+  const stopperMaterial = cloneMaterial(
     materials.cap,
     new THREE.MeshStandardMaterial({ color: 0x2d3647, roughness: 0.62, metalness: 0.22 }),
   );
 
   const body = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius * 0.94, height, 40),
-    glassMaterial,
+    latheFromProfile(reagentBottleProfile({ radius, height, neckRadius, neckHeight }), 72),
+    cloneMaterial(materials.body, glassMaterial),
   );
-  body.position.y = height * 0.5;
   body.castShadow = true;
   body.receiveShadow = true;
   group.add(body);
 
-  const shoulder = new THREE.Mesh(
-    new THREE.CylinderGeometry(neckRadius * 1.8, radius * 0.98, 0.34, 40),
-    glassMaterial,
-  );
-  shoulder.position.y = height + 0.1;
-  shoulder.castShadow = true;
-  shoulder.receiveShadow = true;
-  group.add(shoulder);
-
-  const neck = new THREE.Mesh(
-    new THREE.CylinderGeometry(neckRadius, neckRadius, neckHeight, 32),
-    glassMaterial,
-  );
-  neck.position.y = height + 0.27 + (neckHeight * 0.5);
-  neck.castShadow = true;
-  neck.receiveShadow = true;
-  group.add(neck);
-
-  const cap = new THREE.Mesh(
-    new THREE.CylinderGeometry(neckRadius * 1.12, neckRadius * 1.12, 0.26, 28),
-    capMaterial,
-  );
-  cap.position.y = height + neckHeight + 0.36;
-  cap.castShadow = true;
-  cap.receiveShadow = true;
-  group.add(cap);
+  const neckTopY = height + 0.22 + neckHeight;
 
   const mouthRim = new THREE.Mesh(
-    new THREE.TorusGeometry(neckRadius * 1.02, 0.03, 12, 30),
+    new THREE.TorusGeometry(neckRadius * 1.05, 0.03, 12, 30),
     rimMaterial,
   );
-  mouthRim.position.y = height + 0.27 + neckHeight;
+  mouthRim.position.y = neckTopY;
   mouthRim.rotation.x = Math.PI * 0.5;
   group.add(mouthRim);
 
+  const stopper = new THREE.Group();
+  stopper.name = `${name}:stopper`;
+  const stopperPlug = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 0.96, neckRadius * 1.02, 0.18, 28),
+    stopperMaterial,
+  );
+  stopperPlug.position.y = -0.02;
+  stopper.add(stopperPlug);
+  const stopperCap = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 1.18, neckRadius * 1.18, 0.14, 28),
+    stopperMaterial,
+  );
+  stopperCap.position.y = 0.14;
+  stopper.add(stopperCap);
+  const stopperKnob = new THREE.Mesh(
+    new THREE.SphereGeometry(neckRadius * 0.55, 24, 16),
+    stopperMaterial,
+  );
+  stopperKnob.position.y = 0.28;
+  stopper.add(stopperKnob);
+  stopper.position.y = neckTopY + 0.04;
+  stopper.castShadow = true;
+  stopper.receiveShadow = true;
+  group.add(stopper);
+
+  const innerRadius = radius * 0.86;
+  const liquidBaseY = 0.08;
+  const liquidHeight = height * 0.72;
+
   const liquid = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius * 0.83, radius * 0.8, height * 0.8, 32),
+    new THREE.CylinderGeometry(innerRadius, innerRadius * 0.96, liquidHeight, 40),
     liquidMaterial,
   );
   group.add(liquid);
 
   const liquidSurface = new THREE.Mesh(
-    new THREE.CircleGeometry(radius * 0.83, 32),
+    new THREE.CircleGeometry(innerRadius, 40),
     surfaceMaterial,
   );
   liquidSurface.rotation.x = -Math.PI * 0.5;
@@ -5800,11 +6072,11 @@ function createClassicReagentBottleApparatus({
   group.add(shadow);
 
   const anchors = {
-    labelAnchor: makeAnchor(group, 0, height * 0.64, radius + 0.22, `${name}:labelAnchor`),
+    labelAnchor: makeAnchor(group, 0, height * 0.5, radius + 0.22, `${name}:labelAnchor`),
     gripAnchor: makeAnchor(group, 0, height + 0.4, 0, `${name}:gripAnchor`),
     interactionZone: makeAnchor(group, 0, height + 0.3, 0, `${name}:interactionZone`),
     pourAlign: makeAnchor(group, 0, height + 0.24, 0, `${name}:pourAlign`),
-    nozzle: makeAnchor(group, 0, height + 0.27 + neckHeight, 0, `${name}:nozzle`),
+    nozzle: makeAnchor(group, 0, neckTopY, 0, `${name}:nozzle`),
   };
 
   const state = {
@@ -5812,12 +6084,12 @@ function createClassicReagentBottleApparatus({
     fillHeight: 0,
   };
   const liquidProfile = {
-    baseY: 0.18,
-    height: height * 0.8,
-    radiusBottom: radius * 0.8,
-    radiusTop: radius * 0.83,
-    safeFillHeight: height * 0.7,
-    surfaceReferenceRadius: radius * 0.83,
+    baseY: liquidBaseY,
+    height: liquidHeight,
+    radiusBottom: innerRadius * 0.96,
+    radiusTop: innerRadius,
+    safeFillHeight: liquidHeight * 0.9,
+    surfaceReferenceRadius: innerRadius,
   };
   const liquidController = createCylinderLiquidController({
     solutionMesh: liquid,
@@ -5832,15 +6104,20 @@ function createClassicReagentBottleApparatus({
     name,
     kind: 'classic-reagent-bottle',
     family: 'showcase-bottle',
-    meshes: { body, shoulder, neck, cap, mouthRim, liquid, liquidSurface, shadow },
+    meshes: { body, shoulder: body, neck: body, cap: stopperCap, stopper, mouthRim, liquid, liquidSurface, shadow },
     anchors,
     constraints: {
-      innerRadius: radius * 0.82,
-      innerHeight: height * 0.8,
-      safeFillHeight: height * 0.7,
+      innerRadius,
+      innerHeight: liquidHeight,
+      safeFillHeight: liquidHeight * 0.9,
     },
     state,
-    meta: { visualFamily: 'classic-showcase' },
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
+      appearance: appearance?.name,
+      liquidProfile,
+    },
   });
 
   const { labelPlane } = attachFixedPlaneLabel({
@@ -5851,6 +6128,960 @@ function createClassicReagentBottleApparatus({
 
   attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
   attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+  return apparatus;
+}
+
+function beakerProfile(radius, height) {
+  const rimLip = radius * 1.03;
+  return [
+    [0.0001, 0],
+    [radius * 0.96, 0],
+    [radius, height * 0.06],
+    [radius, height * 0.9],
+    [rimLip, height * 0.97],
+    [rimLip, height],
+  ];
+}
+
+function makeGraduationTexture({ marks = 5, label = 'mL' } = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(60, 90, 120, 0.7)';
+  ctx.fillStyle = 'rgba(60, 90, 120, 0.85)';
+  ctx.font = '600 26px sans-serif';
+  ctx.textBaseline = 'middle';
+  const startY = canvas.height * 0.18;
+  const endY = canvas.height * 0.92;
+  const step = (endY - startY) / marks;
+  for (let i = 0; i <= marks; i += 1) {
+    const y = startY + i * step;
+    ctx.lineWidth = i % 2 === 0 ? 4 : 2;
+    ctx.beginPath();
+    ctx.moveTo(24, y);
+    ctx.lineTo(i % 2 === 0 ? 90 : 64, y);
+    ctx.stroke();
+    if (i % 2 === 0) {
+      ctx.fillText(`${(marks - i) * 20}`, 100, y);
+    }
+  }
+  ctx.font = '500 22px sans-serif';
+  ctx.fillText(label, 100, endY + 26);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createClassicBeakerApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  radius = 0.9,
+  height = 1.4,
+  fillRatio = 0.4,
+  materials = {},
+  appearance = clearWater(),
+  showGraduations = true,
+  name = 'classic-beaker',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const glassMaterial = createClassicGlassMaterial(materials);
+  const rimMaterial = createClassicGlassRimMaterial(materials);
+  const liquidMaterial = createClassicLiquidMaterial(materials, appearance?.color ?? 0xe8f8ff);
+  const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, appearance?.surfaceColor ?? 0xf8fdff);
+
+  const body = new THREE.Mesh(
+    latheFromProfile(beakerProfile(radius, height), 72),
+    cloneMaterial(materials.body, glassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 1.03, radius * 0.02, 12, 48),
+    rimMaterial,
+  );
+  rim.position.y = height;
+  rim.rotation.x = Math.PI * 0.5;
+  group.add(rim);
+
+  const spout = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 0.14, radius * 0.045, 10, 20, Math.PI),
+    cloneMaterial(materials.spout, glassMaterial),
+  );
+  spout.position.set(radius, height - radius * 0.04, 0);
+  spout.rotation.set(Math.PI * 0.5, 0, Math.PI * 0.5);
+  group.add(spout);
+
+  const innerRadius = radius * 0.92;
+  const innerHeight = height * 0.86;
+
+  const liquid = new THREE.Mesh(
+    new THREE.CylinderGeometry(innerRadius * 0.98, innerRadius * 0.94, innerHeight, 48),
+    liquidMaterial,
+  );
+  group.add(liquid);
+
+  const liquidSurface = new THREE.Mesh(
+    new THREE.CircleGeometry(innerRadius * 0.98, 48),
+    surfaceMaterial,
+  );
+  liquidSurface.rotation.x = -Math.PI * 0.5;
+  group.add(liquidSurface);
+
+  if (showGraduations) {
+    const marksMat = new THREE.MeshBasicMaterial({
+      map: makeGraduationTexture({ marks: 5 }),
+      transparent: true,
+      depthWrite: false,
+    });
+    const marks = new THREE.Mesh(
+      new THREE.PlaneGeometry(radius * 0.6, height * 0.8),
+      marksMat,
+    );
+    marks.position.set(0, height * 0.5, radius * 1.001);
+    group.add(marks);
+  }
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, height * 0.68, radius + 0.14, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, height * 0.72, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, height - 0.1, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, height, 0, `${name}:mouth`),
+    pourTarget: makeAnchor(group, radius * 0.9, height - radius * 0.02, 0, `${name}:pourTarget`),
+    effectOrigin: makeAnchor(group, 0, height * 0.55, 0, `${name}:effectOrigin`),
+    steamOrigin: makeAnchor(group, 0, height - 0.04, 0, `${name}:steamOrigin`),
+    heatZone: makeAnchor(group, 0, 0.05, 0, `${name}:heatZone`),
+  };
+
+  const state = { fillRatio: 0, fillHeight: 0 };
+  const liquidProfile = {
+    baseY: 0.02,
+    height: innerHeight,
+    radiusBottom: innerRadius * 0.94,
+    radiusTop: innerRadius * 0.98,
+    safeFillHeight: innerHeight * 0.9,
+    surfaceReferenceRadius: innerRadius * 0.98,
+  };
+  const liquidController = createCylinderLiquidController({
+    solutionMesh: liquid,
+    surfaceMesh: liquidSurface,
+    profile: liquidProfile,
+    state,
+  });
+  liquidController.setLiquidLevel(fillRatio);
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-beaker',
+    family: 'showcase-vessel',
+    meshes: { body, rim, spout, liquid, liquidSurface },
+    anchors,
+    constraints: {
+      innerRadius,
+      innerHeight,
+      safeFillHeight: innerHeight * 0.9,
+      safePourRadius: innerRadius * 0.4,
+      safePourClearance: 0.12,
+    },
+    state,
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
+      appearance: appearance.name,
+      liquidProfile,
+    },
+  });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.16, 0.42),
+    role: 'vessel-body-label',
+  });
+  attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+  return apparatus;
+}
+
+function cylinderProfile(radius, height) {
+  return [
+    [0.0001, 0],
+    [radius * 0.94, 0.005],
+    [radius, height * 0.02],
+    [radius, height * 0.98],
+    [radius * 1.05, height * 0.995],
+    [radius * 1.05, height],
+  ];
+}
+
+function makeGraduationLadder({ major = 10 } = {}) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 1024;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = 'rgba(35, 60, 90, 0.85)';
+  ctx.fillStyle = 'rgba(35, 60, 90, 0.9)';
+  ctx.font = '600 22px sans-serif';
+  ctx.textBaseline = 'middle';
+  const startY = canvas.height * 0.05;
+  const endY = canvas.height * 0.94;
+  const stepY = (endY - startY) / (major * 5);
+  for (let i = 0; i <= major * 5; i += 1) {
+    const y = startY + i * stepY;
+    const isMajor = i % 5 === 0;
+    ctx.lineWidth = isMajor ? 3 : 1.4;
+    ctx.beginPath();
+    ctx.moveTo(24, y);
+    ctx.lineTo(isMajor ? 96 : 68, y);
+    ctx.stroke();
+    if (isMajor) {
+      ctx.fillText(`${(major * 5 - i) * 2}`, 108, y);
+    }
+  }
+  ctx.font = '500 20px sans-serif';
+  ctx.fillText('mL', 108, endY + 20);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+function createClassicGraduatedCylinderApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  radius = 0.34,
+  height = 3.2,
+  fillRatio = 0.5,
+  materials = {},
+  appearance = clearWater(),
+  name = 'classic-graduated-cylinder',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const glassMaterial = createClassicGlassMaterial(materials);
+  const rimMaterial = createClassicGlassRimMaterial(materials);
+  const liquidMaterial = createClassicLiquidMaterial(materials, appearance?.color ?? 0xe8f8ff);
+  const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, appearance?.surfaceColor ?? 0xf8fdff);
+
+  const footRadius = radius * 2.0;
+  const foot = new THREE.Mesh(
+    new THREE.CylinderGeometry(footRadius * 0.98, footRadius, 0.08, 6),
+    cloneMaterial(materials.foot, glassMaterial),
+  );
+  foot.position.y = 0.04;
+  foot.castShadow = true;
+  foot.receiveShadow = true;
+  group.add(foot);
+
+  const body = new THREE.Mesh(
+    latheFromProfile(cylinderProfile(radius, height), 60).translate(0, 0.08, 0),
+    cloneMaterial(materials.body, glassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 1.05, radius * 0.06, 10, 32),
+    rimMaterial,
+  );
+  rim.position.y = height + 0.08;
+  rim.rotation.x = Math.PI * 0.5;
+  group.add(rim);
+
+  const spout = new THREE.Mesh(
+    new THREE.TorusGeometry(radius * 0.18, radius * 0.05, 8, 16, Math.PI),
+    cloneMaterial(materials.spout, glassMaterial),
+  );
+  spout.position.set(radius, height + 0.05, 0);
+  spout.rotation.set(Math.PI * 0.5, 0, Math.PI * 0.5);
+  group.add(spout);
+
+  const innerRadius = radius * 0.94;
+  const innerHeight = height * 0.96;
+
+  const liquid = new THREE.Mesh(
+    new THREE.CylinderGeometry(innerRadius, innerRadius, innerHeight, 40),
+    liquidMaterial,
+  );
+  group.add(liquid);
+
+  const liquidSurface = new THREE.Mesh(
+    new THREE.CircleGeometry(innerRadius, 40),
+    surfaceMaterial,
+  );
+  liquidSurface.rotation.x = -Math.PI * 0.5;
+  group.add(liquidSurface);
+
+  const ladderMat = new THREE.MeshBasicMaterial({
+    map: makeGraduationLadder({ major: 10 }),
+    transparent: true,
+    depthWrite: false,
+  });
+  const ladder = new THREE.Mesh(
+    new THREE.PlaneGeometry(radius * 1.4, height * 0.9),
+    ladderMat,
+  );
+  ladder.position.set(0, height * 0.5 + 0.08, radius * 1.005);
+  group.add(ladder);
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, height * 0.6, radius + 0.12, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, height * 0.7, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, height - 0.1, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, height + 0.08, 0, `${name}:mouth`),
+    pourTarget: makeAnchor(group, radius * 0.9, height + 0.02, 0, `${name}:pourTarget`),
+    effectOrigin: makeAnchor(group, 0, height * 0.5, 0, `${name}:effectOrigin`),
+    readOffset: makeAnchor(group, 0, height * 0.5, radius + 0.24, `${name}:readOffset`),
+  };
+
+  const state = { fillRatio: 0, fillHeight: 0 };
+  const liquidProfile = {
+    baseY: 0.08,
+    height: innerHeight,
+    radiusBottom: innerRadius,
+    radiusTop: innerRadius,
+    safeFillHeight: innerHeight * 0.92,
+    surfaceReferenceRadius: innerRadius,
+  };
+  const liquidController = createCylinderLiquidController({
+    solutionMesh: liquid,
+    surfaceMesh: liquidSurface,
+    profile: liquidProfile,
+    state,
+  });
+  liquidController.setLiquidLevel(fillRatio);
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-graduated-cylinder',
+    family: 'showcase-vessel',
+    meshes: { foot, body, rim, spout, liquid, liquidSurface, ladder },
+    anchors,
+    constraints: {
+      innerRadius,
+      innerHeight,
+      safeFillHeight: innerHeight * 0.92,
+      safePourRadius: innerRadius * 0.6,
+      safePourClearance: 0.08,
+    },
+    state,
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
+      appearance: appearance.name,
+      liquidProfile,
+    },
+  });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(0.92, 0.34),
+    role: 'vessel-body-label',
+  });
+  attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+  return apparatus;
+}
+
+function roundBottomFlaskProfile(radius, neckRadius, neckHeight) {
+  const pts = [];
+  const bulbSegments = 24;
+  for (let i = 0; i <= bulbSegments; i += 1) {
+    const t = i / bulbSegments;
+    const angle = Math.PI * (1.02 - t * 0.88);
+    const x = Math.sin(angle) * radius;
+    const y = radius + Math.cos(angle) * radius;
+    pts.push([Math.max(0.0001, x), Math.max(0, y)]);
+  }
+  const shoulderTop = radius * 2 + radius * 0.02;
+  const easeSegments = 10;
+  for (let i = 1; i <= easeSegments; i += 1) {
+    const t = i / easeSegments;
+    const x = pts[pts.length - 1][0] * (1 - t) + neckRadius * t;
+    const y = shoulderTop + radius * 0.24 * t;
+    pts.push([x, y]);
+  }
+  pts.push([neckRadius, shoulderTop + radius * 0.24 + neckHeight]);
+  return pts;
+}
+
+function createClassicRoundBottomFlaskApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  radius = 0.9,
+  neckRadius = 0.24,
+  neckHeight = 0.9,
+  fillRatio = 0.5,
+  materials = {},
+  appearance = clearWater(),
+  name = 'classic-round-bottom-flask',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const glassMaterial = createClassicGlassMaterial(materials);
+  const rimMaterial = createClassicGlassRimMaterial(materials);
+  const liquidMaterial = createClassicLiquidMaterial(materials, appearance?.color ?? 0xe8f8ff);
+  const surfaceMaterial = createClassicLiquidSurfaceMaterial(materials, appearance?.surfaceColor ?? 0xf8fdff);
+
+  const profile = roundBottomFlaskProfile(radius, neckRadius, neckHeight);
+  const totalHeight = profile[profile.length - 1][1];
+
+  const body = new THREE.Mesh(
+    latheFromProfile(profile, 84),
+    cloneMaterial(materials.body, glassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(neckRadius * 1.06, neckRadius * 0.08, 12, 32),
+    rimMaterial,
+  );
+  rim.position.y = totalHeight;
+  rim.rotation.x = Math.PI * 0.5;
+  group.add(rim);
+
+  const innerRadius = radius * 0.9;
+  const innerHeight = radius * 1.6;
+  const liquid = new THREE.Mesh(
+    new THREE.SphereGeometry(innerRadius, 32, 20, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.4),
+    liquidMaterial,
+  );
+  liquid.position.y = radius;
+  group.add(liquid);
+
+  const liquidSurface = new THREE.Mesh(
+    new THREE.CircleGeometry(innerRadius * 0.9, 40),
+    surfaceMaterial,
+  );
+  liquidSurface.rotation.x = -Math.PI * 0.5;
+  group.add(liquidSurface);
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, radius * 0.9, radius + 0.14, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, totalHeight - neckHeight * 0.4, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, totalHeight - 0.08, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, totalHeight, 0, `${name}:mouth`),
+    pourTarget: makeAnchor(group, 0, totalHeight - 0.08, 0, `${name}:pourTarget`),
+    effectOrigin: makeAnchor(group, 0, radius, 0, `${name}:effectOrigin`),
+    steamOrigin: makeAnchor(group, 0, totalHeight - 0.04, 0, `${name}:steamOrigin`),
+    heatZone: makeAnchor(group, 0, 0.02, 0, `${name}:heatZone`),
+    standAnchor: makeAnchor(group, 0, radius * 1.9, 0, `${name}:standAnchor`),
+    clampZone: makeAnchor(group, 0, radius * 2 + radius * 0.14, 0, `${name}:clampZone`),
+  };
+
+  const state = { fillRatio: 0, fillHeight: 0 };
+  const liquidProfile = {
+    baseY: 0,
+    height: innerHeight,
+    radiusBottom: innerRadius * 0.4,
+    radiusTop: innerRadius * 0.9,
+    safeFillHeight: innerHeight * 0.7,
+    surfaceReferenceRadius: innerRadius * 0.9,
+  };
+  const liquidController = createCylinderLiquidController({
+    solutionMesh: liquid,
+    surfaceMesh: liquidSurface,
+    profile: liquidProfile,
+    state,
+  });
+  liquidController.setLiquidLevel(fillRatio);
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-round-bottom-flask',
+    family: 'showcase-vessel',
+    meshes: { body, rim, liquid, liquidSurface },
+    anchors,
+    constraints: {
+      innerRadius,
+      innerHeight,
+      safeFillHeight: innerHeight * 0.7,
+      safePourRadius: neckRadius * 0.9,
+      safePourClearance: 0.12,
+    },
+    state,
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'liquid',
+      appearance: appearance.name,
+      liquidProfile,
+    },
+  });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.1, 0.4),
+    role: 'vessel-body-label',
+  });
+  attachCommonLiquidControllers(apparatus, liquid, liquidSurface, liquidController);
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+  return apparatus;
+}
+
+function funnelProfile(topRadius, stemRadius, coneHeight, stemLength) {
+  const coneSegments = 6;
+  const pts = [];
+  for (let i = 0; i <= coneSegments; i += 1) {
+    const t = i / coneSegments;
+    const eased = t * t;
+    const x = stemRadius + (topRadius - stemRadius) * eased;
+    const y = stemLength + coneHeight * t;
+    pts.push([x, y]);
+  }
+  pts.unshift([stemRadius, 0]);
+  pts.unshift([stemRadius * 1.05, -0.001]);
+  pts.splice(1, 0, [stemRadius, stemLength]);
+  pts.push([topRadius * 1.04, stemLength + coneHeight]);
+  return pts;
+}
+
+function createClassicFunnelApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  topRadius = 0.9,
+  stemRadius = 0.12,
+  coneHeight = 0.9,
+  stemLength = 1.0,
+  materials = {},
+  name = 'classic-funnel',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const glassMaterial = createClassicGlassMaterial(materials);
+  const rimMaterial = createClassicGlassRimMaterial(materials);
+
+  const totalHeight = stemLength + coneHeight;
+
+  const body = new THREE.Mesh(
+    latheFromProfile(funnelProfile(topRadius, stemRadius, coneHeight, stemLength), 72),
+    cloneMaterial(materials.body, glassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(topRadius * 1.04, topRadius * 0.02, 12, 40),
+    rimMaterial,
+  );
+  rim.position.y = totalHeight;
+  rim.rotation.x = Math.PI * 0.5;
+  group.add(rim);
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, totalHeight * 0.6, topRadius + 0.14, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, stemLength + coneHeight * 0.3, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, totalHeight - 0.05, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, totalHeight, 0, `${name}:mouth`),
+    pourTarget: makeAnchor(group, 0, totalHeight - 0.05, 0, `${name}:pourTarget`),
+    stemTip: makeAnchor(group, 0, 0, 0, `${name}:stemTip`),
+    effectOrigin: makeAnchor(group, 0, stemLength, 0, `${name}:effectOrigin`),
+  };
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-funnel',
+    family: 'showcase-tool',
+    meshes: { body, rim },
+    anchors,
+    constraints: {
+      innerRadius: topRadius * 0.9,
+      innerHeight: coneHeight,
+      stemRadius,
+      stemLength,
+    },
+    state: {},
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'tool',
+    },
+  });
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.0, 0.38),
+    role: 'vessel-body-label',
+  });
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#84ddff' });
+  return apparatus;
+}
+
+function widemouthJarProfile(radius, height, neckRadius, neckHeight) {
+  const shoulderStart = height - neckHeight;
+  const shoulderEnd = height - neckHeight * 0.35;
+  const pts = [];
+  pts.push([0.0001, 0]);
+  pts.push([radius * 0.94, 0]);
+  pts.push([radius, height * 0.04]);
+  pts.push([radius, shoulderStart]);
+  const ease = 8;
+  for (let i = 1; i <= ease; i += 1) {
+    const t = i / ease;
+    const smooth = t * t * (3 - 2 * t);
+    const x = radius * (1 - smooth) + neckRadius * smooth;
+    const y = shoulderStart + (shoulderEnd - shoulderStart) * smooth;
+    pts.push([x, y]);
+  }
+  pts.push([neckRadius, height - 0.02]);
+  pts.push([neckRadius * 1.06, height]);
+  return pts;
+}
+
+function createGroundGlassStopper({ neckRadius, glassMaterial, rimMaterial, name }) {
+  const group = new THREE.Group();
+  group.name = `${name}:stopper`;
+
+  const plug = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 0.98, neckRadius * 0.92, neckRadius * 0.9, 24),
+    glassMaterial.clone(),
+  );
+  plug.position.y = neckRadius * 0.45;
+  group.add(plug);
+
+  const cap = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 1.18, neckRadius * 1.05, neckRadius * 0.4, 32),
+    glassMaterial.clone(),
+  );
+  cap.position.y = neckRadius * 1.1;
+  group.add(cap);
+
+  const knob = new THREE.Mesh(
+    new THREE.SphereGeometry(neckRadius * 0.55, 24, 16),
+    rimMaterial.clone(),
+  );
+  knob.position.y = neckRadius * 1.55;
+  group.add(knob);
+
+  return group;
+}
+
+function createClassicWideMouthJarApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  radius = 0.62,
+  height = 1.6,
+  neckRadius = 0.44,
+  neckHeight = 0.28,
+  contents = 'zincGranules',
+  appearance = null,
+  fillAmount = 1,
+  stopperAttached = false,
+  materials = {},
+  name = 'classic-widemouth-jar',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const glassMaterial = createClassicGlassMaterial(materials);
+  const rimMaterial = createClassicGlassRimMaterial(materials);
+
+  const body = new THREE.Mesh(
+    latheFromProfile(widemouthJarProfile(radius, height, neckRadius, neckHeight), 72),
+    cloneMaterial(materials.body, glassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(neckRadius * 1.08, neckRadius * 0.06, 12, 40),
+    rimMaterial,
+  );
+  rim.position.y = height;
+  rim.rotation.x = Math.PI * 0.5;
+  group.add(rim);
+
+  const solidAppearance = resolveSolidAppearance(appearance ?? contents) ?? zincGranules();
+  const pile = createGranulePile({
+    parent: group,
+    radius: radius * 0.88,
+    appearance: solidAppearance,
+    baseY: 0.02,
+    seed: 4211,
+    name: `${name}:granules`,
+  });
+
+  const stopper = createGroundGlassStopper({
+    neckRadius,
+    glassMaterial,
+    rimMaterial,
+    name,
+  });
+  const stopperRestPosition = new THREE.Vector3(radius * 1.55, 0, 0);
+  const stopperMountPosition = new THREE.Vector3(0, height + 0.02, 0);
+  if (stopperAttached) {
+    stopper.position.copy(stopperMountPosition);
+  } else {
+    stopper.position.copy(stopperRestPosition);
+  }
+  group.add(stopper);
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, height * 0.55, radius + 0.16, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, height * 0.85, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, height * 0.82, 0, `${name}:interactionZone`),
+    mouth: makeAnchor(group, 0, height, 0, `${name}:mouth`),
+    dropAnchor: makeAnchor(group, 0, height + 0.18, 0, `${name}:dropAnchor`),
+    scoopTarget: makeAnchor(group, 0, height - neckHeight * 0.5, 0, `${name}:scoopTarget`),
+    sampleFloor: makeAnchor(group, 0, 0.02, 0, `${name}:sampleFloor`),
+    stopperRest: makeAnchor(group, stopperRestPosition.x, stopperRestPosition.y, stopperRestPosition.z, `${name}:stopperRest`),
+    stopperMount: makeAnchor(group, stopperMountPosition.x, stopperMountPosition.y, stopperMountPosition.z, `${name}:stopperMount`),
+  };
+
+  const state = {
+    fillAmount,
+    stopperAttached,
+  };
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-widemouth-jar',
+    family: 'showcase-solid-jar',
+    meshes: { body, rim, stopper, granulePile: pile.mesh },
+    anchors,
+    constraints: {
+      innerRadius: radius * 0.9,
+      innerHeight: height - neckHeight * 0.4,
+      neckRadius,
+    },
+    state,
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'solid',
+      contentName: solidAppearance.name,
+    },
+  });
+
+  apparatus.controllers = {
+    ...(apparatus.controllers || {}),
+    setStopperAttached(attached = true) {
+      const value = Boolean(attached);
+      state.stopperAttached = value;
+      stopper.position.copy(value ? stopperMountPosition : stopperRestPosition);
+    },
+    setFillAmount(amount = 1) {
+      const value = Math.max(0, Math.min(1, amount));
+      state.fillAmount = value;
+      pile.mesh.visible = value > 0.02;
+      pile.mesh.scale.setScalar(0.4 + value * 0.6);
+    },
+  };
+  apparatus.controllers.setFillAmount(fillAmount);
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.16, 0.42),
+    role: 'vessel-body-label',
+  });
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#e6d9b8' });
+  return apparatus;
+}
+
+function reservoirProfile(radius, height, neckRadius) {
+  const shoulderY = height * 0.66;
+  const pts = [
+    [0.0001, 0],
+    [radius * 0.92, 0],
+    [radius, height * 0.08],
+    [radius, shoulderY],
+  ];
+  const easeSegments = 8;
+  for (let i = 1; i <= easeSegments; i += 1) {
+    const t = i / easeSegments;
+    const smooth = t * t * (3 - 2 * t);
+    const x = radius * (1 - smooth) + neckRadius * smooth;
+    const y = shoulderY + (height - shoulderY) * smooth;
+    pts.push([x, y]);
+  }
+  pts.push([neckRadius, height]);
+  return pts;
+}
+
+function createClassicAlcoholLampApparatus({
+  parent,
+  position = [0, 0, 0],
+  rotation = [0, 0, 0],
+  radius = 0.36,
+  height = 0.52,
+  neckRadius = 0.14,
+  wickHeight = 0.12,
+  materials = {},
+  capAttached = false,
+  name = 'classic-alcohol-lamp',
+} = {}) {
+  const group = new THREE.Group();
+  group.name = name;
+  applyTransform(group, position, rotation);
+  addToParent(parent, group);
+
+  const brownGlassMaterial = cloneMaterial(
+    materials.glass,
+    new THREE.MeshPhysicalMaterial({
+      color: 0x6b3f22,
+      transparent: true,
+      opacity: 0.75,
+      transmission: 0.5,
+      roughness: 0.22,
+      thickness: 0.08,
+      ior: 1.42,
+      clearcoat: 0.32,
+      clearcoatRoughness: 0.28,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    }),
+  );
+  const brassMaterial = cloneMaterial(
+    materials.brass,
+    new THREE.MeshStandardMaterial({ color: 0xb98a3a, roughness: 0.34, metalness: 0.78 }),
+  );
+  const wickMaterial = cloneMaterial(
+    materials.wick,
+    new THREE.MeshStandardMaterial({ color: 0xdccfb4, roughness: 0.88, metalness: 0.02 }),
+  );
+
+  const body = new THREE.Mesh(
+    latheFromProfile(reservoirProfile(radius, height, neckRadius), 60),
+    cloneMaterial(materials.body, brownGlassMaterial),
+  );
+  body.castShadow = true;
+  body.receiveShadow = true;
+  group.add(body);
+
+  const burnerDisk = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 1.18, neckRadius * 1.05, 0.05, 24),
+    brassMaterial,
+  );
+  burnerDisk.position.y = height + 0.025;
+  group.add(burnerDisk);
+
+  const burnerCollar = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 0.9, neckRadius * 0.9, 0.06, 20),
+    brassMaterial.clone(),
+  );
+  burnerCollar.position.y = height + 0.075;
+  group.add(burnerCollar);
+
+  const wick = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 0.42, neckRadius * 0.44, wickHeight, 16),
+    wickMaterial,
+  );
+  wick.position.y = height + 0.075 + wickHeight * 0.5;
+  group.add(wick);
+
+  const capGroup = new THREE.Group();
+  capGroup.name = `${name}:cap`;
+  const capBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(neckRadius * 1.02, neckRadius * 1.02, wickHeight + 0.12, 24),
+    brassMaterial.clone(),
+  );
+  capBody.position.y = (wickHeight + 0.12) * 0.5;
+  capGroup.add(capBody);
+  const capKnob = new THREE.Mesh(
+    new THREE.SphereGeometry(neckRadius * 0.32, 16, 12),
+    brassMaterial.clone(),
+  );
+  capKnob.position.y = wickHeight + 0.12 + neckRadius * 0.25;
+  capGroup.add(capKnob);
+
+  const capRestPosition = new THREE.Vector3(radius * 2.2, 0, 0);
+  const capMountPosition = new THREE.Vector3(0, height + 0.075, 0);
+  capGroup.position.copy(capAttached ? capMountPosition : capRestPosition);
+  group.add(capGroup);
+
+  const flameOriginY = height + 0.075 + wickHeight + 0.02;
+
+  const anchors = {
+    labelAnchor: makeAnchor(group, 0, height * 0.6, radius + 0.16, `${name}:labelAnchor`),
+    gripAnchor: makeAnchor(group, 0, height * 0.5, 0, `${name}:gripAnchor`),
+    interactionZone: makeAnchor(group, 0, flameOriginY + 0.04, 0, `${name}:interactionZone`),
+    flameOrigin: makeAnchor(group, 0, flameOriginY, 0, `${name}:flameOrigin`),
+    heatZone: makeAnchor(group, 0, flameOriginY + 0.06, 0, `${name}:heatZone`),
+    ignitionTip: makeAnchor(group, 0, flameOriginY - 0.02, 0, `${name}:ignitionTip`),
+    capRest: makeAnchor(group, capRestPosition.x, capRestPosition.y, capRestPosition.z, `${name}:capRest`),
+    capMount: makeAnchor(group, capMountPosition.x, capMountPosition.y, capMountPosition.z, `${name}:capMount`),
+  };
+
+  const state = {
+    capAttached,
+    flameIntensity: 0,
+  };
+
+  const apparatus = composeApparatus({
+    group,
+    name,
+    kind: 'classic-alcohol-lamp',
+    family: 'showcase-heat-source',
+    meshes: { body, burnerDisk, burnerCollar, wick, cap: capGroup },
+    anchors,
+    constraints: {
+      heatClearance: 0.16,
+      effectBounds: {
+        min: new THREE.Vector3(-radius, 0, -radius),
+        max: new THREE.Vector3(radius, flameOriginY + 0.6, radius),
+      },
+    },
+    state,
+    meta: {
+      visualFamily: 'classic-showcase',
+      contentKind: 'burner',
+    },
+  });
+
+  apparatus.controllers = {
+    ...(apparatus.controllers || {}),
+    setCapAttached(attached = true) {
+      const value = Boolean(attached);
+      state.capAttached = value;
+      capGroup.position.copy(value ? capMountPosition : capRestPosition);
+    },
+    setFlameIntensity(intensity = 0) {
+      state.flameIntensity = Math.max(0, Math.min(1, intensity));
+    },
+  };
+  apparatus.validators = [];
+
+  const { labelPlane } = attachFixedPlaneLabel({
+    group,
+    labelAnchor: anchors.labelAnchor,
+    planeGeometry: new THREE.PlaneGeometry(1.0, 0.38),
+    role: 'floating-badge',
+  });
+  attachLabelController(apparatus, labelPlane, { defaultAccent: '#ff9b32' });
   return apparatus;
 }
 
@@ -5924,6 +7155,23 @@ const ChemApparatusLib = {
   createClassicSolidReagentJarApparatus,
   createClassicCopperPieceApparatus,
   createClassicReagentBottleApparatus,
+  createClassicBeakerApparatus,
+  createClassicGraduatedCylinderApparatus,
+  createClassicRoundBottomFlaskApparatus,
+  createClassicFunnelApparatus,
+  createClassicWideMouthJarApparatus,
+  createClassicAlcoholLampApparatus,
+  zincGranules,
+  ironFilings,
+  copperTurnings,
+  magnesiumRibbon,
+  sulfurPowder,
+  copperOxidePowder,
+  calciumCarbonateChips,
+  sodiumChunk,
+  solidPresets,
+  resolveSolidAppearance,
+  createGranulePile,
   APPARATUS_PRESET_DEFINITIONS,
   listRegisteredApparatusPresets,
   getRegisteredApparatusPresetDefinition,

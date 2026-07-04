@@ -1,0 +1,51 @@
+<div class="hud hud--pedagogical-info" data-courseware-ui="learner-lab pedagogy-info">
+  <div class="panel" data-courseware-role="intro">
+    <h1 class="lesson-title">Tính tẩy màu của khí chlorine ẩm</h1>
+    <p class="lesson-desc lesson-prompt">Đưa giấy màu ẩm vào bình chứa khí chlorine rồi theo dõi giấy nhạt màu dần do tác dụng tẩy màu của chlorine ẩm.</p>
+    <p class="lesson-desc lesson-hint">Giấy phải ẩm để Cl2 phản ứng với nước tạo HClO; hiện tượng cần thấy là giấy nhạt dần rồi gần trắng trong bình.</p>
+  </div>
+
+  <div class="legend" data-courseware-role="legend">
+    <h2>Điểm nhấn trực quan</h2>
+<ul>
+      <li>Giấy màu phải ẩm trước khi đưa vào bình chlorine.</li>
+      <li>Giấy nhạt màu dần rồi gần trắng khi ở trong môi trường chlorine ẩm.</li>
+      <li>Nếu thiếu nước, hiện tượng tẩy màu không xảy ra rõ rệt.</li>
+    </ul>
+    <div class="questions">
+      <div>1. Dấu hiệu nào chứng tỏ phản ứng đã xảy ra?</div>
+      <div class="answer">→ Hãy nêu hiện tượng quan sát trực tiếp trên mẫu thay vì mô tả thao tác.</div>
+    </div>
+  </div>
+
+
+  <div class="comparison-table" data-learner-widget="moist-chlorine-compare">
+    <div class="comparison-head">Quan sát hiện tượng</div>
+    <div class="comparison-row" data-step="before" data-state="idle">
+      <div class="sample-pill sample-pill--copper">Trước</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">Giấy màu ẩm</div>
+        <div class="comparison-detail" id="chlorinePaperState">Màu cam, chưa đưa vào bình khí chlorine.</div>
+      </div>
+    </div>
+    <div class="comparison-row" data-step="after" data-state="idle">
+      <div class="sample-pill sample-pill--zinc">Sau</div>
+      <div class="comparison-copy">
+        <div class="comparison-title">Trong bình Cl2 ẩm</div>
+        <div class="comparison-detail" id="chlorineCondition">Giấy phải ẩm để tạo HClO rồi mới bị tẩy màu.</div>
+      </div>
+    </div>
+    <div class="equation-strip" id="chlorineEquation">Cl2 + H2O ⇌ HCl + HClO</div>
+  </div>
+
+  <div class="status" data-courseware-role="status">
+    <div class="status-label">Trạng thái thí nghiệm</div>
+    <div id="statusText">Sẵn sàng</div>
+    <div id="statusSub">Hãy thao tác với mẫu thử.</div>
+  </div>
+
+  <div class="controls" data-courseware-role="controls">
+    <button class="secondary" id="resetBtn" data-action="reset" type="button">Đặt lại</button>
+    <button id="primaryAction" data-action="autoplay" type="button">Chạy tự động</button>
+  </div>
+</div>

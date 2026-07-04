@@ -168,7 +168,7 @@ Nếu một mục thuộc nhóm `Blocker` bị fail, scene không nên được 
 
 ### Warning
 
-- Không để cùng một apparatus logic tồn tại song song dưới 3-4 bản gần giống nhau giữa `examples/`, `generated/`, và `templates/`.
+- Không để cùng một apparatus logic tồn tại song song dưới nhiều bản gần giống nhau. Shared logic thuộc về `lib/`; `templates/` chỉ chứa generated inline bundles.
 - Khi cần self-contained HTML, nên build từ shared source hoặc inline bundle sinh tự động, không copy tay helper cũ.
 
 ## 11. Validator Gate
