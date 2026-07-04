@@ -1,0 +1,46 @@
+{
+  "id": "moist-chlorine-bleaches-colored-paper",
+  "theme": "showcase-bench",
+  "cameraPreset": "flask-showcase-close",
+  "requiredApparatus": ["classic-moist-paper", "classic-erlenmeyer"],
+  "interaction": "free-drag-contact",
+  "reaction": "moist-chlorine-bleaching",
+  "effects": ["color-transition", "smoke-field"],
+  "resultSustainEffects": ["smoke-field"],
+  "steps": [
+    {
+      "id": "insert-moist-paper",
+      "type": "drag-drop-anchor",
+      "source": "classic-moist-paper.probeGrip",
+      "sourcePlacementAnchor": "classic-moist-paper.stopperSeat",
+      "target": "classic-erlenmeyer.mouth",
+      "targetRadius": 0.52,
+      "overlapPadding": 0.24,
+      "placementOffset": [0, 0.025, 0.01],
+      "placementRotation": [0.02, 0, 0],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "moist-chlorine-bleaching",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path",
+  "chemistryNotes": {
+    "equation": "Cl2 + H2O ⇌ HCl + HClO",
+    "observableChange": "Mẩu giấy màu ẩm chuyển từ màu cam/đỏ sang gần trắng khi đi vào vùng khí Cl2 ẩm.",
+    "explanation": "HClO tạo thành trong nước có tính oxi hóa mạnh, phá hủy chất màu trên giấy; chlorine vừa bị khử thành HCl vừa bị oxi hóa thành HClO."
+  },
+  "visualRequirements": {
+    "initialPaperColor": "#f26b28",
+    "finalPaperColor": "#f7f1d8",
+    "gasColor": "#d6e86a",
+    "wireColor": "#8993a0",
+    "stopperColor": "#d0c59c",
+    "mustShowMoisturePatch": true,
+    "mustShowWireAndStopper": true,
+    "mustKeepGasVisibleAfterResult": true
+  }
+}

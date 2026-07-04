@@ -7,9 +7,14 @@ export function createGlowRing({
   color = 0x73d7ff,
   opacity = 0.22,
   name = 'glow-ring',
+  maxOuterRadius = null,
 } = {}) {
+  const effectiveTube = Math.max(0.001, tube);
+  const effectiveRadius = Number.isFinite(maxOuterRadius)
+    ? Math.max(0.001, Math.min(radius, maxOuterRadius - effectiveTube))
+    : radius;
   const mesh = new THREE.Mesh(
-    new THREE.TorusGeometry(radius, tube, 12, 60),
+    new THREE.TorusGeometry(effectiveRadius, effectiveTube, 12, 60),
     new THREE.MeshBasicMaterial({
       color,
       transparent: true,
@@ -32,5 +37,5 @@ export function createGlowRing({
     mesh.scale.setScalar(1);
   }
 
-  return { mesh, setIntensity, reset };
+  return { mesh, setIntensity, reset, radius: effectiveRadius, tube: effectiveTube, maxOuterRadius };
 }

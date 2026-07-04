@@ -11,6 +11,7 @@ function buildAppearance(config) {
         transmission: config.transmission,
         roughness: config.roughness,
         thickness: config.thickness,
+        depthWrite: false,
         ...overrides,
       });
     },
@@ -20,6 +21,7 @@ function buildAppearance(config) {
         transparent: true,
         opacity: config.surfaceOpacity,
         roughness: config.surfaceRoughness ?? 0.2,
+        depthWrite: false,
         ...overrides,
       });
     },

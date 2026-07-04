@@ -1,0 +1,43 @@
+{
+  "id": "water-electrolysis",
+  "theme": "chem-lab-dark",
+  "cameraPreset": "lab-close",
+  "requiredApparatus": ["beaker", "electrode-pair", "dc-power-supply"],
+  "interaction": "free-drag-electrolysis",
+  "reaction": "water-electrolysis",
+  "effects": ["bubble-field"],
+  "resultSustainEffects": [],
+  "steps": [
+    {
+      "id": "place-electrodes",
+      "type": "drag-drop-anchor",
+      "source": "electrode-pair.gripAnchor",
+      "sourcePlacementAnchor": "electrode-pair.interactionZone",
+      "target": "beaker.effectOrigin",
+      "targetRadius": 0.72,
+      "overlapPadding": 0.3,
+      "placementOffset": [0, 0.12, 0],
+      "placementRotation": [0, 0, 0],
+      "onComplete": "stage-electrodes"
+    },
+    {
+      "id": "power-on",
+      "type": "drag-drop-anchor",
+      "source": "dc-power-supply.positiveTerminal",
+      "sourcePlacementAnchor": "dc-power-supply.wireExit",
+      "target": "electrode-pair.anodeTerminal",
+      "targetRadius": 0.54,
+      "overlapPadding": 0.24,
+      "placementOffset": [0.84, -0.44, 0.12],
+      "placementRotation": [0, 0, 0],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-electrolysis",
+      "type": "reaction-progress",
+      "reaction": "water-electrolysis",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

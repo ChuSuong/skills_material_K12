@@ -1,0 +1,14 @@
+{
+  "topic": "Tính tẩy màu của khí chlorine ẩm",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "showcase-bench",
+  "recipe": "moist-chlorine-bleaches-colored-paper",
+  "reaction": "moist-chlorine-bleaching",
+  "effects": [
+    "color-transition",
+    "smoke-field"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

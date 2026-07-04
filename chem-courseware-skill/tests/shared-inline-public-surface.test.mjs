@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { readdir, readFile } from 'node:fs/promises';
+import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+
+import { ACTIVE_CLASSIC_RECIPE_IDS } from '../scripts/classic-kit-active-config.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +44,8 @@ const sharedExports = [
   'computeAnchorPlacementPose',
   'applyAnchorPlacement',
   'createGuidedAnchorMotion',
+  'createGuidedPourMotion',
+  'createSequencedPourController',
   'createContextualLabelPolicy',
   'createSpriteTexture',
   'createSoftCircleTexture',
@@ -54,6 +58,14 @@ const sharedExports = [
   'createFlamePlume',
   'createColorTransition',
   'createMaterialProgress',
+  'createSmokeField',
+  'createVesselReactionZone',
+  'particlePoolContainedInReactionZone',
+  'objectContainedInReactionZone',
+  'createContainedGasField',
+  'createPrecipitateCloud',
+  'createGasCollectionBubbles',
+  'createHeatShimmer',
   'createReactionFlow',
   'createPourIntoVesselReaction',
   'createAcidBaseIndicatorReaction',
@@ -61,6 +73,7 @@ const sharedExports = [
   'createDehydrationCarbonizationReaction',
   'createAcidMetalGasReaction',
   'createMethaneCombustionReaction',
+  'createWaterElectrolysisReaction',
   'getCanvasBox',
   'canvasPoint',
   'projectWorldToCanvas',
@@ -70,9 +83,18 @@ const sharedExports = [
 
 async function listGeneratedExperimentHtmlFiles() {
   const entries = await readdir(generatedExperimentDir, { withFileTypes: true }).catch(() => []);
-  return entries
-    .filter((entry) => entry.isDirectory())
+  const htmlCandidates = entries
+    .filter((entry) => entry.isDirectory() && entry.name !== 'experiment')
     .map((entry) => path.join(generatedExperimentDir, entry.name, 'index.html'));
+  const existing = await Promise.all(htmlCandidates.map(async (filePath) => {
+    try {
+      await access(filePath);
+      return filePath;
+    } catch {
+      return null;
+    }
+  }));
+  return existing.filter(Boolean);
 }
 
 test('shared inline bundle exposes the shared public surface', async () => {
@@ -84,9 +106,11 @@ test('shared inline bundle exposes the shared public surface', async () => {
   }
 });
 
-test('legacy generated experiment references still avoid repo-local helper imports', async () => {
+test('generated experiment HTML references avoid repo-local helper imports', async () => {
   const localImportPattern = /\.\.\/\.\.\/\.\.\/lib\//;
   const generatedHtmlFiles = await listGeneratedExperimentHtmlFiles();
+
+  assert.ok(generatedHtmlFiles.length >= ACTIVE_CLASSIC_RECIPE_IDS.length);
 
   for (const filePath of generatedHtmlFiles) {
     const source = await readFile(filePath, 'utf8');

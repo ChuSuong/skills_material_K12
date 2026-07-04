@@ -1,0 +1,39 @@
+{
+  "id": "zinc-copper-hcl-compare",
+  "theme": "showcase-bench",
+  "cameraPreset": "rack-2tube-front",
+  "requiredApparatus": ["solid-reagent-jar", "zinc-granules", "copper-piece", "test-tube"],
+  "interaction": "free-drag-contact",
+  "reaction": "acid-metal-gas",
+  "effects": ["bubble-field", "color-transition"],
+  "resultSustainEffects": [],
+  "steps": [
+    {
+      "id": "add-zinc",
+      "type": "drag-drop-anchor",
+      "source": "solid-reagent-jar.gripAnchor",
+      "sourcePlacementAnchor": "solid-reagent-jar.dropAnchor",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.44,
+      "overlapPadding": 0.22,
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-copper",
+      "type": "drag-drop-anchor",
+      "source": "copper-piece.interactionZone",
+      "sourcePlacementAnchor": "copper-piece.interactionZone",
+      "target": "test-tube.mouth",
+      "targetRadius": 0.44,
+      "overlapPadding": 0.22,
+      "onComplete": "observe-no-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "acid-metal-gas",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path"
+}

@@ -18,6 +18,13 @@ test('free drag controller wraps shared manipulation instead of scene-local poin
   assert.match(source, /overlapObject/);
   assert.match(source, /modelsOverlapOrNear/);
   assert.match(source, /homePose/);
+  assert.match(source, /successBehavior/);
+  assert.match(source, /successReturnDelayMs/);
+  assert.match(source, /commitSuccess/);
+  assert.match(source, /getEntryState/);
+  assert.match(source, /isAtHome/);
+  assert.match(source, /canStartSequencedMotion/);
+  assert.match(source, /hasActiveTransition/);
   assert.match(source, /autoTiltTarget/);
   assert.doesNotMatch(source, /addEventListener\s*\(\s*['"]pointer/);
 });
@@ -33,6 +40,10 @@ test('effect modules expose reusable effect factories', async () => {
     'lib/effects/flame-plume.js',
     'lib/effects/color-transition.js',
     'lib/effects/material-progress.js',
+    'lib/effects/smoke-field.js',
+    'lib/effects/precipitate-cloud.js',
+    'lib/effects/gas-collection-bubbles.js',
+    'lib/effects/heat-shimmer.js',
   ];
 
   for (const filePath of files) {
@@ -40,6 +51,10 @@ test('effect modules expose reusable effect factories', async () => {
     assert.match(source, /export function create/, `${filePath} should export a factory`);
     assert.match(source, /reset\s*\(|\.\.\.pool/, `${filePath} should expose reset behavior`);
   }
+
+  const pourSource = await readRepoFile('lib/effects/pour-stream.js');
+  assert.match(pourSource, /CubicBezierCurve3/);
+  assert.match(pourSource, /control2\.copy\(end\)/);
 });
 
 test('reaction modules expose flow-based factories with verifier hooks', async () => {
@@ -73,6 +88,12 @@ test('anchor motion runtime exposes reusable placement, autoplay, and label poli
   assert.match(source, /export function computeAnchorPlacementPose/);
   assert.match(source, /export function applyAnchorPlacement/);
   assert.match(source, /export function createGuidedAnchorMotion/);
+  assert.match(source, /export function createGuidedPourMotion/);
+  assert.match(source, /export function createSequencedPourController/);
+  assert.match(source, /state\.options\.target\?\.anchors\?\.mouth/);
+  assert.match(source, /state\.options\.targetAnchor \? state\.options\.target : null/);
+  assert.match(source, /dragController\.canStartSequencedMotion/);
+  assert.match(source, /nextQueuedStepUsesSource/);
   assert.match(source, /export function createContextualLabelPolicy/);
   assert.match(source, /sourceAnchor/);
   assert.match(source, /targetAnchor/);

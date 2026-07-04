@@ -17,8 +17,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
-const defaultFixtureHtml = path.join(repoRoot, 'examples/sugar-h2so4.html');
-const targetHtml = path.resolve(process.env.COURSEWARE_HTML || defaultFixtureHtml);
+if (!process.env.COURSEWARE_HTML) throw new Error('COURSEWARE_HTML env var is required: COURSEWARE_HTML=/abs/path/to/index.html npm run test:format');
+const targetHtml = path.resolve(process.env.COURSEWARE_HTML);
 
 test('courseware renders without hard runtime failures', async () => {
   const session = await openCoursewarePage({ htmlPath: targetHtml });

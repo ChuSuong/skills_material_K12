@@ -1,0 +1,85 @@
+{
+  "id": "agno3-halide-identification",
+  "theme": "showcase-bench",
+  "cameraPreset": "rack-4tube-front",
+  "requiredApparatus": ["classic-reagent-bottle", "classic-test-tube"],
+  "interaction": "free-drag-pour",
+  "reaction": "agno3-halide-precipitate",
+  "effects": ["pour-stream", "color-transition"],
+  "resultSustainEffects": [],
+  "steps": [
+    {
+      "id": "add-agno3-to-naf",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, -0.26],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-agno3-to-nacl",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, -0.09],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-agno3-to-nabr",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, 0.09],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-agno3-to-nai",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, 0.26],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "agno3-halide-precipitate",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path",
+  "chemistryNotes": {
+    "equations": [
+      "NaF + AgNO3 → NaNO3 + AgF (AgF tan trong nuoc, khong co ket tua)",
+      "NaCl + AgNO3 → NaNO3 + AgCl↓ (trang)",
+      "NaBr + AgNO3 → NaNO3 + AgBr↓ (vang nhat)",
+      "NaI + AgNO3 → NaNO3 + AgI↓ (vang)"
+    ],
+    "observableChange": "Ong NaF: trong suot. Ong NaCl: ket tua trang. Ong NaBr: ket tua vang nhat. Ong NaI: ket tua vang.",
+    "explanation": "AgNO3 tac dung voi ion halide tao ket tua AgX (tru F- vi AgF tan). Mau sac ket tua tang dan tu Cl- den Br- den I-."
+  },
+  "visualRequirements": {
+    "tubeInitialColor": "#e8f4ff",
+    "nafFinalColor": "#e8f4ff",
+    "naclFinalColor": "#f0f0f0",
+    "nabrFinalColor": "#e8d48a",
+    "naiFinalColor": "#d4b840",
+    "agno3BottleColor": "#f5f5f5"
+  }
+}

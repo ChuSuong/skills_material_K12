@@ -36,7 +36,7 @@ export function composeApparatus({
   state = {},
   meta = {},
 }) {
-  return {
+  const apparatus = {
     kind,
     family,
     group,
@@ -48,4 +48,28 @@ export function composeApparatus({
     state,
     meta,
   };
+
+  const tagObject = (object) => {
+    if (!object || typeof object !== 'object') {
+      return;
+    }
+    object.userData = object.userData || {};
+    object.userData.coursewareApparatus = apparatus;
+    object.userData.coursewareKind = kind;
+    object.userData.coursewareFamily = family;
+  };
+
+  tagObject(group);
+  for (const value of Object.values(meshes)) {
+    if (Array.isArray(value)) {
+      value.forEach(tagObject);
+    } else {
+      tagObject(value);
+    }
+  }
+  for (const value of Object.values(anchors)) {
+    tagObject(value);
+  }
+
+  return apparatus;
 }

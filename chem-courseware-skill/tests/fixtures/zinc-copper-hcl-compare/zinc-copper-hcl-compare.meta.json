@@ -1,0 +1,14 @@
+{
+  "topic": "Dung dịch HCl tác dụng với kim loại",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "renderMode": "threejs",
+  "themeVersion": "showcase-bench",
+  "recipe": "zinc-copper-hcl-compare",
+  "reaction": "acid-metal-gas",
+  "effects": [
+    "bubble-field",
+    "color-transition"
+  ],
+  "generatedBy": "recipe-scene-builder"
+}

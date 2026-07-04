@@ -5,7 +5,19 @@ import { clearWater } from '../chemicals.js';
 export { THREE, clamp, makeAnchor, validateFillLevel };
 
 export function cloneMaterial(material, fallback) {
-  return (material || fallback).clone();
+  if (!material) {
+    return fallback.clone();
+  }
+  if (typeof material.clone === 'function') {
+    return material.clone();
+  }
+  const clone = fallback.clone();
+  if (typeof clone.setValues === 'function') {
+    clone.setValues(material);
+  } else {
+    Object.assign(clone, material);
+  }
+  return clone;
 }
 
 export function applyTransform(group, position = [0, 0, 0], rotation = [0, 0, 0]) {
@@ -23,10 +35,11 @@ export function createDefaultGlassMaterial() {
   return new THREE.MeshPhysicalMaterial({
     color: 0xe8f7ff,
     transparent: true,
-    opacity: 0.28,
-    transmission: 0.92,
+    opacity: 0.22,
+    transmission: 0.94,
     roughness: 0.08,
-    thickness: 0.12,
+    thickness: 0.08,
+    depthWrite: false,
   });
 }
 
@@ -156,6 +169,9 @@ export function attachLabelController(apparatus, labelPlane, { defaultAccent = '
       labelPlane.material.map = texture;
       labelPlane.material.opacity = 1;
       labelPlane.material.needsUpdate = true;
+    },
+    setLabelVisible(visible = true) {
+      labelPlane.visible = Boolean(visible && labelPlane.material.map);
     },
   };
 }

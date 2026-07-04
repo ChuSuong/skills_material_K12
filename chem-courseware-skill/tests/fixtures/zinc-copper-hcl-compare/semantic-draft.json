@@ -1,0 +1,28 @@
+{
+  "kind": "experiment",
+  "recipe": "zinc-copper-hcl-compare",
+  "topic": "Dung dịch HCl tác dụng với kim loại",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "language": "vi",
+  "renderMode": "threejs",
+  "scene": {
+    "apparatus": ["solid-reagent-jar", "zinc-granules", "copper-piece", "test-tube"],
+    "cameraPreset": "rack-2tube-front",
+    "themeVersion": "showcase-bench"
+  },
+  "interaction": {
+    "primaryMode": "direct-manipulation",
+    "goldenPath": ["add-zinc", "add-copper", "finish-reaction"],
+    "resetRequired": true,
+    "autoplayRequired": true
+  },
+  "verification": {
+    "requiresFormat": true,
+    "requiresSmoke": true,
+    "requiresCanvas": true,
+    "requiresInteraction": true,
+    "requiresVisibility": true,
+    "requiresOffline": true
+  }
+}

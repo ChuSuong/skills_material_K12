@@ -1,0 +1,28 @@
+{
+  "kind": "experiment",
+  "recipe": "moist-chlorine-bleaches-colored-paper",
+  "topic": "Tính tẩy màu của khí chlorine ẩm",
+  "level": "THCS",
+  "skill": "chem-3d-experiment",
+  "language": "vi",
+  "renderMode": "threejs",
+  "scene": {
+    "apparatus": ["classic-moist-paper", "classic-erlenmeyer"],
+    "cameraPreset": "flask-showcase-close",
+    "themeVersion": "showcase-bench"
+  },
+  "interaction": {
+    "primaryMode": "direct-manipulation",
+    "goldenPath": ["insert-moist-paper", "finish-reaction"],
+    "resetRequired": true,
+    "autoplayRequired": true
+  },
+  "verification": {
+    "requiresFormat": true,
+    "requiresSmoke": true,
+    "requiresCanvas": true,
+    "requiresInteraction": true,
+    "requiresVisibility": true,
+    "requiresOffline": true
+  }
+}

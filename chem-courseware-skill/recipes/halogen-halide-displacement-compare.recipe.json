@@ -1,0 +1,72 @@
+{
+  "id": "halogen-halide-displacement-compare",
+  "theme": "showcase-bench",
+  "cameraPreset": "rack-3tube-front",
+  "requiredApparatus": ["classic-reagent-bottle", "classic-test-tube"],
+  "interaction": "free-drag-pour",
+  "reaction": "halogen-halide-displacement",
+  "effects": ["pour-stream", "color-transition"],
+  "resultSustainEffects": [],
+  "steps": [
+    {
+      "id": "add-cl2-to-nabr",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, -0.18],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-cl2-to-nai",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, -0.18],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "add-br2-to-nai",
+      "type": "drag-pour-anchor",
+      "source": "classic-reagent-bottle.nozzle",
+      "sourcePlacementAnchor": "classic-reagent-bottle.pourAlign",
+      "target": "classic-test-tube.pourTarget",
+      "targetRadius": 0.58,
+      "overlapPadding": 0.28,
+      "placementOffset": [0, 0.56, 0.02],
+      "placementRotation": [0.48, 0, 0.18],
+      "onComplete": "start-reaction"
+    },
+    {
+      "id": "finish-reaction",
+      "type": "reaction-progress",
+      "reaction": "halogen-halide-displacement",
+      "successPhase": "result"
+    }
+  ],
+  "verifier": "run-reaction-golden-path",
+  "chemistryNotes": {
+    "equations": [
+      "Cl2 + 2NaBr -> 2NaCl + Br2",
+      "Cl2 + 2NaI -> 2NaCl + I2",
+      "Br2 + 2NaI -> 2NaBr + I2"
+    ],
+    "observableChange": "Ống (1) chuyển vàng cam do Br2, ống (2) và (3) chuyển nâu do I2.",
+    "explanation": "Cl2 oxi hóa được Br- và I-, còn Br2 chỉ oxi hóa được I-. Suy ra tính oxi hóa: Cl2 > Br2 > I2."
+  },
+  "visualRequirements": {
+    "tube1InitialColor": "#dff6ff",
+    "tube1FinalColor": "#c97a1a",
+    "tube23InitialColor": "#e6f7ff",
+    "tube23FinalColor": "#7a4a2a",
+    "chlorineWaterColor": "#d9ee75",
+    "bromineWaterColor": "#d08a37"
+  }
+}

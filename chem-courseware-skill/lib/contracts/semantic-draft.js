@@ -8,11 +8,16 @@ import {
 } from './semantic-draft-types.js';
 
 export function normalizeSemanticDraft(draft = {}) {
+  const inputHud = draft.hud || {};
   return {
     ...draft,
     hud: {
       ...DEFAULT_HUD,
-      ...(draft.hud || {}),
+      ...inputHud,
+      pedagogy: {
+        ...DEFAULT_HUD.pedagogy,
+        ...(inputHud.pedagogy || {}),
+      },
     },
     output: {
       ...DEFAULT_OUTPUT,

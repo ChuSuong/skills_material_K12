@@ -61,6 +61,14 @@ export function createSceneShell({
 
   const resolvedTheme = getThemePreset(theme);
   const resolvedCameraPreset = getCameraPreset(cameraPreset);
+  const stageTheme = resolvedTheme.scene || {};
+  const benchTopSize = stageTheme.benchTopSize || [12.8, 0.34, 5.8];
+  const benchTopY = stageTheme.benchTopY ?? 1.32;
+  const benchLegSize = stageTheme.benchLegSize || [0.35, 2.6, 0.35];
+  const benchLegOffsets = stageTheme.benchLegOffsets || [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]];
+  const floorRadius = stageTheme.floorRadius || 24;
+  const roomRadius = stageTheme.roomRadius || 40;
+  const stagePadConfig = stageTheme.stagePad || { visible: false };
   const renderer = new THREE.WebGLRenderer({ canvas: resolvedCanvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -109,12 +117,12 @@ export function createSceneShell({
   lights.key.shadow.camera.bottom = -16;
 
   const room = new THREE.Mesh(
-    new THREE.SphereGeometry(40, 42, 28),
+    new THREE.SphereGeometry(roomRadius, 42, 28),
     new THREE.MeshBasicMaterial({ side: THREE.BackSide }),
   );
 
   const floor = new THREE.Mesh(
-    new THREE.CircleGeometry(24, 72),
+    new THREE.CircleGeometry(floorRadius, 72),
     new THREE.MeshStandardMaterial({ roughness: 0.96, metalness: 0.04 }),
   );
   floor.rotation.x = -Math.PI / 2;
@@ -122,27 +130,42 @@ export function createSceneShell({
 
   const bench = new THREE.Group();
   const benchTop = new THREE.Mesh(
-    new THREE.BoxGeometry(12.8, 0.34, 5.8),
+    new THREE.BoxGeometry(benchTopSize[0], benchTopSize[1], benchTopSize[2]),
     new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0.06 }),
   );
-  benchTop.position.y = 1.32;
+  benchTop.position.y = benchTopY;
   benchTop.castShadow = true;
   benchTop.receiveShadow = true;
   bench.add(benchTop);
 
-  const legGeometry = new THREE.BoxGeometry(0.35, 2.6, 0.35);
+  const legGeometry = new THREE.BoxGeometry(benchLegSize[0], benchLegSize[1], benchLegSize[2]);
   const legMaterial = new THREE.MeshStandardMaterial({ roughness: 0.72, metalness: 0.24 });
-  for (const [x, z] of [[-5.8, -2.4], [5.8, -2.4], [-5.8, 2.4], [5.8, 2.4]]) {
+  for (const [x, z] of benchLegOffsets) {
     const leg = new THREE.Mesh(legGeometry, legMaterial);
-    leg.position.set(x, 0, z);
+    leg.position.set(x, (benchTopY - benchTopSize[1] * 0.5) - benchLegSize[1] * 0.5, z);
     leg.castShadow = true;
+    leg.receiveShadow = true;
     bench.add(leg);
   }
 
+  let stagePad = null;
+  if (stagePadConfig.visible) {
+    stagePad = new THREE.Mesh(
+      new THREE.BoxGeometry(stagePadConfig.width || 9.6, stagePadConfig.height || 0.08, stagePadConfig.depth || 2),
+      new THREE.MeshStandardMaterial({ color: stagePadConfig.color || 0x111824, roughness: 0.9, metalness: 0.02 }),
+    );
+    stagePad.position.set(0, stagePadConfig.y ?? (benchTopY + benchTopSize[1] * 0.5 + (stagePadConfig.height || 0.08) * 0.5), 0);
+    stagePad.castShadow = true;
+    stagePad.receiveShadow = true;
+    stagePad.name = 'stagePad';
+    bench.add(stagePad);
+  }
+
+  let activeTheme = resolvedTheme;
   scene.add(lights.ambient, lights.key, lights.rim, room, floor, bench);
 
   function applyTheme(nextTheme = resolvedTheme) {
-    const activeTheme = getThemePreset(nextTheme);
+    activeTheme = getThemePreset(nextTheme);
     const sceneTheme = activeTheme.scene;
 
     scene.background = new THREE.Color(sceneTheme.background);
@@ -185,6 +208,9 @@ export function createSceneShell({
     floor.material.color.setHex(sceneTheme.floor);
     benchTop.material.color.setHex(sceneTheme.bench);
     legMaterial.color.setHex(sceneTheme.benchLeg);
+    if (stagePad && sceneTheme.stagePad?.color != null) {
+      stagePad.material.color.setHex(sceneTheme.stagePad.color);
+    }
 
     applyUiTheme(resolvedHud, activeTheme);
     return activeTheme;
@@ -225,6 +251,8 @@ export function createSceneShell({
     bench,
     floor,
     room,
+    stagePad,
+    theme: activeTheme,
     resize,
     applyTheme,
     installHarness,
